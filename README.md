@@ -19,7 +19,6 @@ This project uses the Windows API for interacting with USB, meaning it shouldn't
   - Follow these great [instructions](https://stackoverflow.com/a/22363820)
 
 ###### C++ Module Dependencies
-
 - fmt: A dependency used in main.cpp to print to the screen.
   - List this package in `vcpkg.json`
   - Install with `vcpkg install`

@@ -5,14 +5,10 @@
 #include <setupapi.h>
 #include <stdio.h>
 #include <hidsdi.h>
-#include "../include/messages.h"
-#include "../include/usb_functions.h"
-#include "../include/keyboard.h"
+#include "messages.h"
+#include "usb_functions.h"
+#include "keyboard.h"
 
-
-//
-// Keyboard class
-//
 
 Keyboard::Keyboard()
 {

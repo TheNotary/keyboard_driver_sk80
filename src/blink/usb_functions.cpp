@@ -1,4 +1,4 @@
-#include "../include/usb_functions.h"
+#include "usb_functions.h"
 #include <windows.h>
 #include <iostream>
 #include <fmt/core.h>
@@ -6,9 +6,11 @@
 #include <setupapi.h>
 #include <stdio.h>
 #include <hidsdi.h>
-#include "../include/messages.h"
-#include "../include/keyboard.h"
+#include "messages.h"
+#include "keyboard.h"
 
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "hid.lib")
 
 static void PrintWideString(const char* buffer, int bufferLen) {
     for (int i = 0; i < bufferLen; i += 2) {

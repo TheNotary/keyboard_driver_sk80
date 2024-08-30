@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/usb_functions.h"
+#include "usb_functions.h"
 #include <string>
 #include <windows.h>
 

@@ -1,4 +1,4 @@
-#include "../include/messages_data.h"
+#include "messages_data.h"
 
 ///////////////////////
 // Begin Bulk Update //
