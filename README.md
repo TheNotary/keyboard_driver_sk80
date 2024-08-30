@@ -30,4 +30,10 @@ This project uses the Windows API for interacting with USB, meaning it shouldn't
   - You will note the outputs indicate using `find_package(pkgconfig REQUIRED)`
   - Copy/ paste codes into CMakeLists.txt
   - Make sure pkg-config is installed
-
+- If anything ever goes wrong with the build system, and re-run:
+  - delete the `build/` folder manually
+  - `cmake --preset=default`
+  - `cmake --build build`
+- Getting the error "The following configuration files were considered but not accepted:"
+  - Don't forget to use the "Developer Command Prompt"
+  - Randomly the IDE might prompt you on the top with `CMake... delete and regenerate the cache`, click that
