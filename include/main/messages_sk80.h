@@ -1,6 +1,6 @@
 #pragma once
 
-extern const size_t  MESSAGE_LENGTH_SK80 = 65;
+constexpr auto MESSAGE_LENGTH_SK80 = 65;
 
 extern unsigned char BULK_LED_HEADER_MESSAGES_SK80[][MESSAGE_LENGTH_SK80];
 extern const size_t  BULK_LED_HEADER_MESSAGES_COUNT_SK80;

@@ -13,11 +13,11 @@ add_library(blink SHARED
 	"src/blink/messages.cpp" "include/main/messages.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
- "include/main/messages_sk80.h" "src/blink/messages_sk80.cpp")
+ "include/main/messages_sk80.h" "src/blink/messages_sk80.cpp" "src/blink/messages_rk84.cpp" "include/main/messages_rk84.h")
 
 add_executable(main "src/main.cpp" 
 	"src/test_load_blink.cpp" "include/main/test_load_blink.h"
- "include/main/messages_sk80.h" "src/blink/messages_sk80.cpp")
+ "include/main/messages_sk80.h" "src/blink/messages_sk80.cpp" "src/blink/messages_rk84.cpp" "include/main/messages_rk84.h")
 
 # Define the BUILD_DLL macro for the library build
 target_compile_definitions(blink PRIVATE BUILD_DLL)

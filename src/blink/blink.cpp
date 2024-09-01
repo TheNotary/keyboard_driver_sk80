@@ -28,8 +28,10 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
 
     kbd.SetActiveKeys(keyIds, nKeys);
     //kbd.BlinkActiveKeys(4, 50);
-    // kbd.TurnOnActiveKeys(4, 50);
     //kbd.TurnOffActiveKeys(4, 50);
+
+    kbd.TurnOnActiveKeys();
+
 
     //kbd.Blink(4, 50);
     kbd.Dispose();

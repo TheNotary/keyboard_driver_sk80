@@ -4,7 +4,8 @@
 #include <unordered_map>
 #include <windows.h>
 
-enum KeyboardModel { SK80, MK84 };
+enum KeyboardModel { SK80, MK84, RK84 };
+enum KeyValue { kOn, kOff };
 
 struct DeviceInfo {
     short vid;
@@ -15,11 +16,14 @@ struct DeviceInfo {
 using KeyNameKeyIdPair = std::unordered_map<std::string, char>;
 extern std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings;
 
+using KeyValueBytesPair = std::unordered_map<KeyValue, char>;
+extern std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings;
+
 
 /**
  * @brief The Keyboard class allows you to interface with the LEDs on the keyboard.
  *
- * This class allows you to change the RGB values of the keys on the keyboard by 
+ * This class allows you to change the RGB values of the keys on the keyboard by
  * sending bulk data to the keyboard.
  */
 class Keyboard {
@@ -28,6 +32,7 @@ public:
      Keyboard(KeyboardModel keyboard_model);
      bool AccessDeviceHandle();
      HANDLE GetDeviceHandle();
+     void SetKeysOnOff(KeyValue key_value);
      void SetActiveKeys(char* key_ids, UINT8 n_keys);
      void BlinkActiveKeys(int n, int interval);
      void TurnOnActiveKeys();
@@ -43,6 +48,7 @@ private:
      short pid; //  = 0x024f
      char active_key_ids[256] = { 0 };
      UINT8 n_active_keys = 0;
+     KeyboardModel keyboard_model;
 
      struct DeviceInfo {
          short vid;

@@ -8,6 +8,8 @@
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboard.h"
+#include "messages_rk84.h"
+
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
     {
@@ -33,7 +35,42 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
         MK84, {
             {"f12", 0x0d}
         }
+    },
+    {
+        RK84, {
+            {"esc", 0x01},
+            {"f1", 0x07},
+            {"f2", 0x0d},
+            {"f3", 0x13},
+            {"f4", 0x19},
+            {"f5", 0x1f},
+            {"f6", 0x25},
+            {"f7", 0x2b},
+            {"f8", 0x31},
+            {"f9", 0x37},
+            {"f10", 0x3d},
+            {"f11", 0x43},
+            {"f12", 0x49},
+
+            {"tilde", 0x02},
+        }
     }
+};
+
+
+std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings = {
+    {
+        SK80, {
+            { kOn, 0xff },
+            { kOff, 0x00 }
+         }
+    },
+    {
+        RK84, {
+            { kOn, 0x07 },
+            { kOff, 0x00 }
+        }
+    },
 };
 
 
@@ -56,7 +93,6 @@ HANDLE Keyboard::GetDeviceHandle() {
 void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
     std::cout << "Setting LED" << std::endl;
 
-    TEST_SLIM_HEADER_MESSAGES[1][9] = 0x01; // number of packets to send in "bulk transfer"
     SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
 
     TEST_SLIM_MESSAGES[0][54] = r;
@@ -129,7 +165,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     // and send it...
     for (int i = 0; i < this->n_active_keys; i++) {
         UINT8 active_key = this->active_key_ids[i];
-        // for 0x01, we need to insert into i = 0; offset = 
+        // for 0x01, we need to insert into i = 0; offset =
 
         UINT8 offset = 5 + ((active_key - 1) * 4);
 
@@ -149,7 +185,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     //    key_message[0][offset + 3] = b;
     //}
 
-    
+
 
     printf("Sending RGB message: \n");
     printf("0x00");
@@ -183,6 +219,55 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     SendBufferToDevice(this->device_handle, END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
+
+void Keyboard::SetKeysOnOff(KeyValue key_value) {
+    std::cout << "SetKeysOnOff" << std::endl;
+    if (this->n_active_keys == 0) {
+        printf("SetKeysOnOff was called with zero active keys... odd...");
+        return;
+    }
+
+    char bytesForValue = on_off_mappings[this->keyboard_model][key_value];
+
+    //{
+    //    0x0a, 0x03, 0x01, 0x03, 0x7e, 0x01, 0x00, 0x00,  // first key address is after the 0x7e01, escape key
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00
+    //},
+    //{
+    //    0x0a, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00
+    //},
+    //{
+    //    0x0a, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00
+    //}
+
+    //BULK_LED_VALUE_MESSAGES_RK84
+
+    // SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+}
+
 void Keyboard::BlinkActiveKeys(int n, int interval) {
     for (int i = 0; i < n; i++) {
         this->SetKeysRGB(0xff, 0xff, 0xff);
@@ -203,12 +288,13 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
 }
 
 void Keyboard::TurnOnActiveKeys() {
-    //this->SetKeysRGB(0xff, 0xff, 0xff);
+    this->SetKeysOnOff(kOn);
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     DeviceInfo device_info = device_mappings[keyboard_model];
-
+    
+    this->keyboard_model = keyboard_model;
     this->pid = device_info.pid;
     this->vid = device_info.vid;
 }
