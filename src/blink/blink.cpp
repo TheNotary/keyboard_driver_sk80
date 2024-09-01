@@ -15,7 +15,8 @@ extern "C" void HelloDll() {
 extern "C" int BlinkKeys(char* keyIds, int nKeys) {
     PrintBlinkKeysArguments(keyIds, nKeys);
 
-    Keyboard kbd(KeyboardModel::SK80);
+    //Keyboard kbd(KeyboardModel::SK80);
+    Keyboard kbd(KeyboardModel::RK84);
 
     printf("pid: %x\n", kbd.GetPid());
 
@@ -26,12 +27,34 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
 
     return 0;
 
-    kbd.SetActiveKeys(keyIds, nKeys);
+    kbd.SetActiveKeyIds(keyIds, nKeys);
     //kbd.BlinkActiveKeys(4, 50);
     //kbd.TurnOffActiveKeys(4, 50);
 
     kbd.TurnOnActiveKeys();
 
+    //kbd.Blink(4, 50);
+    kbd.Dispose();
+    return 0;
+}
+
+
+extern "C" int BlinkKeyNames(const std::vector<std::string>& key_names) {
+    //Keyboard kbd(KeyboardModel::SK80);
+    Keyboard kbd(KeyboardModel::RK84);
+
+    /*printf("pid: %x\n", kbd.GetPid());
+    if (!kbd.Found()) {
+        printf("Could not find keyboard\n");
+        return 1;
+    }
+    return 0;*/
+
+    kbd.SetActiveKeys(key_names);
+    //kbd.BlinkActiveKeys(4, 50);
+    //kbd.TurnOffActiveKeys(4, 50);
+
+    kbd.TurnOnActiveKeys();
 
     //kbd.Blink(4, 50);
     kbd.Dispose();

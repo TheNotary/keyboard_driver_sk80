@@ -52,6 +52,7 @@ void PrintDeviceDetails(HANDLE hDev,
         return;
     }
 
+
     char mfcString[256];
     ZeroMemory(mfcString, sizeof(mfcString));
     if (!HidD_GetManufacturerString(hDev, mfcString, sizeof(mfcString))) {
@@ -62,10 +63,12 @@ void PrintDeviceDetails(HANDLE hDev,
     char vendorId[16];
     char productId[16];
     char devicePath[1024];
+    sprintf(devicePath, "%s", deviceDetails->DevicePath);
 
     sprintf(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
     sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);
-    sprintf(devicePath, "%s", deviceDetails->DevicePath);
+
+    printf("\nPRINTING DETAILS FOR %s\n", devicePath);
 
     printf("productString: ");
     PrintWideString(productString, sizeof(productString));
@@ -158,17 +161,29 @@ HANDLE SearchForDevice(short vid, short pid) {
             continue;
         }
 
-        /*char vendorId[16];
-        char productId[16];
-        sprintf(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
-        sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);*/
+        // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
         if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
             PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
+            char devicePath[1024];
+            sprintf(devicePath, "%s", deviceDetails->DevicePath);
+
             //                     "\\\\?\\hid#vid_05ac&pid_024f&mi_00#8&16781069&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
-            //if (strstr(devicePath, "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"))
-            return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
+
+            // 012FCB54  0323D8EC   L"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col04#9&3b698677&0&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
+            
+            // 009DCC04  00349344   devicedrive"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}"
+            //                                 "\\\\?\\hid#vid_0b05&pid_19af&mi_02#7&382c88b3&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"
+            char target_device_path_rk84_1[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col01#9&3b698677&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+            char target_device_path_rk84_2[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col02#9&3b698677&0&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+            char target_device_path_rk84_3[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col03#9&3b698677&0&0002#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+            char target_device_path_rk84_4[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+            
+            char target_device_path_sk80[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+            
+            if (strstr(devicePath, target_device_path_rk84_4))
+              return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
         }
         CloseHandle(hDev);
     }
@@ -182,7 +197,7 @@ static int SendPayloadBytesToDevice(HANDLE deviceHandle, const UCHAR* payload, s
     // Set the feature report
     if (!HidD_SetFeature(deviceHandle, (PVOID)payload, payloadLength))
     {
-        std::cerr << "Failed on send_payload_bytes_to_device: " << GetLastError() << std::endl;
+        std::cerr << "Failed on SendPayloadBytesToDevice: " << GetLastError() << std::endl;
         CloseHandle(deviceHandle);
         return 1;
     }

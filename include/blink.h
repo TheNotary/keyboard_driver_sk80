@@ -11,7 +11,11 @@
 #define DLL_EXPORT
 #endif
 
+#include <vector>
+#include <string>
+
 extern "C" DLL_EXPORT void HelloDll();
 extern "C" DLL_EXPORT int BlinkKeys(char* keyIds, int nKeys);
+extern "C" DLL_EXPORT int BlinkKeyNames(const std::vector<std::string>& key_names);
 
 #endif // BLINK_H

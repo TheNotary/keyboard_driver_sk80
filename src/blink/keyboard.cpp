@@ -131,12 +131,21 @@ bool Keyboard::Found() {
     return this->device_handle != 0;
 }
 
-void Keyboard::SetActiveKeys(char* key_ids, UINT8 n_keys) {
+void Keyboard::SetActiveKeyIds(char* key_ids, UINT8 n_keys) {
     for (int i = 0; i < n_keys; i++) {
         this->active_key_ids[i] = key_ids[i];
     }
     this->active_key_ids[n_keys] = 0x00; // null terminate the key_ids list in case we drop using n_keys
     this->n_active_keys = n_keys;
+}
+
+void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
+    for (size_t i = 0; i < key_names.size(); ++i) {
+        std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
+        this->active_key_ids[i] = keyname_keyid_mappings[this->keyboard_model][key_names[i]];
+    }
+
+    this->n_active_keys = key_names.size();
 }
 
 void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
@@ -265,7 +274,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
 
     //BULK_LED_VALUE_MESSAGES_RK84
 
-    // SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+     SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
 
 void Keyboard::BlinkActiveKeys(int n, int interval) {

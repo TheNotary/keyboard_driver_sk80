@@ -1,9 +1,11 @@
 #include <windows.h>
 #include <iostream>
+#include <vector>
 #include "test_load_blink.h"
 
 typedef void (*HelloDllFunc)();
 typedef int (*BlinkKeysFunc)(char* keyIds, int nKeys);
+typedef int (*BlinkKeyNamesFunc)(const std::vector<std::string>& key_names);
 
 /*
 * @brief A generic function for loading a function from a dll.
@@ -61,4 +63,21 @@ int test_dll(char* keyIds, int nKeys) {
     FreeLibrary(hModule);
 
     return 0;
+}
+
+
+int CallDllBlinkKeyNames(const std::vector<std::string>& key_names) {
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return 1;
+    }
+
+    BlinkKeyNamesFunc BlinkKeyNames = GetFunction<BlinkKeyNamesFunc>(&hModule, "BlinkKeyNames");
+    if (!BlinkKeyNames) {
+        FreeLibrary(hModule);
+        return 1;
+    }
+
+    return BlinkKeyNames(key_names);
 }

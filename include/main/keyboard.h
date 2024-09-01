@@ -33,7 +33,8 @@ public:
      bool AccessDeviceHandle();
      HANDLE GetDeviceHandle();
      void SetKeysOnOff(KeyValue key_value);
-     void SetActiveKeys(char* key_ids, UINT8 n_keys);
+     void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
+     void SetActiveKeys(const std::vector<std::string>& key_names);
      void BlinkActiveKeys(int n, int interval);
      void TurnOnActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
@@ -57,7 +58,8 @@ private:
 
      std::unordered_map<KeyboardModel, DeviceInfo> device_mappings = {
          { SK80, {0x05ac, 0x024f} },
-         { MK84, {0x0000, 0x0000} }
+         { MK84, {0x0000, 0x0000} },
+         { RK84, {0x258a, 0x00c0} }
      };
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
