@@ -9,6 +9,33 @@
 #include "usb_functions.h"
 #include "keyboard.h"
 
+std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
+    {
+        SK80, {
+            {"esc", 0x01},
+            {"f1", 0x02},
+            {"f2", 0x03},
+            {"f3", 0x04},
+            {"f4", 0x05},
+            {"f5", 0x06},
+            {"f6", 0x07},
+            {"f7", 0x08},
+            {"f8", 0x09},
+            {"f9", 0x0a},
+            {"f10", 0x0b},
+            {"f11", 0x0c},
+            {"f12", 0x0d},
+
+            {"tilde", 0x10},
+        }
+    },
+    {
+        MK84, {
+            {"f12", 0x0d}
+        }
+    }
+};
+
 
 Keyboard::Keyboard(KeyboardModel keyboard_model)
 {
@@ -31,7 +58,6 @@ void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned
 
     TEST_SLIM_HEADER_MESSAGES[1][9] = 0x01; // number of packets to send in "bulk transfer"
     SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
-
 
     TEST_SLIM_MESSAGES[0][54] = r;
     TEST_SLIM_MESSAGES[0][55] = g;
@@ -174,6 +200,10 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
         this->SetKeysRGB(0x00, 0x00, 0x00);
         Sleep(interval);
     }
+}
+
+void Keyboard::TurnOnActiveKeys() {
+    //this->SetKeysRGB(0xff, 0xff, 0xff);
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {

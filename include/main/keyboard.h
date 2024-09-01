@@ -6,6 +6,16 @@
 
 enum KeyboardModel { SK80, MK84 };
 
+struct DeviceInfo {
+    short vid;
+    short pid;
+};
+
+// Setup a mapping between, say "f12" and 0x0d (the ID for the key as known by the hardware)
+using KeyNameKeyIdPair = std::unordered_map<std::string, char>;
+extern std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings;
+
+
 /**
  * @brief The Keyboard class allows you to interface with the LEDs on the keyboard.
  *
@@ -20,6 +30,7 @@ public:
      HANDLE GetDeviceHandle();
      void SetActiveKeys(char* key_ids, UINT8 n_keys);
      void BlinkActiveKeys(int n, int interval);
+     void TurnOnActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
      void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
      void Blink(int n, int interval);
