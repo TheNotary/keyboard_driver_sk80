@@ -3,7 +3,7 @@
 
 void PrintWideString(const char* buffer, int bufferLen);
 
-HANDLE SearchForDevice(char* vid, char* pid);
+HANDLE SearchForDevice(short vid, short pid);
 
 void SendBufferToDevice(
     HANDLE deviceHandle, unsigned char messages[][65],

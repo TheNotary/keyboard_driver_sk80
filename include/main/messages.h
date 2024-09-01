@@ -18,3 +18,5 @@ extern unsigned char TURN_F12_OFF_MESSAGES[][65];
 
 extern unsigned char TEST_SLIM_MESSAGES[][65];
 extern unsigned char TEST_SLIM_HEADER_MESSAGES[][65];
+
+constexpr auto MESSAGE_LENGTH = 65;

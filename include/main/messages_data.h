@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Delete this file, unused?
+
 extern const size_t BEGIN_BULK_UPDATE_MESSAGE_LENGTH;
 extern const size_t BEGIN_BULK_UPDATE_MESSAGE_COUNT;
 

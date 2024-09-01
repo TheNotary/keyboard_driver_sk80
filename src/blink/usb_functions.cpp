@@ -20,7 +20,94 @@ static void PrintWideString(const char* buffer, int bufferLen) {
     }
 }
 
-HANDLE SearchForDevice(char* vid, char* pid) {
+HANDLE open_device(LPCSTR device_path) {
+    LPCSTR lpFileName = device_path;
+    DWORD dwDesiredAccess = 0xc0000000;
+    DWORD dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+    LPSECURITY_ATTRIBUTES lpSecurityAttributes = NULL;
+    DWORD dwCreationDisposition = OPEN_EXISTING;
+    DWORD dwFlagsAndAttributes = 0x40000000;
+    HANDLE hTemplateFile = NULL;
+
+    return CreateFile(lpFileName,
+        dwDesiredAccess,
+        dwShareMode,
+        lpSecurityAttributes,
+        dwCreationDisposition,
+        dwFlagsAndAttributes,
+        hTemplateFile);
+}
+
+void PrintDeviceDetails(HANDLE hDev,
+    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails,
+    SP_DEVICE_INTERFACE_DATA deviceInfo, 
+    SP_DEVINFO_DATA device_info_data, 
+    HIDD_ATTRIBUTES deviceAttributes
+) {
+    char productString[256];
+    ZeroMemory(productString, sizeof(productString));
+
+    if (!HidD_GetProductString(hDev, productString, sizeof(productString))) {
+        printf("Failed calling HidD_GetProductString");
+        return;
+    }
+
+    char mfcString[256];
+    ZeroMemory(mfcString, sizeof(mfcString));
+    if (!HidD_GetManufacturerString(hDev, mfcString, sizeof(mfcString))) {
+        printf("Failed calling HidD_GetManufacturerString");
+        return;
+    }
+
+    char vendorId[16];
+    char productId[16];
+    char devicePath[1024];
+
+    sprintf(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
+    sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);
+    sprintf(devicePath, "%s", deviceDetails->DevicePath);
+
+    printf("productString: ");
+    PrintWideString(productString, sizeof(productString));
+    printf("\n");
+
+    // This will say SONiX in unicode for our device
+    printf("mfcString: ");
+    PrintWideString(mfcString, sizeof(mfcString));
+    printf("\n");
+
+    fprintf(stdout, "Opening device %s\n", devicePath);
+
+    printf(vendorId);
+    printf(":");
+    printf(productId);
+    printf("\n");
+
+    printf("DevInst: %04x\n", device_info_data.DevInst);
+    printf("DevInst: %x\n", device_info_data.Reserved);
+
+    GUID guid = device_info_data.ClassGuid;
+
+    printf("ClassGuid: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n",
+        guid.Data1, guid.Data2, guid.Data3,
+        guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
+        guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+}
+
+// TODO: I don't think I need to do this apparently... was just copying from reference app...
+void DoAdditionalUsbThings(HANDLE hDev) {
+    PHIDP_PREPARSED_DATA preparsedData;
+    bool result = HidD_GetPreparsedData(hDev, &preparsedData);
+
+    HIDP_CAPS capabilities;
+    NTSTATUS capsResult = HidP_GetCaps(preparsedData, &capabilities);
+    if (capsResult == 0x0011000000)
+        fmt::print("compared...");
+
+    HidD_FreePreparsedData(preparsedData);
+}
+
+HANDLE SearchForDevice(short vid, short pid) {
     GUID hidGuid;
     HDEVINFO deviceInfoList;
     const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
@@ -37,8 +124,8 @@ HANDLE SearchForDevice(char* vid, char* pid) {
     for (int i = 0; ; ++i) {
         SP_DEVICE_INTERFACE_DATA deviceInfo;
         SP_DEVINFO_DATA device_info_data;
-        DWORD size = DEVICE_DETAILS_SIZE;
         HIDD_ATTRIBUTES deviceAttributes;
+        DWORD size = DEVICE_DETAILS_SIZE;
         HANDLE hDev = INVALID_HANDLE_VALUE;
 
         deviceInfo.cbSize = sizeof(deviceInfo);
@@ -55,35 +142,15 @@ HANDLE SearchForDevice(char* vid, char* pid) {
             deviceDetails, size, &size, &device_info_data))
             continue;
 
-        LPCSTR lpFileName = deviceDetails->DevicePath;
-        DWORD dwDesiredAccess = 0xc0000000;
-        DWORD dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-        LPSECURITY_ATTRIBUTES lpSecurityAttributes = NULL;
-        DWORD dwCreationDisposition = OPEN_EXISTING;
-        DWORD dwFlagsAndAttributes = 0x40000000;
-        HANDLE hTemplateFile = NULL;
 
-        hDev = CreateFile(lpFileName,
-            dwDesiredAccess,
-            dwShareMode,
-            lpSecurityAttributes,
-            dwCreationDisposition,
-            dwFlagsAndAttributes,
-            hTemplateFile);
+        hDev = open_device(deviceDetails->DevicePath);
+        
         if (hDev == INVALID_HANDLE_VALUE) {
+            // printf("Failed creating file");
             continue;
         }
 
-        // TODO: I don't think I need to do this apparently... was just copying from reference app...
-        PHIDP_PREPARSED_DATA preparsedData;
-        bool result = HidD_GetPreparsedData(hDev, &preparsedData);
-
-        HIDP_CAPS capabilities;
-        NTSTATUS capsResult = HidP_GetCaps(preparsedData, &capabilities);
-        if (capsResult == 0x0011000000)
-            fmt::print("compared...");
-
-        HidD_FreePreparsedData(preparsedData);
+        DoAdditionalUsbThings(hDev);
 
         deviceAttributes.Size = sizeof(deviceAttributes);
         if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
@@ -91,77 +158,17 @@ HANDLE SearchForDevice(char* vid, char* pid) {
             continue;
         }
 
-        char productString[256];
-        ZeroMemory(productString, sizeof(productString));
-
-        if (!HidD_GetProductString(hDev, productString, sizeof(productString))) {
-            printf("Failed calling HidD_GetProductString");
-            continue;
-        }
-
-        char mfcString[256];
-        ZeroMemory(mfcString, sizeof(mfcString));
-        if (!HidD_GetManufacturerString(hDev, mfcString, sizeof(mfcString))) {
-            printf("Failed calling HidD_GetManufacturerString");
-            continue;
-        }
-
-        char vendorId[16];
+        /*char vendorId[16];
         char productId[16];
-        char devicePath[1024];
-
         sprintf(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
-        sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);
-        sprintf(devicePath, "%s", deviceDetails->DevicePath);
+        sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);*/
 
-        printf("productString: ");
-        PrintWideString(productString, sizeof(productString));
-        printf("\n");
-
-        // This will say SONiX in unicode for our device
-        printf("mfcString: ");
-        PrintWideString(mfcString, sizeof(mfcString));
-        printf("\n");
-
-        fprintf(stdout, "Opening device %s\n", devicePath);
-
-        printf(vendorId);
-        printf(":");
-        printf(productId);
-        printf("\n");
-
-        if (strstr((char*)vendorId, vid) && strstr((char*)productId, pid)) {
-            printf("DevInst: %04x\n", device_info_data.DevInst);
-            printf("DevInst: %x\n", device_info_data.Reserved);
-
-            GUID guid = device_info_data.ClassGuid;
-
-            printf("ClassGuid: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n",
-                guid.Data1, guid.Data2, guid.Data3,
-                guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-                guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-
-            printf("productString: ");
-            PrintWideString(productString, sizeof(productString));
-            printf("\n");
-
-            // This will say SONiX in unicode for our device
-            printf("mfcString: ");
-            PrintWideString(mfcString, sizeof(mfcString));
-            printf("\n");
-
-            fprintf(stdout, "Opening device %s\n", devicePath);
-
-            printf(vendorId);
-            printf(":");
-            printf(productId);
-            printf("\n");
+        if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
+            PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
             //                     "\\\\?\\hid#vid_05ac&pid_024f&mi_00#8&16781069&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
             //if (strstr(devicePath, "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"))
-            //{
             return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
-            //}
         }
         CloseHandle(hDev);
     }
