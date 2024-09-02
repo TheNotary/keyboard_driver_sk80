@@ -229,23 +229,25 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     SendBufferToDevice(this->device_handle, END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
-void Keyboard::PrintPacketBuffer(unsigned char* buffer, size_t message_count, size_t message_length) {
-    int mod_adjustment = 0;
-    for (size_t i = 0; i < message_count * message_length; i++) {
-        if ((i + mod_adjustment) % 8 == 0) {
-            printf("\n");
-        }
-        if (i != 0 && i % message_length == 0) {
-            printf("\n");
-            printf("\n");
-            mod_adjustment--;
-        }
 
-        printf("0x%02x ", buffer[i]);
+void Keyboard::PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length) {
+    for (size_t j = 0; j < message_length; j++) {
+        if (j % 8 == 0)
+            printf("\n");
+        printf("0x%02x ", buffer[i * message_length + j]);
     }
-    printf("\n");
 }
 
+void Keyboard::PrintMessagesInBuffer(
+    unsigned char* buffer, 
+    size_t message_count, 
+    size_t message_length
+) {
+    for (size_t i = 0; i < message_count; i++) {
+        this->PrintMessageInBuffer(buffer, i, message_length);
+        printf("\n");
+    }
+}
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     std::cout << "SetKeysOnOff" << std::endl;
@@ -316,7 +318,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
 
     //BULK_LED_VALUE_MESSAGES_RK84
 
-    this->PrintPacketBuffer(*BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    this->PrintMessagesInBuffer(*BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
     // SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
