@@ -15,15 +15,15 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
     {
         SK80, {
             {"esc", 0x01},
-            {"f1", 0x02},
-            {"f2", 0x03},
-            {"f3", 0x04},
-            {"f4", 0x05},
-            {"f5", 0x06},
-            {"f6", 0x07},
-            {"f7", 0x08},
-            {"f8", 0x09},
-            {"f9", 0x0a},
+            {"f1" , 0x02},
+            {"f2" , 0x03},
+            {"f3" , 0x04},
+            {"f4" , 0x05},
+            {"f5" , 0x06},
+            {"f6" , 0x07},
+            {"f7" , 0x08},
+            {"f8" , 0x09},
+            {"f9" , 0x0a},
             {"f10", 0x0b},
             {"f11", 0x0c},
             {"f12", 0x0d},
@@ -38,21 +38,22 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
     },
     {
         RK84, {
-            {"esc", 0x01},
-            {"f1", 0x07},
-            {"f2", 0x0d},
-            {"f3", 0x13},
-            {"f4", 0x19},
-            {"f5", 0x1f},
-            {"f6", 0x25},
-            {"f7", 0x2b},
-            {"f8", 0x31},
-            {"f9", 0x37},
-            {"f10", 0x3d},
-            {"f11", 0x43},
-            {"f12", 0x49},
+            {"esc", 1},
+            {"f1", 7},
+            {"f2", 13},
+            {"f3", 19},
+            {"f4", 25},
+            {"f5", 31},
+            {"f6", 37},
+            {"f7", 43},
+            {"f8", 49},
+            {"f9", 55},
+            {"f10", 61},
+            {"f11", 67},
+            {"f12", 73},
 
-            {"tilde", 0x02},
+            {"tilde", 2},
+            {"fn", 58},
         }
     }
 };
@@ -228,6 +229,23 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     SendBufferToDevice(this->device_handle, END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
+void Keyboard::PrintPacketBuffer(unsigned char* buffer, size_t message_count, size_t message_length) {
+    int mod_adjustment = 0;
+    for (size_t i = 0; i < message_count * message_length; i++) {
+        if ((i + mod_adjustment) % 8 == 0) {
+            printf("\n");
+        }
+        if (i != 0 && i % message_length == 0) {
+            printf("\n");
+            printf("\n");
+            mod_adjustment--;
+        }
+
+        printf("0x%02x ", buffer[i]);
+    }
+    printf("\n");
+}
+
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     std::cout << "SetKeysOnOff" << std::endl;
@@ -238,44 +256,71 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
 
     char bytesForValue = on_off_mappings[this->keyboard_model][key_value];
 
+    // SetBytesInPacketPerRk80()
+
+    for (int i = 0; i < this->n_active_keys; i++) {
+        UINT8 active_key = this->active_key_ids[i];
+
+        UINT8 n_keys_in_first_packet = 57;
+
+        // assume 'fn' key is to be set.  it's ID is 58u so 58 - 57    | key_id - keys_in_first_packet
+        int offset_to_message = 8;
+        int message_index = 0;
+        if (active_key > n_keys_in_first_packet) {
+            offset_to_message = n_keys_in_first_packet + 3;
+            message_index = 1;
+        }
+
+        // f12.id = 0x49
+        BULK_LED_VALUE_MESSAGES_RK84[message_index][active_key - offset_to_message] = bytesForValue;
+
+        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
+            BULK_LED_VALUE_MESSAGES_RK84[2][active_key - offset_to_message] = bytesForValue;
+    }
+
     //{
     //    0x0a, 0x03, 0x01, 0x03, 0x7e, 0x01, 0x00, 0x00,  // first key address is after the 0x7e01, escape key
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // 57 keys available in this packet from 'esc' to '.'
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00                                             // This last key on page one is "."
+    //},
+    //{
+    //    0x0a, 0x03, 0x02, 0x07, 0x00, 0x00, 0x00, 0x00,  // The first 07 on this row is the fn key followed by f10 as it wraps back to the top
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Offset for page two is 4
+    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,  // The last key on this page is the 7 of this row, 
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00
     //},
     //{
-    //    0x0a, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x0a, 0x03, 0x03, 0x07, 0x00, 0x00, 0x00, 0x00,  // Page 3 appears to be a duplicate of page 2 but indexed 0x03 at [2]
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00
-    //},
-    //{
-    //    0x0a, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00
     //}
 
+    
+
     //BULK_LED_VALUE_MESSAGES_RK84
 
-     SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    this->PrintPacketBuffer(*BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+
+    // SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
+
 
 void Keyboard::BlinkActiveKeys(int n, int interval) {
     for (int i = 0; i < n; i++) {

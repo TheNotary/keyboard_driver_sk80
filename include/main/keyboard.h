@@ -38,6 +38,7 @@ public:
      void BlinkActiveKeys(int n, int interval);
      void TurnOnActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
+     void PrintPacketBuffer(unsigned char* buffer, size_t message_count, size_t message_length);
      void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
      void Blink(int n, int interval);
      void Dispose();
