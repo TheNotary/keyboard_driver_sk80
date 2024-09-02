@@ -28,7 +28,7 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
             {"f11", 0x0c},
             {"f12", 0x0d},
 
-            {"tilde", 0x10},
+            {"~", 0x10},
         }
     },
     {
@@ -44,16 +44,17 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
             {"f3", 19},
             {"f4", 25},
             {"f5", 31},
-            {"f6", 40},
-            {"f7", 56},
-            {"f8", 52},
-            {"f9", 61},
-            {"f10", 64},
-            {"f11", 70},
-            {"f12", 76},
+            {"f6", 37},
+            {"f7", 43},
+            {"f8", 49},
+            {"f9", 55},
+            {"f10", 58},  // strange inconsistency
+            {"f11", 64},
+            {"f12", 70},
             {"'", 73},
 
             {"`", 2}, // ~
+            {"~", 2},
             {"7", 57},
             {"fn", 58},
 
@@ -153,13 +154,28 @@ void Keyboard::SetActiveKeyIds(char* key_ids, UINT8 n_keys) {
 }
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
-    for (size_t i = 0; i < key_names.size(); ++i) {
-        std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
-        this->active_key_ids[i] = keyname_keyid_mappings[this->keyboard_model][key_names[i]];
+    if (key_names.size() > MAXUINT8) {
+        std::cout << "Error: list of key_names to set was too great" << std::endl;
+        throw std::invalid_argument("key_names had too many entries.");
     }
 
-    this->n_active_keys = key_names.size();
+    for (UINT8 i = 0; i < key_names.size(); ++i) {
+        std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
+        std::string key_name = key_names[i];
+        char keyId = keyname_keyid_mappings[this->keyboard_model][key_name];
+        if (keyId == 0) {
+            std::cout << "Error: could not lookup up key " 
+                << "[ " << key_name << " ]"
+                << " from keyname_keyid_mappings." << std::endl;
+            throw std::invalid_argument(
+                "Error: could not lookup up key from keyname_keyid_mappings");
+        }
+        this->active_key_ids[i] = keyId;
+    }
+    this->n_active_keys = (UINT8)key_names.size();
 }
+
+
 
 void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     if (this->n_active_keys == 0) {
@@ -261,21 +277,31 @@ void Keyboard::PrintMessagesInBuffer(
     }
 }
 
-TwoUINT8s Keyboard::GetMessageIndexAndSlotForKeyId(UINT8 active_key, UINT8 n_keys_in_first_packet) {
-    int offset_to_message = 8;
-    int message_index = 0;
-    if (active_key > n_keys_in_first_packet) {
-        offset_to_message = n_keys_in_first_packet + 3;
-        message_index = 1;
+TwoUINT8s Keyboard::GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key, UINT8 n_keys_in_first_packet) {
+    switch (this->keyboard_model) {
+    case(RK84):
+        if (active_key > 94) {
+            throw("RK84 does not support keyIds greater than 94.");
+        }
+
+        UINT8 offset_to_message = active_key + 5;
+        UINT8 message_index = 0;
+        if (active_key > n_keys_in_first_packet) {
+            offset_to_message = active_key - n_keys_in_first_packet + 3;
+            message_index = 1;
+        }
+
+        // This allows for C++17 destructuring via the auto keyword
+        return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
     }
-    TwoUINT8s return_values = { message_index, offset_to_message };
-    return return_values;
+    throw("No implementation of GetMessageIndexAndKeycodeOffsetForKeyId for keyboard_model %s", 
+        this->keyboard_model);
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     std::cout << "SetKeysOnOff" << std::endl;
     if (this->n_active_keys == 0) {
-        printf("SetKeysOnOff was called with zero active keys... odd...");
+        printf("SetKeysOnOff was called with zero active keys... odd...skipping");
         return;
     }
 
@@ -286,17 +312,15 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
         UINT8 active_key = this->active_key_ids[i];
         UINT8 n_keys_in_first_packet = 57;
 
-        TwoUINT8s blah = this->GetMessageIndexAndSlotForKeyId(active_key, n_keys_in_first_packet);
+        auto [message_index, keycode_offset] = 
+            this->GetMessageIndexAndKeycodeOffsetForKeyId(active_key, n_keys_in_first_packet);
         // assume 'fn' key is to be set.  it's ID is 58u so 58 - 57    | key_id - keys_in_first_packet
-        int offset_to_message = blah.first;
-        int message_index = blah.second;
-
 
         // f12.id = 0x49
-        BULK_LED_VALUE_MESSAGES_RK84[message_index][active_key - offset_to_message] = bytesForValue;
+        BULK_LED_VALUE_MESSAGES_RK84[message_index][keycode_offset] = bytesForValue;
 
         if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
-            BULK_LED_VALUE_MESSAGES_RK84[2][active_key - offset_to_message] = bytesForValue;
+            BULK_LED_VALUE_MESSAGES_RK84[2][keycode_offset] = bytesForValue;
     }
 
     
@@ -316,7 +340,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Offset for page two is 4
     //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,  // The last key on this page is the 7 of this row, 
+    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,  // The last key on this page is the 7 of this row, 94
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -364,6 +388,10 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
 
 void Keyboard::TurnOnActiveKeys() {
     this->SetKeysOnOff(kOn);
+}
+
+void Keyboard::TurnOffActiveKeys() {
+    this->SetKeysOnOff(kOff);
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {

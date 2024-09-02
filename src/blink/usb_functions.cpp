@@ -52,7 +52,6 @@ void PrintDeviceDetails(HANDLE hDev,
         return;
     }
 
-
     char mfcString[256];
     ZeroMemory(mfcString, sizeof(mfcString));
     if (!HidD_GetManufacturerString(hDev, mfcString, sizeof(mfcString))) {
@@ -63,10 +62,10 @@ void PrintDeviceDetails(HANDLE hDev,
     char vendorId[16];
     char productId[16];
     char devicePath[1024];
-    sprintf(devicePath, "%s", deviceDetails->DevicePath);
+    sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
 
-    sprintf(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
-    sprintf(productId, "%04X", (unsigned)deviceAttributes.ProductID);
+    sprintf_s(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
+    sprintf_s(productId, "%04X", (unsigned)deviceAttributes.ProductID);
 
     printf("\nPRINTING DETAILS FOR %s\n", devicePath);
 
@@ -164,10 +163,10 @@ HANDLE SearchForDevice(short vid, short pid) {
         // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
         if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
-            PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
+            // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
             char devicePath[1024];
-            sprintf(devicePath, "%s", deviceDetails->DevicePath);
+            sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
 
             //                     "\\\\?\\hid#vid_05ac&pid_024f&mi_00#8&16781069&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
 
@@ -202,6 +201,7 @@ static int SendPayloadBytesToDevice(HANDLE deviceHandle, const UCHAR* payload, s
         return 1;
     }
     Sleep(1); // A sleep statement is crucial here, was set to 35ms, but 1ms seems enough
+    return 0;
 }
 
 static int SwallowDeviceGetReport(HANDLE deviceHandle)

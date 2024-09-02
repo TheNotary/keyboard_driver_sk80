@@ -4,7 +4,7 @@ project(main)
 include_directories(${CMAKE_SOURCE_DIR}/include/main)
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp") # Find all .cpp files in the src/ directory
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options("/utf-8")
 
@@ -29,7 +29,12 @@ add_executable(main "src/main.cpp"
 
 # Add GoogleTest
 find_package(GTest CONFIG REQUIRED)
-add_executable(KeyboardTest test/keyboard_test.cpp)
+add_executable(KeyboardTest test/keyboard_test.cpp
+	"src/blink/keyboard.cpp" "include/main/keyboard.h"
+	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
+	"src/blink/messages.cpp" "include/main/messages.h"
+	"src/blink/messages_rk84.cpp" "include/main/messages_rk84.h"
+)
 #target_link_libraries(KeyboardTest GTest::gtest GTest::gtest_main)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 enable_testing()

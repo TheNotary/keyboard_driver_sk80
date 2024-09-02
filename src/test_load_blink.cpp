@@ -5,7 +5,8 @@
 
 typedef void (*HelloDllFunc)();
 typedef int (*BlinkKeysFunc)(char* keyIds, int nKeys);
-typedef int (*BlinkKeyNamesFunc)(const std::vector<std::string>& key_names);
+typedef int (*TurnOnKeyNamesFunc)(const std::vector<std::string>& key_names);
+typedef int (*TurnOffKeyNamesFunc)(const std::vector<std::string>& key_names);
 
 /*
 * @brief A generic function for loading a function from a dll.
@@ -66,18 +67,34 @@ int test_dll(char* keyIds, int nKeys) {
 }
 
 
-int CallDllBlinkKeyNames(const std::vector<std::string>& key_names) {
+int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
     if (!hModule) {
         std::cerr << "Failed to load DLL" << std::endl;
         return 1;
     }
 
-    BlinkKeyNamesFunc BlinkKeyNames = GetFunction<BlinkKeyNamesFunc>(&hModule, "BlinkKeyNames");
-    if (!BlinkKeyNames) {
+    TurnOnKeyNamesFunc TurnOnKeyNames = GetFunction<TurnOnKeyNamesFunc>(&hModule, "TurnOnKeyNames");
+    if (!TurnOnKeyNames) {
         FreeLibrary(hModule);
         return 1;
     }
 
-    return BlinkKeyNames(key_names);
+    return TurnOnKeyNames(key_names);
+}
+
+int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names) {
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return 1;
+    }
+
+    TurnOffKeyNamesFunc TurnOffKeyNames = GetFunction<TurnOffKeyNamesFunc>(&hModule, "TurnOnOffNames");
+    if (!TurnOffKeyNames) {
+        FreeLibrary(hModule);
+        return 1;
+    }
+
+    return TurnOffKeyNames(key_names);
 }

@@ -2,4 +2,5 @@
 #include <vector>
 
 int test_dll(char* keyIds, int nKeys);
-int CallDllBlinkKeyNames(const std::vector<std::string>& key_names);
+int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names);
+int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names);

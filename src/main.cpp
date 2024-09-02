@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <iostream>
 #include <fmt/core.h>
 #include "test_load_blink.h"
@@ -18,12 +19,14 @@ void printStringsWithPlus(const std::vector<std::string>& strings) {
 int main() {
     fmt::println("Hello fmt, a simple dependency.");
 
-    /*char keyIds[] = { 0x01, 0x02, 0x03, 0x0d };
+    std::vector<std::string> key_names = { "esc", "~", "f1", "f2", "f3", "f4", 
+        "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12" };
 
-    return test_dll(keyIds, sizeof(keyIds));*/
+    CallDllTurnOnKeyNames(key_names);
 
-    //std::vector<std::string> key_names = { "f5", "f6", "f7", "f8", "f9", "f10" };
-    std::vector<std::string> key_names = { "f9" };
+    Sleep(1050);
 
-    return CallDllBlinkKeyNames(key_names);
+    CallDllTurnOffKeyNames(key_names);
+
+    return 0;
 }
