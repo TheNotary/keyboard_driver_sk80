@@ -277,25 +277,41 @@ void Keyboard::PrintMessagesInBuffer(
     }
 }
 
-TwoUINT8s Keyboard::GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key, UINT8 n_keys_in_first_packet) {
-    switch (this->keyboard_model) {
-    case(RK84):
-        if (active_key > 94) {
-            throw("RK84 does not support keyIds greater than 94.");
-        }
-
-        UINT8 offset_to_message = active_key + 5;
-        UINT8 message_index = 0;
-        if (active_key > n_keys_in_first_packet) {
-            offset_to_message = active_key - n_keys_in_first_packet + 3;
-            message_index = 1;
-        }
-
-        // This allows for C++17 destructuring via the auto keyword
-        return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
+// TODO: Move me to RK84
+TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key, UINT8 n_keys_in_first_packet) {
+    if (active_key > 94) {
+        throw("RK84 does not support keyIds greater than 94.");
     }
-    throw("No implementation of GetMessageIndexAndKeycodeOffsetForKeyId for keyboard_model %s", 
-        this->keyboard_model);
+
+    UINT8 offset_to_message = active_key + 5;
+    UINT8 message_index = 0;
+    if (active_key > n_keys_in_first_packet) {
+        offset_to_message = active_key - n_keys_in_first_packet + 3;
+        message_index = 1;
+    }
+
+    // This allows for C++17 destructuring via the auto keyword
+    return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
+}
+
+// TODO: Move me to RK84
+void SetBytesInPacket_RK84(unsigned char messages[][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) {
+    std::memcpy(messages, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84 * MESSAGE_LENGTH_RK84);
+
+    char bytesForValue = on_off_mappings[RK84][key_value];
+
+    for (int i = 0; i < n_active_keys; i++) {
+        UINT8 active_key = active_key_ids[i];
+        UINT8 n_keys_in_first_packet = 57;
+
+        auto [message_index, keycode_offset] =
+            GetMessageIndexAndKeycodeOffsetForKeyId_RK84(active_key, n_keys_in_first_packet);
+
+        messages[message_index][keycode_offset] = bytesForValue;
+
+        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
+            messages[2][keycode_offset] = bytesForValue;
+    }
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
@@ -305,67 +321,13 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
         return;
     }
 
-    char bytesForValue = on_off_mappings[this->keyboard_model][key_value];
+    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84];
+    SetBytesInPacket_RK84(messages, key_value, this->active_key_ids, this->n_active_keys);
 
-    // SetBytesInPacketPerRk80()
-    for (int i = 0; i < this->n_active_keys; i++) {
-        UINT8 active_key = this->active_key_ids[i];
-        UINT8 n_keys_in_first_packet = 57;
+    this->PrintMessagesInBuffer(*messages, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
-        auto [message_index, keycode_offset] = 
-            this->GetMessageIndexAndKeycodeOffsetForKeyId(active_key, n_keys_in_first_packet);
-        // assume 'fn' key is to be set.  it's ID is 58u so 58 - 57    | key_id - keys_in_first_packet
-
-        // f12.id = 0x49
-        BULK_LED_VALUE_MESSAGES_RK84[message_index][keycode_offset] = bytesForValue;
-
-        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
-            BULK_LED_VALUE_MESSAGES_RK84[2][keycode_offset] = bytesForValue;
-    }
-
-    
-    //{
-    //    0x0a, 0x03, 0x01, 0x03, 0x7e, 0x01, 0x00, 0x00,  // first key address is after the 0x7e01, escape key
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // 57 keys available in this packet from 'esc' to '.'
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00                                             // This last key on page one is "."
-    //},
-    //{
-    //    0x0a, 0x03, 0x02, 0x07, 0x00, 0x00, 0x00, 0x00,  // The first 07 on this row is the fn key followed by f10 as it wraps back to the top
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Offset for page two is 4
-    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,  // The last key on this page is the 7 of this row, 94
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00
-    //},
-    //{
-    //    0x0a, 0x03, 0x03, 0x07, 0x00, 0x00, 0x00, 0x00,  // Page 3 appears to be a duplicate of page 2 but indexed 0x03 at [2]
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //    0x00
-    //}
-    
-
-    //BULK_LED_VALUE_MESSAGES_RK84
-
-    this->PrintMessagesInBuffer(*BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
-
-    SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    SendBufferToDevice(this->device_handle, messages, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
-
 
 void Keyboard::BlinkActiveKeys(int n, int interval) {
     for (int i = 0; i < n; i++) {

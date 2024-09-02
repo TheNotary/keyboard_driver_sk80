@@ -3,10 +3,6 @@
 #include <vector>
 #include "test_load_blink.h"
 
-typedef void (*HelloDllFunc)();
-typedef int (*BlinkKeysFunc)(char* keyIds, int nKeys);
-typedef int (*TurnOnKeyNamesFunc)(const std::vector<std::string>& key_names);
-typedef int (*TurnOffKeyNamesFunc)(const std::vector<std::string>& key_names);
 
 /*
 * @brief A generic function for loading a function from a dll.

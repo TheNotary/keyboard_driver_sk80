@@ -9,7 +9,7 @@ TEST(KeyboardTest, KeyInFirstPacket) {
     int keyId = 1;
 
     // Destructuring using structured bindings
-    auto [message_index, slot] = keyboard.GetMessageIndexAndKeycodeOffsetForKeyId(keyId, n_keys_in_first_packet);
+    auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId, n_keys_in_first_packet);
     // TwoUINT8s result = keyboard.GetMessageIndexAndSlotForKeyId(1, n_keys_in_first_packet);
 
     EXPECT_EQ(message_index, 0);
@@ -22,7 +22,7 @@ TEST(KeyboardTest, KeyInSecondPacket) {
     Keyboard keyboard(KeyboardModel::RK84);
     int n_keys_in_first_packet = 57;
     int keyId = 2;
-    auto [message_index, slot] = keyboard.GetMessageIndexAndKeycodeOffsetForKeyId(keyId, n_keys_in_first_packet);
+    auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId, n_keys_in_first_packet);
 
     EXPECT_EQ(message_index, 0);
     EXPECT_EQ(slot, 7);
@@ -34,7 +34,7 @@ TEST(KeyboardTest, KeyId64IsOnSecondPage) {
     Keyboard keyboard(KeyboardModel::RK84);
     int n_keys_in_first_packet = 57;
     int keyId = 64;
-    auto [message_index, slot] = keyboard.GetMessageIndexAndKeycodeOffsetForKeyId(keyId, n_keys_in_first_packet);
+    auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId, n_keys_in_first_packet);
 
     EXPECT_EQ(message_index, 1);
     EXPECT_EQ(slot, 10);
@@ -46,7 +46,7 @@ TEST(KeyboardTest, KeyId65IsOnSecondPage) {
     Keyboard keyboard(KeyboardModel::RK84);
     int n_keys_in_first_packet = 57;
     int keyId = 65;
-    auto [message_index, slot] = keyboard.GetMessageIndexAndKeycodeOffsetForKeyId(keyId, n_keys_in_first_packet);
+    auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId, n_keys_in_first_packet);
 
     EXPECT_EQ(message_index, 1);
     EXPECT_EQ(slot, 11);
