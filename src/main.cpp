@@ -22,7 +22,8 @@ int main() {
 
     return test_dll(keyIds, sizeof(keyIds));*/
 
-    std::vector<std::string> key_names = { "f12" };
+    //std::vector<std::string> key_names = { "f5", "f6", "f7", "f8", "f9", "f10" };
+    std::vector<std::string> key_names = { "f9" };
 
     return CallDllBlinkKeyNames(key_names);
 }

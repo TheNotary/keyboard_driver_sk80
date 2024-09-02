@@ -44,16 +44,28 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
             {"f3", 19},
             {"f4", 25},
             {"f5", 31},
-            {"f6", 37},
-            {"f7", 43},
-            {"f8", 49},
-            {"f9", 55},
-            {"f10", 61},
-            {"f11", 67},
-            {"f12", 73},
+            {"f6", 40},
+            {"f7", 56},
+            {"f8", 52},
+            {"f9", 61},
+            {"f10", 64},
+            {"f11", 70},
+            {"f12", 76},
+            {"'", 73},
 
-            {"tilde", 2},
+            {"`", 2}, // ~
+            {"7", 57},
             {"fn", 58},
+
+            {"tab", 3},
+
+            {"caps", 4},
+
+            {"lshift", 5},
+
+            {"lctrl", 6},
+
+
         }
     }
 };
@@ -249,6 +261,17 @@ void Keyboard::PrintMessagesInBuffer(
     }
 }
 
+TwoUINT8s Keyboard::GetMessageIndexAndSlotForKeyId(UINT8 active_key, UINT8 n_keys_in_first_packet) {
+    int offset_to_message = 8;
+    int message_index = 0;
+    if (active_key > n_keys_in_first_packet) {
+        offset_to_message = n_keys_in_first_packet + 3;
+        message_index = 1;
+    }
+    TwoUINT8s return_values = { message_index, offset_to_message };
+    return return_values;
+}
+
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     std::cout << "SetKeysOnOff" << std::endl;
     if (this->n_active_keys == 0) {
@@ -259,19 +282,15 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
     char bytesForValue = on_off_mappings[this->keyboard_model][key_value];
 
     // SetBytesInPacketPerRk80()
-
     for (int i = 0; i < this->n_active_keys; i++) {
         UINT8 active_key = this->active_key_ids[i];
-
         UINT8 n_keys_in_first_packet = 57;
 
+        TwoUINT8s blah = this->GetMessageIndexAndSlotForKeyId(active_key, n_keys_in_first_packet);
         // assume 'fn' key is to be set.  it's ID is 58u so 58 - 57    | key_id - keys_in_first_packet
-        int offset_to_message = 8;
-        int message_index = 0;
-        if (active_key > n_keys_in_first_packet) {
-            offset_to_message = n_keys_in_first_packet + 3;
-            message_index = 1;
-        }
+        int offset_to_message = blah.first;
+        int message_index = blah.second;
+
 
         // f12.id = 0x49
         BULK_LED_VALUE_MESSAGES_RK84[message_index][active_key - offset_to_message] = bytesForValue;
@@ -280,6 +299,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
             BULK_LED_VALUE_MESSAGES_RK84[2][active_key - offset_to_message] = bytesForValue;
     }
 
+    
     //{
     //    0x0a, 0x03, 0x01, 0x03, 0x7e, 0x01, 0x00, 0x00,  // first key address is after the 0x7e01, escape key
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // 57 keys available in this packet from 'esc' to '.'
@@ -313,14 +333,13 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
     //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     //    0x00
     //}
-
     
 
     //BULK_LED_VALUE_MESSAGES_RK84
 
     this->PrintMessagesInBuffer(*BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
-    // SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    SendBufferToDevice(this->device_handle, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
 
 
