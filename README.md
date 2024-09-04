@@ -35,4 +35,4 @@ This project uses the Windows API for interacting with USB, meaning it shouldn't
   - `cmake --build build`
 - Getting the error "The following configuration files were considered but not accepted:"
   - Don't forget to use the "Developer Command Prompt"
-  - Randomly the IDE might prompt you on the top with `CMake... delete and regenerate the cache`, click that
+  - Randomly the IDE might prompt you on the top with `CMake... delete and regenerate the cache`, click that, also try saving the CMakeLists.txt file to force a rebuild

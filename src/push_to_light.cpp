@@ -82,7 +82,6 @@ int push_to_light() {
             Sleep(200); // Simple debounce delay
         }
 
-
         if (GetAsyncKeyState(VK_F10) & 0x8000) {
             std::cout << "F10 key pressed!" << std::endl;
             std::vector<std::string> key_names = { "f10" };
@@ -106,7 +105,6 @@ int push_to_light() {
 
             Sleep(200); // Simple debounce delay
         }
-
 
         if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
             return 0;

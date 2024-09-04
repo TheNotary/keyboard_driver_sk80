@@ -10,6 +10,45 @@
 #include "keyboard.h"
 #include "messages_rk84.h"
 
+// TODO: Move me to RK84
+TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key) {
+    if (active_key > 96) {
+        throw("RK84 does not support keyIds greater than 96.");
+    }
+
+    UINT8 n_keys_in_first_packet = 59;
+    UINT8 offset_to_message = active_key + 5;
+    UINT8 message_index = 0;  // active_key = '.' aka 
+    if (active_key > n_keys_in_first_packet) {
+        offset_to_message = active_key - n_keys_in_first_packet + 2;
+        message_index = 1;
+    }
+
+    // This allows for C++17 destructuring via the auto keyword
+    return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
+}
+
+// TODO: Move me to RK84
+void SetBytesInPacket_RK84(unsigned char messages[3][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) {
+    std::memcpy(messages, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84 * MESSAGE_LENGTH_RK84);
+
+    char bytesForValue = on_off_mappings[RK84][key_value];
+
+    for (int i = 0; i < n_active_keys; i++) {
+        UINT8 active_key = active_key_ids[i];
+
+        if (active_key == 0x00) // Stop writing when we reach a zero which terminates the buffer
+            break;
+
+        auto [message_index, keycode_offset] =
+            GetMessageIndexAndKeycodeOffsetForKeyId_RK84(active_key);
+
+        messages[message_index][keycode_offset] = bytesForValue;
+
+        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
+            messages[2][keycode_offset] = bytesForValue;
+    }
+}
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
     {
@@ -145,16 +184,39 @@ bool Keyboard::Found() {
     return this->device_handle != 0;
 }
 
-void Keyboard::SetActiveKeyIds(char* key_ids, UINT8 n_keys) {
-    for (int i = 0; i < n_keys; i++) {
-        this->active_key_ids[i] = key_ids[i];
+char Keyboard::GetActiveKeyId(int index) {
+    if (index >= 255) {
+        std::cerr << "Error GetActiveKeyId: index was greater than the max size "
+            << "index: " << index << std::endl;
+        return 0;
     }
-    this->active_key_ids[n_keys] = 0x00; // null terminate the key_ids list in case we drop using n_keys
+    return this->active_key_ids[index];
+}
+
+void Keyboard::SetActiveKeyId(int index, char key_id) {
+    if (index >= 255) {
+        std::cerr << "Error SetActiveKeyId: Cannot set a key at index greater than 255.  "
+            << "index: " << index << ", key_id: " << key_id << std::endl;
+        throw std::invalid_argument("SetActiveKeyId called with index > 255");
+    }
+    this->active_key_ids[index] = key_id;
+}
+
+void Keyboard::SetActiveKeyIds(char* key_ids, UINT8 n_keys) {
+    if (n_keys >= 255) {
+        std::cerr << "Error SetActiveKeyIds: Tried to set over 255 keys!  "
+            << "n_keys: " << n_keys << std::endl;
+        return;
+    }
+    for (int i = 0; i < n_keys; i++) {
+        this->SetActiveKeyId(i, key_ids[i]);
+    }
+    this->SetActiveKeyId(n_keys, 0x00); // null terminate the key_ids list in case we drop using n_keys
     this->n_active_keys = n_keys;
 }
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
-    if (key_names.size() > MAXUINT8) {
+    if (key_names.size() >= 255) {
         std::cout << "Error: list of key_names to set was too great" << std::endl;
         throw std::invalid_argument("key_names had too many entries.");
     }
@@ -162,20 +224,18 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     for (UINT8 i = 0; i < key_names.size(); ++i) {
         std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
         std::string key_name = key_names[i];
-        char keyId = keyname_keyid_mappings[this->keyboard_model][key_name];
-        if (keyId == 0) {
+        char key_id = keyname_keyid_mappings[this->keyboard_model][key_name];
+        if (key_id == 0) {
             std::cout << "Error: could not lookup up key " 
                 << "[ " << key_name << " ]"
                 << " from keyname_keyid_mappings." << std::endl;
             throw std::invalid_argument(
                 "Error: could not lookup up key from keyname_keyid_mappings");
         }
-        this->active_key_ids[i] = keyId;
+        this->SetActiveKeyId(i, key_id);
     }
     this->n_active_keys = (UINT8)key_names.size();
 }
-
-
 
 void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     if (this->n_active_keys == 0) {
@@ -202,12 +262,12 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     // What about this, for every active key, let's pull up the index it should be in the first packet
     // and send it...
     for (int i = 0; i < this->n_active_keys; i++) {
-        UINT8 active_key = this->active_key_ids[i];
-        // for 0x01, we need to insert into i = 0; offset =
+        UINT8 active_key = this->GetActiveKeyId(i);
+        // for 0x01, we need to insert into i = 0; offset = 
 
         UINT8 offset = 5 + ((active_key - 1) * 4);
 
-        key_message[0][offset + 0] = this->active_key_ids[i];
+        key_message[0][offset + 0] = this->GetActiveKeyId(i);
         key_message[0][offset + 1] = r;
         key_message[0][offset + 2] = g;
         key_message[0][offset + 3] = b;
@@ -258,75 +318,22 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
 }
 
 
-void Keyboard::PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length) {
-    for (size_t j = 0; j < message_length; j++) {
-        if (j % 8 == 0)
-            printf("\n");
-        printf("0x%02x ", buffer[i * message_length + j]);
-    }
-}
-
-void Keyboard::PrintMessagesInBuffer(
-    unsigned char* buffer, 
-    size_t message_count, 
-    size_t message_length
-) {
-    for (size_t i = 0; i < message_count; i++) {
-        this->PrintMessageInBuffer(buffer, i, message_length);
-        printf("\n");
-    }
-}
-
-// TODO: Move me to RK84
-TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key, UINT8 n_keys_in_first_packet) {
-    if (active_key > 94) {
-        throw("RK84 does not support keyIds greater than 94.");
-    }
-
-    UINT8 offset_to_message = active_key + 5;
-    UINT8 message_index = 0;
-    if (active_key > n_keys_in_first_packet) {
-        offset_to_message = active_key - n_keys_in_first_packet + 3;
-        message_index = 1;
-    }
-
-    // This allows for C++17 destructuring via the auto keyword
-    return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
-}
-
-// TODO: Move me to RK84
-void SetBytesInPacket_RK84(unsigned char messages[][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) {
-    std::memcpy(messages, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84 * MESSAGE_LENGTH_RK84);
-
-    char bytesForValue = on_off_mappings[RK84][key_value];
-
-    for (int i = 0; i < n_active_keys; i++) {
-        UINT8 active_key = active_key_ids[i];
-        UINT8 n_keys_in_first_packet = 57;
-
-        auto [message_index, keycode_offset] =
-            GetMessageIndexAndKeycodeOffsetForKeyId_RK84(active_key, n_keys_in_first_packet);
-
-        messages[message_index][keycode_offset] = bytesForValue;
-
-        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
-            messages[2][keycode_offset] = bytesForValue;
-    }
-}
-
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
-    std::cout << "SetKeysOnOff" << std::endl;
+    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84];
+    this->SetKeysOnOff(key_value, messages);
+}
+
+void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char messages_sent[3][65]) {
     if (this->n_active_keys == 0) {
         printf("SetKeysOnOff was called with zero active keys... odd...skipping");
         return;
     }
 
-    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84];
-    SetBytesInPacket_RK84(messages, key_value, this->active_key_ids, this->n_active_keys);
+    SetBytesInPacket_RK84(messages_sent, key_value, this->active_key_ids, this->n_active_keys);
 
-    this->PrintMessagesInBuffer(*messages, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    // PrintMessagesInBuffer(messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
-    SendBufferToDevice(this->device_handle, messages, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    SendBufferToDevice(this->device_handle, messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 }
 
 void Keyboard::BlinkActiveKeys(int n, int interval) {
@@ -350,6 +357,10 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
 
 void Keyboard::TurnOnActiveKeys() {
     this->SetKeysOnOff(kOn);
+}
+
+void Keyboard::TurnOnActiveKeys(unsigned char messages_sent[3][65]) {
+    this->SetKeysOnOff(kOn, messages_sent);
 }
 
 void Keyboard::TurnOffActiveKeys() {

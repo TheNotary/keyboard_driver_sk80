@@ -24,7 +24,9 @@ extern std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mapping
 using KeyValueBytesPair = std::unordered_map<KeyValue, char>;
 extern std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings;
 
-extern TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key, UINT8 n_keys_in_first_packet);
+extern TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key);
+
+void SetBytesInPacket_RK84(unsigned char messages[3][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
 
 /**
  * @brief The Keyboard class allows you to interface with the LEDs on the keyboard.
@@ -39,18 +41,20 @@ public:
      bool AccessDeviceHandle();
      HANDLE GetDeviceHandle();
      void SetKeysOnOff(KeyValue key_value);
+     void SetKeysOnOff(KeyValue key_value, unsigned char messages_sent[3][65]);
      void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
      void SetActiveKeys(const std::vector<std::string>& key_names);
      void BlinkActiveKeys(int n, int interval);
+     void TurnOnActiveKeys(unsigned char messages_sent[3][65]);
      void TurnOnActiveKeys();
      void TurnOffActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
-     void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length);
-     void PrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length);
      void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
      void Blink(int n, int interval);
      void Dispose();
      bool Found();
+     char GetActiveKeyId(int index);
+     void SetActiveKeyId(int index, char key_id);
      short GetPid();
 private:
      HANDLE device_handle;

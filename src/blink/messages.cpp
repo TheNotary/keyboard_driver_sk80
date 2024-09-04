@@ -1,4 +1,26 @@
 #include "messages_data.h"
+#include <iostream>
+
+
+void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length) {
+    for (size_t j = 0; j < message_length; j++) {
+        if (j % 8 == 0)
+            printf("\n");
+        printf("0x%02x ", buffer[i * message_length + j]);
+    }
+}
+
+void PrintMessagesInBuffer(
+    unsigned char* buffer,
+    size_t message_count,
+    size_t message_length
+) {
+    for (size_t i = 0; i < message_count; i++) {
+        PrintMessageInBuffer(buffer, i, message_length);
+        printf("\n");
+    }
+}
+
 
 ///////////////////////
 // Begin Bulk Update //

@@ -39,8 +39,7 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
     return 0;
 }
 
-
-extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names) {
+int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff) {
     Keyboard kbd(KeyboardModel::RK84);
 
     if (!kbd.Found()) {
@@ -50,23 +49,75 @@ extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names) {
 
     kbd.SetActiveKeys(key_names);
 
-    kbd.TurnOnActiveKeys();
+    if (onOrOff == kOn) {
+        kbd.TurnOnActiveKeys();
+    }
+    else {
+        kbd.TurnOffActiveKeys();
+    }
 
     kbd.Dispose();
     return 0;
 }
 
-extern "C" int TurnOnOffNames(const std::vector<std::string>& key_names) {
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65]) {
     Keyboard kbd(KeyboardModel::RK84);
+
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
         return 1;
     }
 
-    kbd.SetActiveKeys(key_names);
+    kbd.SetActiveKeyIds(key_ids, n_keys);
 
-    kbd.TurnOffActiveKeys();
+    if (onOrOff == kOn) {
+        kbd.TurnOnActiveKeys(messages_sent);
+    }
+    else {
+        kbd.TurnOffActiveKeys();
+    }
 
     kbd.Dispose();
     return 0;
+}
+
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff) {
+    Keyboard kbd(KeyboardModel::RK84);
+
+    if (!kbd.Found()) {
+        printf("Could not find keyboard\n");
+        return 1;
+    }
+
+    kbd.SetActiveKeyIds(key_ids, n_keys);
+
+    if (onOrOff == kOn) {
+        kbd.TurnOnActiveKeys();
+    }
+    else {
+        kbd.TurnOffActiveKeys();
+    }
+
+    kbd.Dispose();
+    return 0;
+}
+
+extern "C" int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages_sent[3][65]) {
+    return TurnKeyIds(key_ids, n_keys, kOn, messages_sent);
+}
+
+extern "C" int TurnOnKeyIds(char* key_ids, UINT8 n_keys) {
+    return TurnKeyIds(key_ids, n_keys, kOn);
+}
+
+extern "C" int TurnOffKeyIds(char* key_ids, UINT8 n_keys) {
+    return TurnKeyIds(key_ids, n_keys, kOff);
+}
+
+extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names) {
+    return TurnKeyNames(key_names, kOn);
+}
+
+extern "C" int TurnOnOffNames(const std::vector<std::string>& key_names) {
+    return TurnKeyNames(key_names, kOff);
 }

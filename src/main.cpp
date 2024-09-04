@@ -1,16 +1,20 @@
 #include <windows.h>
 #include <iostream>
 #include <fmt/core.h>
-//#include "push_to_light.h"
 #include <basetsd.h>
 #include <vector>
 #include <unordered_map>
 #include "test_load_blink.h"
+#include "push_to_light.h"
+#include "cycle_keyids.h"
 
 
 int main() {
-    /*push_to_light();
-    return 0;*/
+    CycleKeyIds();
+    return 0;
+
+    //push_to_light();
+    //return 0;
 
     fmt::println("Hello fmt, a simple dependency.");
 

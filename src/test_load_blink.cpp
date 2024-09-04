@@ -62,6 +62,44 @@ int test_dll(char* keyIds, int nKeys) {
     return 0;
 }
 
+int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]) {
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return 1;
+    }
+
+    char funcName[] = "TurnOnKeyIdsD";
+    typedef int  (*Func)(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]);
+
+    Func dll_func = GetFunction<Func>(&hModule, funcName);
+    if (!dll_func) {
+        FreeLibrary(hModule);
+        return 1;
+    }
+
+    return dll_func(key_ids, n_keys, messagesSent);
+}
+
+
+int CallTurnOnKeyIds(char* key_ids, UINT8 n_keys) {
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return 1;
+    }
+
+    char funcName[] = "TurnOnKeyIds";
+    typedef int  (*Func)(char* key_ids, UINT8 n_keys);
+
+    Func dll_func = GetFunction<Func>(&hModule, funcName);
+    if (!dll_func) {
+        FreeLibrary(hModule);
+        return 1;
+    }
+
+    return dll_func(key_ids, n_keys);
+}
 
 int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));

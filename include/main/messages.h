@@ -1,5 +1,8 @@
 #pragma once
 
+void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length);
+void PrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length);
+
 extern const size_t BEGIN_BULK_UPDATE_MESSAGE_LENGTH;
 extern const size_t BEGIN_BULK_UPDATE_MESSAGE_COUNT;
 extern unsigned char BEGIN_BULK_UPDATE_MESSAGES[][65];
