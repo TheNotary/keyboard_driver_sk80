@@ -53,6 +53,11 @@ target_link_libraries(main PRIVATE fmt::fmt)
 target_link_libraries(blink PRIVATE fmt::fmt)
 target_link_libraries(KeyboardTest PRIVATE fmt::fmt)
 
+# Google Benchmark
+find_package(benchmark CONFIG REQUIRED)
+add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp") 
+target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)
+
 # libusb dependency
 #find_package(pkgconfig REQUIRED)
 #pkg_check_modules(libusb REQUIRED IMPORTED_TARGET libusb-1.0)
