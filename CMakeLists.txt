@@ -18,15 +18,15 @@ add_library(blink SHARED
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	 "include/main/messages_sk80.h" "src/blink/messages_sk80.cpp" 
-	 "src/blink/messages_rk84.cpp" "include/main/messages_rk84.h")
+	 "src/blink/keyboards/rk84/messages_rk84.cpp" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h")
 
 add_executable(main "src/main.cpp" 
 	"src/test_load_blink.cpp" "include/main/test_load_blink.h"
 	"src/blink/messages.cpp" "include/main/messages.h" 
 	"include/main/messages_sk80.h" "src/blink/messages_sk80.cpp" 
-	"src/blink/messages_rk84.cpp" "include/main/messages_rk84.h" 
+	"src/blink/keyboards/rk84/messages_rk84.cpp" "include/main/keyboards/rk84/messages_rk84.h" 
 	"src/push_to_light.cpp" "include/main/push_to_light.h" 
-	"src/cycle_keyids.cpp" "include/main/cycle_keyids.h")
+	"src/cycle_keyids.cpp" "include/main/cycle_keyids.h" "src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h")
 
 #add_executable(KeyboardTest ${SOURCES} test/keyboard_test.cpp src/blink/keyboard.cpp)
 
@@ -37,7 +37,7 @@ add_executable(KeyboardTest
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
-	"src/blink/messages_rk84.cpp" "include/main/messages_rk84.h")
+	"src/blink/keyboards/rk84/messages_rk84.cpp" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h")
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 enable_testing()
 

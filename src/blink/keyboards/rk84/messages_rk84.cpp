@@ -1,4 +1,4 @@
-#include "messages_rk84.h"
+#include "keyboards/rk84/messages_rk84.h"
 
 // turns lights off if unedited
 unsigned char BULK_LED_VALUE_MESSAGES_RK84[][MESSAGE_LENGTH_RK84] = {

@@ -8,7 +8,7 @@
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboard.h"
-#include "messages_rk84.h"
+#include "keyboards/rk84/messages_rk84.h"
 
 // TODO: Move me to RK84
 TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key) {
