@@ -18,8 +18,9 @@ on:
   push:
     pull_request:
     branches:
-    - v11
+    - 'v*'
     - main
+    - test-pipeline
   workflow_dispatch:
   schedule:
   - cron: '0 1 * * *'
@@ -54,15 +55,19 @@ jobs:
         with:
           vcpkgJsonGlob: 'vcpkg.json'
 
-      # Note: if the preset misses the "configuration", it is possible to explicitly select the
-      # configuration with the additional `--config` flag, e.g.:
-      #   buildPreset: 'ninja-vcpkg'
-      #   buildPresetAdditionalArgs: "[`--config`, `Release`]"
-      #   testPreset: 'ninja-vcpkg'
-      #   testPresetAdditionalArgs: "[`--config`, `Release`]"
       - name: Run CMake+vcpkg+Ninja+CTest to build packages and generate/build/test the code.
         uses: lukka/run-cmake@v10
         with:
           configurePreset: 'release-config'
           buildPreset: 'release-build'
           testPreset: 'test-release'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            builds/release-config/Release/*.exe
+            builds/release-config/Release/*.dll
+
+      - run: ls -R

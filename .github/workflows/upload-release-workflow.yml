@@ -1,0 +1,34 @@
+name: Upload Release
+
+on:
+  workflow_run:
+    workflows: ["hosted-ninja-vcpkg_submod-autocache"]
+    branches:
+      - main
+      - test-pipeline
+    types:
+      - completed
+  # push:
+  #   tags:
+  #     - "v*.*.*"
+
+jobs:
+  publish:
+    name: Upload Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact from build
+        uses: actions/download-artifact@v4
+        # with:
+        #   path: my-artifact
+        #   pattern: my-artifact-*
+
+      - run: ls -R
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            builds/release-config/Release/*.exe
+            builds/release-config/Release/*.dll
