@@ -65,4 +65,4 @@ jobs:
         with:
           configurePreset: 'release-config'
           buildPreset: 'release-build'
-        #   testPreset: 'test-release'
+          testPreset: 'test-release'
