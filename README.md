@@ -5,6 +5,23 @@ This project builds an exe that can control the LEDs on an XVX S-K80 mechanical 
 This project uses the Windows API for interacting with USB, meaning it shouldn't require any installation to be run on a windows machine, but also won't work for linux.  Please leave a note if you'd like linux supported.
 
 
+#### Building on Terminal ("Developer Command Prompt")
+
+At the root of the repo, run:
+```
+# Skip these, they were for gitbash but there are pathing issues that ruined it
+#export VCPKG_ROOT="$(pwd)/vcpkg"
+#export PATH=${VCPKG_ROOT}:${PATH}
+
+set "VCPKG_ROOT=%cd%\vcpkg"
+set PATH=%VCPKG_ROOT%;%PATH%
+
+vcpkg install
+cmake --preset=release-g
+cmake --build builds/release-g
+```
+
+
 #### Dependency Overview
 
 ###### Environment Setup
@@ -36,3 +53,4 @@ This project uses the Windows API for interacting with USB, meaning it shouldn't
 - Getting the error "The following configuration files were considered but not accepted:"
   - Don't forget to use the "Developer Command Prompt"
   - Randomly the IDE might prompt you on the top with `CMake... delete and regenerate the cache`, click that, also try saving the CMakeLists.txt file to force a rebuild
+  - Ensure your path to the vcpkg directory is correct in your CMakePresets.json file, and also that vcpkg is properly bootstrapped with `bootstrap-vcpkg.bat`
