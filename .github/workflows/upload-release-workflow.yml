@@ -8,9 +8,9 @@ on:
       - test-pipeline
     types:
       - completed
-  # push:
-  #   tags:
-  #     - "v*.*.*"
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   publish:
@@ -24,7 +24,7 @@ jobs:
         #   path: my-artifact
         #   pattern: my-artifact-*
 
-      - run: ls -R
+      - run: ls builds/release-config/Release/
 
       - name: Release
         uses: softprops/action-gh-release@v2

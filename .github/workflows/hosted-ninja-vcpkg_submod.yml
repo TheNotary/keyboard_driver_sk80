@@ -18,12 +18,14 @@ on:
   push:
     pull_request:
     branches:
-    - 'v*'
-    - main
-    - test-pipeline
+      - 'v*'
+      - main
+      - test-pipeline
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
-  schedule:
-  - cron: '0 1 * * *'
+  # schedule:
+  #   - cron: '0 1 * * *'
 
 jobs:
   job:
@@ -69,5 +71,3 @@ jobs:
           path: |
             builds/release-config/Release/*.exe
             builds/release-config/Release/*.dll
-
-      - run: ls -R
