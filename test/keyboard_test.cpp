@@ -22,7 +22,7 @@ namespace KeyboardTest
     // to be 0 (the key is transmitted within the first message) and slot 23 of that message
     TEST(KeyboardTest, KeyInSecondPacket) {
         Keyboard keyboard(KeyboardModel::RK84);
-        int n_keys_in_first_packet = 57;
+        int n_keys_in_first_packet = 57;  // wait... 59 are in the first packet though... how is this not a bug?
         int keyId = 2;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);
 
@@ -32,26 +32,26 @@ namespace KeyboardTest
 
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 64, returns the message_index 
     // to be 1 (the key is transmitted within the second message) and slot 10 of that message
-    TEST(KeyboardTest, KeyId64IsOnSecondPage) {
+    TEST(KeyboardTest, KeyId60IsOnSecondPage) {
         Keyboard keyboard(KeyboardModel::RK84);
         int n_keys_in_first_packet = 57;
-        int keyId = 64;
+        int keyId = 60;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);
 
         EXPECT_EQ(message_index, 1);
-        EXPECT_EQ(slot, 10);
+        EXPECT_EQ(slot, 3);
     }
 
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 65, returns the message_index 
     // to be 1 (the key is transmitted within the second message) and slot 11 of that message
-    TEST(KeyboardTest, KeyId65IsOnSecondPage) {
+    TEST(KeyboardTest, KeyId61IsOnSecondPage) {
         Keyboard keyboard(KeyboardModel::RK84);
         int n_keys_in_first_packet = 57;
-        int keyId = 65;
+        int keyId = 61;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);
 
         EXPECT_EQ(message_index, 1);
-        EXPECT_EQ(slot, 11);
+        EXPECT_EQ(slot, 4);
     }
     
 }

@@ -4,7 +4,7 @@
     {
       "name": "default",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/builds/${presetName}",
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -28,11 +28,11 @@
       }
     },
     {
-      "name": "release-g",
-      "displayName": "release-g",
+      "name": "release-config",
+      "displayName": "release-config",
       "description": "Configure with vcpkg toolchain and generate Ninja project files for all configurations",
       "binaryDir": "${sourceDir}/builds/${presetName}",
-      "generator": "Ninja",
+      "generator": "Ninja Multi-Config",
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -62,8 +62,8 @@
             "configuration": "Debug"
         },
         {
-            "name": "release",
-            "configurePreset": "ninja-multi-vcpkg",
+            "name": "release-build",
+            "configurePreset": "release-config",
             "displayName": "Build (Release)",
             "description": "Build with Ninja/vcpkg (Release)",
             "configuration": "Release"
@@ -72,7 +72,7 @@
     "testPresets": [
         {
             "name": "test-ninja-vcpkg",
-            "configurePreset": "ninja-multi-vcpkg",
+            "configurePreset": "release-config",
             "hidden": true
         },
         {

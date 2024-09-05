@@ -17,9 +17,15 @@ set "VCPKG_ROOT=%cd%\vcpkg"
 set PATH=%VCPKG_ROOT%;%PATH%
 
 vcpkg install
-cmake --preset=release-g
-cmake --build builds/release-g
+
+# As a shortcut, run test.bat
+cmake --preset release-config
+cmake --build --preset release-build --target clean
+cmake --build --preset release-build
+ctest --preset test-release
 ```
+
+Check this [guide](https://martin-fieber.de/blog/cmake-presets/#build-preset) for details.
 
 
 #### Dependency Overview
