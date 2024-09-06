@@ -8,9 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options("/utf-8")
 
-# Define the build outputs, main.exe and blink.dll
-#add_executable(main ${SOURCES} "src/blink/print.cpp" "include/print.h")
-
 add_library(blink SHARED
 	"src/blink/blink.cpp" "include/blink.h"
 	"src/blink/print.cpp" "include/print.h"
@@ -28,8 +25,6 @@ add_executable(main "src/main.cpp"
 	"src/push_to_light.cpp" "include/main/push_to_light.h"
 	"src/cycle_keyids.cpp" "include/main/cycle_keyids.h" "src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h")
 
-#add_executable(KeyboardTest ${SOURCES} test/keyboard_test.cpp src/blink/keyboard.cpp)
-
 # Add GoogleTest
 find_package(GTest CONFIG REQUIRED)
 add_executable(KeyboardTest
@@ -41,9 +36,7 @@ add_executable(KeyboardTest
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 enable_testing()
 
-#add_test(KeyboardTest KeyboardTest)
 add_test(NAME AllTestsInMain COMMAND KeyboardTest)
-#add_test(AllTestsInMain main)
 
 # Define the BUILD_DLL macro for the library build
 target_compile_definitions(blink PRIVATE BUILD_DLL)
@@ -58,8 +51,3 @@ target_link_libraries(KeyboardTest PRIVATE fmt::fmt)
 find_package(benchmark CONFIG REQUIRED)
 add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp")
 target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)
-
-# libusb dependency
-#find_package(pkgconfig REQUIRED)
-#pkg_check_modules(libusb REQUIRED IMPORTED_TARGET libusb-1.0)
-#target_link_libraries(main PRIVATE PkgConfig::libusb)
