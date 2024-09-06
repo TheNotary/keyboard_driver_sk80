@@ -2,8 +2,6 @@
 #include <iostream>
 #include <vector>
 #include "test_load_blink.h"
-#include "keyboard.h"
-#include "messages.h"
 
 using std::cout;
 using std::endl;
@@ -72,7 +70,7 @@ int CycleKeyIds() {
         }
 
         if (GetAsyncKeyState(VK_SPACE) & 0x8000) {  // print packet buffer
-            PrintMessagesInBuffer(*messages_sent, 3, 65);
+            CallPrintMessagesInBuffer(*messages_sent, 3, 65);
 
             Sleep(200); // Simple debounce delay
         }

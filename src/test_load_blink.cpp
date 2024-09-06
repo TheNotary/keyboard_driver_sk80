@@ -62,6 +62,26 @@ int test_dll(char* keyIds, int nKeys) {
     return 0;
 }
 
+
+void CallPrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length) {
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return;
+    }
+
+    char funcName[] = "PrintMessagesInBuffer";
+    typedef void (*Func)(unsigned char* buffer, size_t message_count, size_t message_length);
+
+    Func dll_func = GetFunction<Func>(&hModule, funcName);
+    if (!dll_func) {
+        FreeLibrary(hModule);
+        return;
+    }
+
+    dll_func(buffer, message_count, message_length);
+}
+
 int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
     if (!hModule) {

@@ -1,4 +1,4 @@
-#include "messages_sk80.h"
+#include "keyboards/sk80/messages_sk80.h"
 
 
 unsigned char BULK_LED_HEADER_MESSAGES_SK80[][MESSAGE_LENGTH_SK80] = {

@@ -9,50 +9,12 @@
 #include "usb_functions.h"
 #include "keyboard.h"
 #include "keyboards/rk84/messages_rk84.h"
+#include "keyboards/rk84/rk84.h"
 
-// TODO: Move me to RK84
-TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key) {
-    if (active_key > 96) {
-        throw("RK84 does not support keyIds greater than 96.");
-    }
-
-    UINT8 n_keys_in_first_packet = 59;
-    UINT8 offset_to_message = active_key + 5;
-    UINT8 message_index = 0;  // active_key = '.' aka 
-    if (active_key > n_keys_in_first_packet) {
-        offset_to_message = active_key - n_keys_in_first_packet + 2;
-        message_index = 1;
-    }
-
-    // This allows for C++17 destructuring via the auto keyword
-    return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
-}
-
-// TODO: Move me to RK84
-void SetBytesInPacket_RK84(unsigned char messages[3][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) {
-    std::memcpy(messages, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84 * MESSAGE_LENGTH_RK84);
-
-    char bytesForValue = on_off_mappings[RK84][key_value];
-
-    for (int i = 0; i < n_active_keys; i++) {
-        UINT8 active_key = active_key_ids[i];
-
-        if (active_key == 0x00) // Stop writing when we reach a zero which terminates the buffer
-            break;
-
-        auto [message_index, keycode_offset] =
-            GetMessageIndexAndKeycodeOffsetForKeyId_RK84(active_key);
-
-        messages[message_index][keycode_offset] = bytesForValue;
-
-        if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
-            messages[2][keycode_offset] = bytesForValue;
-    }
-}
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
     {
-        SK80, {
+        kSK80, {
             {"esc", 0x01},
             {"f1" , 0x02},
             {"f2" , 0x03},
@@ -71,12 +33,12 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
         }
     },
     {
-        MK84, {
+        kMK84, {
             {"f12", 0x0d}
         }
     },
     {
-        RK84, {
+        kRK84, {
             {"esc", 1},
             {"f1", 7},
             {"f2", 13},
@@ -173,13 +135,13 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
 
 std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings = {
     {
-        SK80, {
+        kSK80, {
             { kOn, 0xff },
             { kOff, 0x00 }
          }
     },
     {
-        RK84, {
+        kRK84, {
             { kOn, 0x07 },
             { kOff, 0x00 }
         }
@@ -238,6 +200,7 @@ void Keyboard::Blink(int n, int interval) {
 
 void Keyboard::Dispose() {
     CloseHandle(this->device_handle);
+    delete this->keyboard_spec;
 }
 
 bool Keyboard::Found() {
@@ -389,7 +352,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char messages_sent[3][6
         return;
     }
 
-    SetBytesInPacket_RK84(messages_sent, key_value, this->active_key_ids, this->n_active_keys);
+    this->keyboard_spec->SetBytesInPacket(*messages_sent, key_value, this->active_key_ids, this->n_active_keys);
 
     // PrintMessagesInBuffer(messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
@@ -427,12 +390,31 @@ void Keyboard::TurnOffActiveKeys() {
     this->SetKeysOnOff(kOff);
 }
 
+void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const {
+    this->keyboard_spec->SetBytesInPacket(messages, key_value, active_key_ids, n_active_keys);
+}
+
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     DeviceInfo device_info = device_mappings[keyboard_model];
     
     this->keyboard_model = keyboard_model;
     this->pid = device_info.pid;
     this->vid = device_info.vid;
+
+    // Could use the unique_ptr function to use a smart pointer, but since I already have a Dispose function, 
+    // using standard heap initialization is fine.
+    //std::unique_ptr<KeyboardBase> my_base = std::make_unique<RK84>();
+    // this->keyboard_spec = new (this->keyboard_spec) RK84();
+
+    switch (keyboard_model) {
+    case (kRK84):
+        this->keyboard_spec = new RK84();
+        break;
+    default:
+        this->keyboard_spec = nullptr;
+        printf("this keyboard_spec not implemented yet");
+        throw("keyboard_spec not implemented yet");
+    }
 }
 
 short Keyboard::GetPid() {

@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include "../include/main/keyboard.h"
+#include <keyboards/rk84/rk84.h>
 
 namespace KeyboardTest
 {
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 1, returns the message_index 
     // to be 0 (the key is transmitted within the first message) and slot 9 of that message.
     TEST(KeyboardTest, KeyInFirstPacket) {
-        Keyboard keyboard(KeyboardModel::RK84);
+        Keyboard keyboard(KeyboardModel::kRK84);
         int n_keys_in_first_packet = 57;
         int keyId = 1;
 
@@ -21,7 +22,7 @@ namespace KeyboardTest
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 15, returns the message_index 
     // to be 0 (the key is transmitted within the first message) and slot 23 of that message
     TEST(KeyboardTest, KeyInSecondPacket) {
-        Keyboard keyboard(KeyboardModel::RK84);
+        Keyboard keyboard(KeyboardModel::kRK84);
         int n_keys_in_first_packet = 57;  // wait... 59 are in the first packet though... how is this not a bug?
         int keyId = 2;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);
@@ -33,7 +34,7 @@ namespace KeyboardTest
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 64, returns the message_index 
     // to be 1 (the key is transmitted within the second message) and slot 10 of that message
     TEST(KeyboardTest, KeyId60IsOnSecondPage) {
-        Keyboard keyboard(KeyboardModel::RK84);
+        Keyboard keyboard(KeyboardModel::kRK84);
         int n_keys_in_first_packet = 57;
         int keyId = 60;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);
@@ -45,7 +46,7 @@ namespace KeyboardTest
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 65, returns the message_index 
     // to be 1 (the key is transmitted within the second message) and slot 11 of that message
     TEST(KeyboardTest, KeyId61IsOnSecondPage) {
-        Keyboard keyboard(KeyboardModel::RK84);
+        Keyboard keyboard(KeyboardModel::kRK84);
         int n_keys_in_first_packet = 57;
         int keyId = 61;
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);

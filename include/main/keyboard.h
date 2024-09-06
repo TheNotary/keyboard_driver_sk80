@@ -3,30 +3,10 @@
 #include <string>
 #include <unordered_map>
 #include <windows.h>
+#include <memory>
+#include <keyboards/keyboard_base.h>
+#include <misc.h>
 
-enum KeyboardModel { SK80, MK84, RK84 };
-enum KeyValue { kOn, kOff };
-
-struct DeviceInfo {
-    short vid;
-    short pid;
-};
-
-struct TwoUINT8s {
-    UINT8 first;
-    UINT8 second;
-};
-
-// Setup a mapping between, say "f12" and 0x0d (the ID for the key as known by the hardware)
-using KeyNameKeyIdPair = std::unordered_map<std::string, char>;
-extern std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings;
-
-using KeyValueBytesPair = std::unordered_map<KeyValue, char>;
-extern std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings;
-
-extern TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key);
-
-void SetBytesInPacket_RK84(unsigned char messages[3][65], KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
 
 /**
  * @brief The Keyboard class allows you to interface with the LEDs on the keyboard.
@@ -64,16 +44,21 @@ private:
      UINT8 n_active_keys = 0;
      KeyboardModel keyboard_model;
 
+     // This class is injected and provides functionality specific to the given keyboard model
+     KeyboardBase* keyboard_spec;
+
      struct DeviceInfo {
          short vid;
          short pid;
      };
 
      std::unordered_map<KeyboardModel, DeviceInfo> device_mappings = {
-         { SK80, {0x05ac, 0x024f} },
-         { MK84, {0x0000, 0x0000} },
-         { RK84, {0x258a, 0x00c0} }
+         { kSK80, {0x05ac, 0x024f} },
+         { kMK84, {0x0000, 0x0000} },
+         { kRK84, {0x258a, 0x00c0} }
      };
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
+     void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;
+
 };

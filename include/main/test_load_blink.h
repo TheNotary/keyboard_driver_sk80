@@ -6,6 +6,7 @@ int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names);
 int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names);
 int CallTurnOnKeyIds(char* key_ids, UINT8 n_keys);
 int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]);
+void CallPrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length);
 
 typedef void (*HelloDllFunc)();
 typedef int  (*BlinkKeysFunc)(char* keyIds, int nKeys);

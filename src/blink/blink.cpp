@@ -17,7 +17,7 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
     PrintBlinkKeysArguments(keyIds, nKeys);
 
     //Keyboard kbd(KeyboardModel::SK80);
-    Keyboard kbd(KeyboardModel::RK84);
+    Keyboard kbd(KeyboardModel::kRK84);
 
     printf("pid: %x\n", kbd.GetPid());
 
@@ -40,7 +40,7 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
 }
 
 int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff) {
-    Keyboard kbd(KeyboardModel::RK84);
+    Keyboard kbd(KeyboardModel::kRK84);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
@@ -61,7 +61,7 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff) {
 }
 
 int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65]) {
-    Keyboard kbd(KeyboardModel::RK84);
+    Keyboard kbd(KeyboardModel::kRK84);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
@@ -82,7 +82,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char mess
 }
 
 int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff) {
-    Keyboard kbd(KeyboardModel::RK84);
+    Keyboard kbd(KeyboardModel::kRK84);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
