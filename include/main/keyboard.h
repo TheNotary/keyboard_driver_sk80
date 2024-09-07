@@ -1,11 +1,11 @@
 #pragma once
-#include "usb_functions.h"
 #include <string>
 #include <unordered_map>
 #include <windows.h>
 #include <memory>
-#include <keyboards/keyboard_base.h>
-#include <misc.h>
+#include "usb_functions.h"
+#include "keyboards/abstract_keyboard.h"
+#include "misc.h"
 
 
 /**
@@ -45,7 +45,7 @@ private:
      KeyboardModel keyboard_model;
 
      // This class is injected and provides functionality specific to the given keyboard model
-     KeyboardBase* keyboard_spec;
+     AbstractKeyboard* keyboard_spec;
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
      void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;

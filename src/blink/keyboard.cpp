@@ -10,7 +10,7 @@
 #include "keyboard.h"
 #include "keyboards/rk84/messages_rk84.h"
 #include "keyboards/rk84/rk84.h"
-#include "keyboards/keyboard_base.h"
+#include "keyboards/abstract_keyboard.h"
 
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
@@ -269,6 +269,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
 
     UINT8 n_packets = ((this->n_active_keys - 1u) / 15u) + 1u;
 
+    //// we can only have 15 colors per page
     // What about this, for every active key, let's pull up the index it should be in the first packet
     // and send it...
     for (int i = 0; i < this->n_active_keys; i++) {
@@ -282,18 +283,6 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
         key_message[0][offset + 2] = g;
         key_message[0][offset + 3] = b;
     }
-
-    //// we can only have 15 colors per page
-    //for (int i = 0; i < this->n_active_keys; i++) {
-    //    UINT8 offset = 5 + (i * 4);
-
-    //    key_message[0][offset + 0] = this->active_key_ids[i];
-    //    key_message[0][offset + 1] = r;
-    //    key_message[0][offset + 2] = g;
-    //    key_message[0][offset + 3] = b;
-    //}
-
-
 
     printf("Sending RGB message: \n");
     printf("0x00");
@@ -382,16 +371,11 @@ void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, cha
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
-    KeyboardBase::DeviceInfo device_info = this->keyboard_spec->device_mappings;
+    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->device_mappings;
     
     this->keyboard_model = keyboard_model;
     this->pid = device_info.pid;
     this->vid = device_info.vid;
-
-    // Could use the unique_ptr function to use a smart pointer, but since I already have a Dispose function, 
-    // using standard heap initialization is fine.
-    //std::unique_ptr<KeyboardBase> my_base = std::make_unique<RK84>();
-    // this->keyboard_spec = new (this->keyboard_spec) RK84();
 
     switch (keyboard_model) {
     case (kRK84):

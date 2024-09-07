@@ -4,10 +4,10 @@
 #include <misc.h>
 
 // TODO: Rename to AbstractKeyboard 
-class KeyboardBase {
+class AbstractKeyboard {
 public:
     // Virtual destructor to ensure proper cleanup
-    virtual ~KeyboardBase() = default;
+    virtual ~AbstractKeyboard() = default;
 
     virtual void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const = 0;
 
