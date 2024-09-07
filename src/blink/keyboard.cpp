@@ -8,7 +8,6 @@
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboard.h"
-#include "keyboards/rk84/messages_rk84.h"
 #include "keyboards/rk84/rk84.h"
 #include "keyboards/abstract_keyboard.h"
 
@@ -316,25 +315,29 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
+// TODO: I think I can safely store these values on the class RK84, right?
+// but maybe that's not flexible enough
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
-    // TODO: I think I can safely store these values on the class RK84, right?
-    // but maybe that's not flexible enough
-    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84]; // this->keyboard_spec->MESSAGE_LENGTH
-    this->SetKeysOnOff(key_value, *messages);
+    unsigned char* messages = new unsigned char[
+        this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT * 
+        this->keyboard_spec->MESSAGE_LENGTH];
+
+    this->SetKeysOnOff(key_value, messages);
+    delete[] messages;
 }
 
-void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent) {
+void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
     if (this->n_active_keys == 0) {
         printf("SetKeysOnOff was called with zero active keys... odd...skipping");
         return;
     }
 
-    this->keyboard_spec->SetBytesInPacket(messages_sent, key_value, this->active_key_ids, this->n_active_keys);
+    this->keyboard_spec->SetBytesInPacket(messages, key_value, this->active_key_ids, this->n_active_keys);
 
-    // PrintMessagesInBuffer(messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    //PrintMessagesInBuffer(messages, this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT, this->keyboard_spec->MESSAGE_LENGTH);
 
-    SendBufferToDevice(this->device_handle, messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
+    SendBufferToDevice(this->device_handle, messages, this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT, this->keyboard_spec->MESSAGE_LENGTH);
 }
 
 void Keyboard::BlinkActiveKeys(int n, int interval) {
@@ -383,7 +386,7 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
         throw("keyboard_spec not implemented yet");
     }
 
-    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->device_mappings;
+    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
     this->pid = device_info.pid;
     this->vid = device_info.vid;
     this->keyboard_model = keyboard_model;

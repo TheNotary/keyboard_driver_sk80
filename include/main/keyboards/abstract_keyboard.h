@@ -7,7 +7,10 @@
 class AbstractKeyboard {
 public:
     AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount)
-        : MESSAGE_LENGTH(messageLength), BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount) {}
+        : MESSAGE_LENGTH(messageLength), BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
+        device_info({ 0, 0 }) 
+    {}
+    
 
     // Virtual destructor to ensure proper cleanup
     virtual ~AbstractKeyboard() = default;
@@ -19,7 +22,9 @@ public:
         short pid;
     };
 
-    DeviceInfo device_mappings;
+    virtual DeviceInfo GetDeviceInfo() const = 0;
+
+    DeviceInfo device_info;
 
     KeyNameKeyIdPair keyname_keyid_mappings;
 

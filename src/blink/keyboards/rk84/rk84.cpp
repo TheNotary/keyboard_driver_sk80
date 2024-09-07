@@ -50,3 +50,8 @@ void RK84::SetBytesInPacket(unsigned char* messages_ptr, KeyValue key_value, cha
             messages[2][keycode_offset] = bytesForValue;
     }
 }
+
+AbstractKeyboard::DeviceInfo RK84::GetDeviceInfo() const
+{
+    return this->device_info;
+}
