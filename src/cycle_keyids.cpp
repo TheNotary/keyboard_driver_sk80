@@ -32,7 +32,7 @@ char IncrementKeyId(char value, int incrementation) {
     return result;
 }
 
-int CycleKeyIds() {
+int CycleKeyIds(KeyboardInfo keyboard) {
     cout << "CycleKeyIds Debug Mode:" << endl
         << "The key id will be shown on the screen, and the LED for that key will be switched "
         << "on making mapping the keyboard easy.  " 
@@ -48,13 +48,13 @@ int CycleKeyIds() {
     char key_ids[] = { 0x01 };
 
     PrintKeyId(key_ids[0]);
-    CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent);
+    CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
 
     while (true) {
         if (GetAsyncKeyState(VK_DOWN) & 0x8000
             || GetAsyncKeyState(VK_LEFT) & 0x8000) { // PREV
             key_ids[0] = IncrementKeyId(key_ids[0], -1); 
-            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent);
+            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
             PrintKeyId(key_ids[0]);
 
             Sleep(40); // Simple debounce delay
@@ -63,7 +63,7 @@ int CycleKeyIds() {
         if (GetAsyncKeyState(VK_UP) & 0x8000
             || GetAsyncKeyState(VK_RIGHT) & 0x8000) { // NEXT
             key_ids[0] = IncrementKeyId(key_ids[0], 1);
-            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent);
+            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
             PrintKeyId(key_ids[0]);
 
             Sleep(40); // Simple debounce delay

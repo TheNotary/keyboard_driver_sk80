@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "test_load_blink.h"
+#include "misc.h"
 
 
 /*
@@ -82,7 +83,7 @@ void CallPrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size
     dll_func(buffer, message_count, message_length);
 }
 
-int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]) {
+int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65], KeyboardInfo keyboard) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
     if (!hModule) {
         std::cerr << "Failed to load DLL" << std::endl;
@@ -90,7 +91,7 @@ int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3]
     }
 
     char funcName[] = "TurnOnKeyIdsD";
-    typedef int  (*Func)(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65]);
+    typedef int  (*Func)(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3][65], KeyboardInfo keyboard);
 
     Func dll_func = GetFunction<Func>(&hModule, funcName);
     if (!dll_func) {
@@ -98,7 +99,7 @@ int CallTurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messagesSent[3]
         return 1;
     }
 
-    return dll_func(key_ids, n_keys, messagesSent);
+    return dll_func(key_ids, n_keys, messagesSent, keyboard);
 }
 
 
@@ -119,6 +120,43 @@ int CallTurnOnKeyIds(char* key_ids, UINT8 n_keys) {
     }
 
     return dll_func(key_ids, n_keys);
+}
+
+std::vector<KeyboardInfo> _ListAvailableKeyboards() {
+    std::vector<KeyboardInfo> list;
+
+    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
+    if (!hModule) {
+        std::cerr << "Failed to load DLL" << std::endl;
+        return list;
+    }
+
+    char funcName[] = "ListAvailableKeyboards";
+    typedef int (*Func)(KeyboardInfo** out_keyboards);
+
+    Func ListAvailableKeyboards = GetFunction<Func>(&hModule, funcName);
+    if (!ListAvailableKeyboards) {
+        FreeLibrary(hModule);
+        return list;
+    }
+
+    // Extract keyboards from the DLL's memory
+    KeyboardInfo* keyboards = nullptr;
+    int n_keyboards = ListAvailableKeyboards(&keyboards);
+    for (int i = 0; i < n_keyboards; i++) {
+        list.push_back(keyboards[i]);
+    }
+
+    // Clean up the DLL's memory
+    // I'm not conviced this requires a DLL invocation
+
+    char funcNameFree[] = "FreeKeyboards";
+    typedef void (*FuncFree)(KeyboardInfo* keyboards);
+
+    FuncFree FreeKeyboards = GetFunction<FuncFree>(&hModule, funcNameFree);
+    FreeKeyboards(keyboards);
+
+    return list;
 }
 
 int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names) {

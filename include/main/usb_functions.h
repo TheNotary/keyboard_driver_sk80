@@ -1,5 +1,7 @@
 #pragma once
 #include <windows.h>
+#include <vector>
+#include "misc.h"
 
 void PrintWideString(const char* buffer, int bufferLen);
 
@@ -14,3 +16,5 @@ void SendBufferToDeviceAndGetResp(
     HANDLE deviceHandle, unsigned char messages[][65],
     size_t messageCount, size_t messageLength
 );
+
+std::vector<KeyboardInfo> ListAvailableKeyboards();

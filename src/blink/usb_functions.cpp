@@ -3,11 +3,13 @@
 #include <iostream>
 #include <fmt/core.h>
 #include <vector>
+#include <algorithm>
 #include <setupapi.h>
 #include <stdio.h>
 #include <hidsdi.h>
 #include "messages.h"
 #include "keyboard.h"
+#include <keyboards/known_keyboards.h>
 
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "hid.lib")
@@ -144,9 +146,7 @@ HANDLE SearchForDevice(short vid, short pid) {
             deviceDetails, size, &size, &device_info_data))
             continue;
 
-
         hDev = open_device(deviceDetails->DevicePath);
-        
         if (hDev == INVALID_HANDLE_VALUE) {
             // printf("Failed creating file");
             continue;
@@ -187,8 +187,80 @@ HANDLE SearchForDevice(short vid, short pid) {
         CloseHandle(hDev);
     }
 
+    // FIXME/ TODO: I think I need to call this before I return with the handle in this function!
     SetupDiDestroyDeviceInfoList(deviceInfoList);
     return 0;
+}
+
+/* 
+ * Returns a list of keyboards that are attached to the system and are known to the program per known_keyboards.h 
+ */
+std::vector<KeyboardInfo> ListAvailableKeyboards() {
+    std::vector<KeyboardInfo> available_keyboards;
+
+    GUID hidGuid;
+    HDEVINFO deviceInfoList;
+    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
+    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
+    deviceDetails->cbSize = sizeof(*deviceDetails);
+
+    HidD_GetHidGuid(&hidGuid);
+    deviceInfoList = SetupDiGetClassDevs(&hidGuid, NULL, NULL,
+        DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+
+    if (deviceInfoList == INVALID_HANDLE_VALUE)
+        return available_keyboards;
+
+    for (int i = 0; ; ++i) {
+        SP_DEVICE_INTERFACE_DATA deviceInfo;
+        SP_DEVINFO_DATA device_info_data;
+        HIDD_ATTRIBUTES deviceAttributes;
+        DWORD size = DEVICE_DETAILS_SIZE;
+        HANDLE hDev = INVALID_HANDLE_VALUE;
+
+        deviceInfo.cbSize = sizeof(deviceInfo);
+        device_info_data.cbSize = sizeof(device_info_data);
+
+        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i,
+            &deviceInfo))
+            if (GetLastError() == ERROR_NO_MORE_ITEMS)
+                break;
+            else
+                continue;
+
+        if (!SetupDiGetDeviceInterfaceDetail(deviceInfoList, &deviceInfo,
+            deviceDetails, size, &size, &device_info_data))
+            continue;
+
+        hDev = open_device(deviceDetails->DevicePath);
+        if (hDev == INVALID_HANDLE_VALUE) {
+            // printf("Failed creating file");
+            continue;
+        }
+
+        deviceAttributes.Size = sizeof(deviceAttributes);
+        if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
+            printf("Failed calling HidD_GetAttributes");
+            continue;
+        }
+
+        CloseHandle(hDev);
+
+        for (int i = 0; i < known_keyboards.size(); i++) {
+            KeyboardInfo known_keyboard = known_keyboards[i];
+            if (deviceAttributes.VendorID == known_keyboard.vid && deviceAttributes.ProductID == known_keyboard.pid) {
+
+                // If we already have this keyboard listed in the available_keyboards vector, skip
+                if ( std::find(available_keyboards.begin(), available_keyboards.end(), known_keyboard) != available_keyboards.end() )
+                    continue;
+
+                available_keyboards.push_back(known_keyboard);
+                continue;
+            }
+        }
+    }
+    SetupDiDestroyDeviceInfoList(deviceInfoList);
+    return available_keyboards;
 }
 
 static int SendPayloadBytesToDevice(HANDLE deviceHandle, const UCHAR* payload, size_t payloadLength)

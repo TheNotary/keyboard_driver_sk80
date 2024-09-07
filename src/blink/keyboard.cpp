@@ -8,6 +8,7 @@
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboard.h"
+// TODO: eliminate #include "keyboards/rk84/rk84.h" next
 #include "keyboards/rk84/rk84.h"
 #include "keyboards/abstract_keyboard.h"
 
@@ -378,6 +379,9 @@ void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, cha
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     switch (keyboard_model) {
     case (kRK84):
+        this->keyboard_spec = new RK84();
+        break;
+    case (kSK80):
         this->keyboard_spec = new RK84();
         break;
     default:

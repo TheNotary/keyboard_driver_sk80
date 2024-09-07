@@ -1,4 +1,4 @@
 #pragma once
 
-int CycleKeyIds();
+int CycleKeyIds(KeyboardInfo keyboard);
 

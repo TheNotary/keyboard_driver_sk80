@@ -2,15 +2,31 @@
 #include <basetsd.h>
 #include <unordered_map>
 #include <string>
+//#include <vector>
 
 
 enum KeyboardModel { kSK80, kMK84, kRK84 };
-enum KeyValue { kOn, kOff };
+
+struct KeyboardInfo {
+    KeyboardModel keyboard_model;
+    short vid;
+    short pid;
+    char display_name[25];
+
+    bool operator==(const KeyboardInfo& other) const {
+        return (keyboard_model == other.keyboard_model &&
+            vid == other.vid &&
+            pid == other.pid &&
+            std::strncmp(display_name, other.display_name, 25) == 0);
+    }
+};
 
 struct TwoUINT8s {
     UINT8 first;
     UINT8 second;
 };
+
+enum KeyValue { kOn, kOff };
 
 // Setup a mapping between, say "f12" and 0x0d (the ID for the key as known by the hardware)
 using KeyNameKeyIdPair = std::unordered_map<std::string, char>;

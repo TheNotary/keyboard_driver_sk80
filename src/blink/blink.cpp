@@ -2,7 +2,9 @@
 #include <cstdio>
 #include "../../include/blink.h"
 #include "../../include/print.h"
-#include <keyboard.h>
+#include "keyboard.h"
+#include "misc.h"
+#include "usb_functions.h"
 #include <stdexcept>
 
 #pragma comment(lib, "setupapi.lib")
@@ -60,8 +62,8 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff) {
     return 0;
 }
 
-int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65]) {
-    Keyboard kbd(KeyboardModel::kRK84);
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65], KeyboardInfo keyboard) {
+    Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
@@ -102,8 +104,8 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff) {
     return 0;
 }
 
-extern "C" int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages_sent[3][65]) {
-    return TurnKeyIds(key_ids, n_keys, kOn, messages_sent);
+extern "C" int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages_sent[3][65], KeyboardInfo keyboard) {
+    return TurnKeyIds(key_ids, n_keys, kOn, messages_sent, keyboard);
 }
 
 extern "C" int TurnOnKeyIds(char* key_ids, UINT8 n_keys) {
@@ -120,4 +122,21 @@ extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names) {
 
 extern "C" int TurnOnOffNames(const std::vector<std::string>& key_names) {
     return TurnKeyNames(key_names, kOff);
+}
+
+extern "C" int ListAvailableKeyboards(KeyboardInfo** out_keyboards) {
+    std::vector<KeyboardInfo> keyboards = ListAvailableKeyboards();
+
+    *out_keyboards = (KeyboardInfo*)malloc(keyboards.size() * sizeof(KeyboardInfo));
+    if (!(*out_keyboards)) {
+        return -1;
+    }
+
+    std::memcpy(*out_keyboards, keyboards.data(), keyboards.size() * sizeof(KeyboardInfo));
+
+    return keyboards.size();
+}
+
+extern "C" void FreeKeyboards(KeyboardInfo* keyboards) {
+    free(keyboards);
 }

@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
+#include <vector>
 #include "../include/main/keyboard.h"
-#include <keyboards/rk84/rk84.h>
+#include "keyboards/rk84/rk84.h"
+#include "misc.h"
+#include "test_load_blink.h"
 
 namespace KeyboardTest
 {
@@ -53,6 +56,13 @@ namespace KeyboardTest
 
         EXPECT_EQ(message_index, 1);
         EXPECT_EQ(slot, 4);
+    }
+
+
+    TEST(KeyboardTest, ListAvailableKeyboardsReturnsAListOfBoards) {
+        std::vector<KeyboardInfo> list = _ListAvailableKeyboards();
+
+        EXPECT_EQ(list.size(), 1);
     }
     
 }
