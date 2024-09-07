@@ -318,7 +318,9 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
 
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
-    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84];
+    // TODO: I think I can safely store these values on the class RK84, right?
+    // but maybe that's not flexible enough
+    unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84]; // this->keyboard_spec->MESSAGE_LENGTH
     this->SetKeysOnOff(key_value, *messages);
 }
 

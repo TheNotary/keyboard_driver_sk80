@@ -11,9 +11,7 @@ extern unsigned char BULK_LED_VALUE_MESSAGES_RK84[][MESSAGE_LENGTH_RK84];
 
 
 
-//short asdf = 0x00;
 
-//std::unordered_map<std::string, short> asfdasdf;
 
 /*
 KeyNameKeyIdPair keyname_keyid_mappings_z = {

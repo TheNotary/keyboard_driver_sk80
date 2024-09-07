@@ -22,6 +22,10 @@ TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key) {
 }
 
 
+//RK84::RK84()
+//{
+//}
+
 void RK84::SetBytesInPacket(unsigned char* messages_ptr, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const
 {
     // Cast the flat buffer to a 3x65 array
