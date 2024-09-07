@@ -21,11 +21,11 @@ public:
      bool AccessDeviceHandle();
      HANDLE GetDeviceHandle();
      void SetKeysOnOff(KeyValue key_value);
-     void SetKeysOnOff(KeyValue key_value, unsigned char messages_sent[3][65]);
+     void SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent);
      void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
      void SetActiveKeys(const std::vector<std::string>& key_names);
      void BlinkActiveKeys(int n, int interval);
-     void TurnOnActiveKeys(unsigned char messages_sent[3][65]);
+     void TurnOnActiveKeys(unsigned char* messages_sent);
      void TurnOnActiveKeys();
      void TurnOffActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);

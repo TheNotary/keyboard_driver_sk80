@@ -13,6 +13,7 @@ TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId_RK84(UINT8 active_key);
 class RK84 : public AbstractKeyboard {
 public:
 	 void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;
+     DeviceInfo device_mappings = { 0x258a, 0x00c0 };
 
 private:
     KeyValueBytesPair on_off_mappings = {
@@ -20,6 +21,5 @@ private:
         { kOff, 0x00 }
     };
 
-    DeviceInfo device_mappings = { 0x258a, 0x00c0 };
-
 };
+

@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <memory>
-#include <misc.h>
+#include "misc.h"
 
 // TODO: Rename to AbstractKeyboard 
 class AbstractKeyboard {
@@ -17,6 +17,8 @@ public:
     };
 
     DeviceInfo device_mappings;
+
+    KeyNameKeyIdPair keyname_keyid_mappings;
 
 private:
 

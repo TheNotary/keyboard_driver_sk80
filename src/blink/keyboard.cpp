@@ -161,9 +161,9 @@ void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned
     TEST_SLIM_MESSAGES[0][55] = g;
     TEST_SLIM_MESSAGES[0][56] = b;
 
-    SendBufferToDevice(this->device_handle, TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
 
-    SendBufferToDevice(this->device_handle, END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
 void Keyboard::Blink(int n, int interval) {
@@ -295,7 +295,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
 
     SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
 
-    SendBufferToDevice(this->device_handle, key_message, 1, MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *key_message, 1, MESSAGE_LENGTH);
 
     unsigned char msg2[1][65] = { // 2
         0x00,
@@ -309,26 +309,26 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
         0x1e, 0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00
     };
 
-    SendBufferToDevice(this->device_handle, msg2, 1, MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *msg2, 1, MESSAGE_LENGTH);
 
     //SendBufferToDevice(this->device_handle, TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
 
-    SendBufferToDevice(this->device_handle, END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     unsigned char messages[BULK_LED_VALUE_MESSAGES_COUNT_RK84][MESSAGE_LENGTH_RK84];
-    this->SetKeysOnOff(key_value, messages);
+    this->SetKeysOnOff(key_value, *messages);
 }
 
-void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char messages_sent[3][65]) {
+void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent) {
     if (this->n_active_keys == 0) {
         printf("SetKeysOnOff was called with zero active keys... odd...skipping");
         return;
     }
 
-    this->keyboard_spec->SetBytesInPacket(*messages_sent, key_value, this->active_key_ids, this->n_active_keys);
+    this->keyboard_spec->SetBytesInPacket(messages_sent, key_value, this->active_key_ids, this->n_active_keys);
 
     // PrintMessagesInBuffer(messages_sent, BULK_LED_VALUE_MESSAGES_COUNT_RK84, MESSAGE_LENGTH_RK84);
 
@@ -358,7 +358,7 @@ void Keyboard::TurnOnActiveKeys() {
     this->SetKeysOnOff(kOn);
 }
 
-void Keyboard::TurnOnActiveKeys(unsigned char messages_sent[3][65]) {
+void Keyboard::TurnOnActiveKeys(unsigned char* messages_sent) {
     this->SetKeysOnOff(kOn, messages_sent);
 }
 
@@ -371,12 +371,6 @@ void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, cha
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
-    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->device_mappings;
-    
-    this->keyboard_model = keyboard_model;
-    this->pid = device_info.pid;
-    this->vid = device_info.vid;
-
     switch (keyboard_model) {
     case (kRK84):
         this->keyboard_spec = new RK84();
@@ -386,6 +380,11 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
         printf("this keyboard_spec not implemented yet");
         throw("keyboard_spec not implemented yet");
     }
+
+    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->device_mappings;
+    this->pid = device_info.pid;
+    this->vid = device_info.vid;
+    this->keyboard_model = keyboard_model;
 }
 
 short Keyboard::GetPid() {

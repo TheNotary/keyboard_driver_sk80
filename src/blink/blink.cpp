@@ -71,7 +71,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char mess
     kbd.SetActiveKeyIds(key_ids, n_keys);
 
     if (onOrOff == kOn) {
-        kbd.TurnOnActiveKeys(messages_sent);
+        kbd.TurnOnActiveKeys(*messages_sent);
     }
     else {
         kbd.TurnOffActiveKeys();

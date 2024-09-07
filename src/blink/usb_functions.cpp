@@ -244,9 +244,11 @@ static int SendPayloadBytesToDeviceAndGetResp(HANDLE deviceHandle, const UCHAR* 
 }
 
 void SendBufferToDevice(
-    HANDLE deviceHandle, unsigned char messages[][65],
+    HANDLE deviceHandle, unsigned char* messages_ptr,
     size_t messageCount, size_t messageLength
 ) {
+    unsigned char (*messages)[65] = reinterpret_cast<unsigned char (*)[65]>(messages_ptr);
+
     for (size_t i = 0; i < messageCount; i++)
     {
         //std::cout << "send_buffer_to_device " << i << std::endl;
