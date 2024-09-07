@@ -47,17 +47,6 @@ private:
      // This class is injected and provides functionality specific to the given keyboard model
      KeyboardBase* keyboard_spec;
 
-     struct DeviceInfo {
-         short vid;
-         short pid;
-     };
-
-     std::unordered_map<KeyboardModel, DeviceInfo> device_mappings = {
-         { kSK80, {0x05ac, 0x024f} },
-         { kMK84, {0x0000, 0x0000} },
-         { kRK84, {0x258a, 0x00c0} }
-     };
-
      void SetupKeyboardModel(KeyboardModel keyboard_model);
      void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;
 

@@ -7,11 +7,6 @@
 enum KeyboardModel { kSK80, kMK84, kRK84 };
 enum KeyValue { kOn, kOff };
 
-struct DeviceInfo {
-    short vid;
-    short pid;
-};
-
 struct TwoUINT8s {
     UINT8 first;
     UINT8 second;

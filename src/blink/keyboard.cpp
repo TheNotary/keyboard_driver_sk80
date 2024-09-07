@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "keyboards/rk84/messages_rk84.h"
 #include "keyboards/rk84/rk84.h"
+#include "keyboards/keyboard_base.h"
 
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
@@ -133,20 +134,6 @@ std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
 };
 
 
-std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings = {
-    {
-        kSK80, {
-            { kOn, 0xff },
-            { kOff, 0x00 }
-         }
-    },
-    {
-        kRK84, {
-            { kOn, 0x07 },
-            { kOff, 0x00 }
-        }
-    },
-};
 
 
 Keyboard::Keyboard(KeyboardModel keyboard_model)
@@ -395,7 +382,7 @@ void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, cha
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
-    DeviceInfo device_info = device_mappings[keyboard_model];
+    KeyboardBase::DeviceInfo device_info = this->keyboard_spec->device_mappings;
     
     this->keyboard_model = keyboard_model;
     this->pid = device_info.pid;

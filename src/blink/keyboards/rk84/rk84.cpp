@@ -29,7 +29,7 @@ void RK84::SetBytesInPacket(unsigned char* messages_ptr, KeyValue key_value, cha
 
     std::memcpy(messages, BULK_LED_VALUE_MESSAGES_RK84, BULK_LED_VALUE_MESSAGES_COUNT_RK84 * MESSAGE_LENGTH_RK84);
 
-    char bytesForValue = on_off_mappings[KeyboardModel::kRK84][key_value];
+    char bytesForValue = on_off_mappings.at(key_value);
 
     for (int i = 0; i < n_active_keys; i++) {
         UINT8 active_key = active_key_ids[i];
