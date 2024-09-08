@@ -5,14 +5,19 @@
 #include "misc.h"
 #include "test_load_blink.h"
 
+
 namespace KeyboardTest
 {
+    using namespace nRK84;
+
     // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 1, returns the message_index 
     // to be 0 (the key is transmitted within the first message) and slot 9 of that message.
     TEST(KeyboardTest, KeyInFirstPacket) {
         Keyboard keyboard(KeyboardModel::kRK84);
         int n_keys_in_first_packet = 57;
         int keyId = 1;
+
+        RK84 rk84;
 
         // Destructuring using structured bindings
         auto [message_index, slot] = GetMessageIndexAndKeycodeOffsetForKeyId_RK84(keyId);

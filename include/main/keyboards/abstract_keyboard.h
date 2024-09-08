@@ -15,7 +15,7 @@ public:
     // Virtual destructor to ensure proper cleanup
     virtual ~AbstractKeyboard() = default;
 
-    virtual void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const = 0;
+    virtual void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) = 0;
 
     struct DeviceInfo {
         short vid;
