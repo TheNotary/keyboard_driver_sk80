@@ -8,9 +8,8 @@
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboard.h"
-// TODO: eliminate #include "keyboards/rk84/rk84.h" next
-#include "keyboards/rk84/rk84.h"
 #include "keyboards/abstract_keyboard.h"
+#include "keyboards/keyboard_spec_factory.h"
 
 
 std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
@@ -316,9 +315,6 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
     SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
 }
 
-// TODO: I think I can safely store these values on the class RK84, right?
-// but maybe that's not flexible enough
-
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     unsigned char* messages = new unsigned char[
         this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT * 
@@ -377,18 +373,14 @@ void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, cha
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
-    switch (keyboard_model) {
-    case (kRK84):
-        this->keyboard_spec = new RK84();
-        break;
-    case (kSK80):
-        this->keyboard_spec = new RK84();
-        break;
-    default:
-        this->keyboard_spec = nullptr;
+    KeyboardSpecFactory kf;
+    this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model);
+
+    if (this->keyboard_spec == nullptr) {
         printf("this keyboard_spec not implemented yet");
         throw("keyboard_spec not implemented yet");
     }
+
 
     AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
     this->pid = device_info.pid;

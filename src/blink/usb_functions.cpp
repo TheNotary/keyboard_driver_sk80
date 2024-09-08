@@ -98,7 +98,6 @@ void PrintDeviceDetails(HANDLE hDev,
         guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
 }
 
-// TODO: I don't think I need to do this apparently... was just copying from reference app...
 void DoAdditionalUsbThings(HANDLE hDev) {
     PHIDP_PREPARSED_DATA preparsedData;
     bool result = HidD_GetPreparsedData(hDev, &preparsedData);
@@ -152,7 +151,7 @@ HANDLE SearchForDevice(short vid, short pid) {
             continue;
         }
 
-        DoAdditionalUsbThings(hDev);
+        // DoAdditionalUsbThings(hDev);
 
         deviceAttributes.Size = sizeof(deviceAttributes);
         if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
@@ -171,23 +170,24 @@ HANDLE SearchForDevice(short vid, short pid) {
             //                     "\\\\?\\hid#vid_05ac&pid_024f&mi_00#8&16781069&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
 
             // 012FCB54  0323D8EC   L"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col04#9&3b698677&0&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
-            
+
             // 009DCC04  00349344   devicedrive"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}"
             //                                 "\\\\?\\hid#vid_0b05&pid_19af&mi_02#7&382c88b3&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"
             char target_device_path_rk84_1[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col01#9&3b698677&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
             char target_device_path_rk84_2[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col02#9&3b698677&0&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}";
             char target_device_path_rk84_3[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col03#9&3b698677&0&0002#{4d1e55b2-f16f-11cf-88cb-001111000030}";
             char target_device_path_rk84_4[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            
+
             char target_device_path_sk80[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            
-            if (strstr(devicePath, target_device_path_rk84_4))
-              return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
+
+            if (strstr(devicePath, target_device_path_rk84_4)) {
+                SetupDiDestroyDeviceInfoList(deviceInfoList);
+                return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
+            }
         }
         CloseHandle(hDev);
     }
 
-    // FIXME/ TODO: I think I need to call this before I return with the handle in this function!
     SetupDiDestroyDeviceInfoList(deviceInfoList);
     return 0;
 }

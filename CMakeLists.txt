@@ -16,7 +16,7 @@ add_executable(main "src/main.cpp"
 	"src/test_load_blink.cpp" "include/main/test_load_blink.h"
 	"src/push_to_light.cpp" "include/main/push_to_light.h"
 	"src/cycle_keyids.cpp" "include/main/cycle_keyids.h" 
-	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h" "src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h")
+	"include/main/misc.h")
 
 # blink.dll is what other programs will call out to in order to perform USB work
 add_library(blink SHARED
@@ -29,7 +29,9 @@ add_library(blink SHARED
 	"include/main/keyboards/sk80/messages_sk80.h" "src/blink/keyboards/sk80/messages_sk80.cpp"
 	"src/blink/keyboards/rk84/messages_rk84.cpp" "include/main/keyboards/rk84/messages_rk84.h" 
 	"src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h" 
-	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h" "src/blink/keyboards/keyboard_factory.cpp" "src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h")
+	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h" 
+	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h" 
+	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h")
 
 # Add GoogleTest
 add_executable(KeyboardTest
@@ -41,7 +43,9 @@ add_executable(KeyboardTest
 	"src/blink/keyboards/rk84/messages_rk84.cpp" "include/main/keyboards/rk84/messages_rk84.h" 
 	"src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h" 
 	"include/main/keyboards/abstract_keyboard.h" 
-	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h" "src/blink/keyboards/keyboard_factory.cpp" "src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h")
+	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h" 
+	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
+	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
@@ -60,5 +64,9 @@ target_link_libraries(KeyboardTest PRIVATE fmt::fmt)
 
 # Google Benchmark
 find_package(benchmark CONFIG REQUIRED)
-add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp"  "include/main/keyboards/abstract_keyboard.h" "include/main/misc.h" "include/main/keyboards/sk80/sk80.h" "src/blink/keyboards/keyboard_factory.cpp" "src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h")
+add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp"  
+	"include/main/keyboards/abstract_keyboard.h" "include/main/misc.h" 
+	"include/main/keyboards/sk80/sk80.h" 
+	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h" 
+	)
 target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)

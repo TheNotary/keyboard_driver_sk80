@@ -23,7 +23,6 @@ KeyboardInfo ChooseKeyboard() {
             << std::endl;
     }
 
-    // TODO: Test if zero available
     if (i == 0) {
         printf("Error:  No keyboard detected!");
         return {};
