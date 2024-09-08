@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "misc.h"
-#include "test_load_blink.h"
+#include "blink_loader.h"
 
 
 namespace demo {

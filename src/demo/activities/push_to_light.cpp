@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <vector>
-#include "test_load_blink.h"
+#include "blink_loader.h"
 
 
 namespace demo {

@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <vector>
-#include "test_load_blink.h"
+#include "blink_loader.h"
 #include "misc.h"
 
 
@@ -9,7 +9,7 @@ namespace demo {
 
 /*
 * @brief A generic function for loading a function from a dll.
-* 
+*
 */
 template<typename FuncType>
 FuncType GetFunction(HMODULE* hModule, const char* funcName) {

@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <vector>
-#include "test_load_blink.h"
+#include "blink_loader.h"
 
 using std::cout;
 using std::endl;
@@ -18,17 +18,17 @@ void PrintKeyId(char key_id) {
 char IncrementKeyId(char value, int incrementation) {
     const UINT8 max_index = 96;
 
-    // if we don't cast result to unsigned, it screws up the '>' comparisons, 
+    // if we don't cast result to unsigned, it screws up the '>' comparisons,
     // making 0xff -1 instead of 255!
     // We don't need to return unsigned char since the calling code does implicit cast
-    // If we pass in value = 0xff, isn't that going to be a different computation 
+    // If we pass in value = 0xff, isn't that going to be a different computation
     // whether we're signed or unsigned???
 
-    unsigned char result = ((unsigned)value) + incrementation; 
+    unsigned char result = ((unsigned)value) + incrementation;
 
     if (result > max_index)  // If we're incrementing passed max_index
         return 1;            // then overflow the char to 1 after incrementing max_index
-    
+
     if (result == 0)       // It is only possible to reach 0 if we're incrementing by -1
         return max_index;  // Therefore overflow to max_index
 
@@ -38,11 +38,11 @@ char IncrementKeyId(char value, int incrementation) {
 int CycleKeyIds(KeyboardInfo keyboard) {
     cout << "CycleKeyIds Debug Mode:" << endl
         << "The key id will be shown on the screen, and the LED for that key will be switched "
-        << "on making mapping the keyboard easy.  " 
+        << "on making mapping the keyboard easy.  "
         << endl << endl
         << "Press left or right to cycle through the keyId to test.  " << endl
         << "Press Space to print the buffer that was last transmitted to the keyboard" << endl
-        << "Press escape to exit" 
+        << "Press escape to exit"
         << endl << endl;
 
     //std::vector<std::string> key_names = { "f11" };
@@ -56,7 +56,7 @@ int CycleKeyIds(KeyboardInfo keyboard) {
     while (true) {
         if (GetAsyncKeyState(VK_DOWN) & 0x8000
             || GetAsyncKeyState(VK_LEFT) & 0x8000) { // PREV
-            key_ids[0] = IncrementKeyId(key_ids[0], -1); 
+            key_ids[0] = IncrementKeyId(key_ids[0], -1);
             CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
             PrintKeyId(key_ids[0]);
 

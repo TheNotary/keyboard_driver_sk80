@@ -4,8 +4,8 @@
 #include "keyboards/rk84/rk84.h"
 #include "misc.h"
 
-// TODO: move to separate file for test_demo 
-#include "../src/demo/test_load_blink.h"
+// TODO: move to separate file for test_demo
+#include "../src/demo/blink_loader.h"
 
 
 
@@ -13,7 +13,7 @@ namespace KeyboardTest
 {
     using namespace rk84;
 
-    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 1, returns the message_index 
+    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 1, returns the message_index
     // to be 0 (the key is transmitted within the first message) and slot 9 of that message.
     TEST(KeyboardTest, KeyInFirstPacket) {
         Keyboard keyboard(KeyboardModel::kRK84);
@@ -30,7 +30,7 @@ namespace KeyboardTest
         EXPECT_EQ(slot, 6);
     }
 
-    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 15, returns the message_index 
+    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 15, returns the message_index
     // to be 0 (the key is transmitted within the first message) and slot 23 of that message
     TEST(KeyboardTest, KeyInSecondPacket) {
         Keyboard keyboard(KeyboardModel::kRK84);
@@ -42,7 +42,7 @@ namespace KeyboardTest
         EXPECT_EQ(slot, 7);
     }
 
-    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 64, returns the message_index 
+    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 64, returns the message_index
     // to be 1 (the key is transmitted within the second message) and slot 10 of that message
     TEST(KeyboardTest, KeyId60IsOnSecondPage) {
         Keyboard keyboard(KeyboardModel::kRK84);
@@ -54,7 +54,7 @@ namespace KeyboardTest
         EXPECT_EQ(slot, 3);
     }
 
-    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 65, returns the message_index 
+    // Test keyboard::GetMessageIndexAndSlotForKeyId for keyId 65, returns the message_index
     // to be 1 (the key is transmitted within the second message) and slot 11 of that message
     TEST(KeyboardTest, KeyId61IsOnSecondPage) {
         Keyboard keyboard(KeyboardModel::kRK84);
@@ -72,7 +72,7 @@ namespace KeyboardTest
 
         EXPECT_EQ(list.size(), 1);
     }
-    
+
 }
 
 int main(int argc, char** argv) {

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(main)
 
-include_directories(${CMAKE_SOURCE_DIR}/include/main)
+include_directories("${CMAKE_SOURCE_DIR}/include/main")  # , "${CMAKE_SOURCE_DIR}/src/demo"
 
 # Find all .cpp files in the src/ directory, this isn't a best practice because it makes cmake not know what to build when things are changed supposedly?
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
@@ -13,10 +13,13 @@ add_compile_options("/utf-8")
 # Main is kind of a demo app meant for showcasing the project and testing blink.dll
 # It's nice keeping main completely isolated from the source files involved with blink and vice versa
 add_executable(main "src/demo/main.cpp"
-	"src/demo/test_load_blink.cpp" "src/demo/test_load_blink.h"
-	"src/demo/push_to_light.cpp" "src/demo/push_to_light.h"
-	"src/demo/cycle_keyids.cpp" "src/demo/cycle_keyids.h"
+	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
+	"src/demo/activities/push_to_light.cpp" "src/demo/activities/push_to_light.h"
+	"src/demo/activities/cycle_keyids.cpp" "src/demo/activities/cycle_keyids.h"
 	"include/main/misc.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h")
+
+target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/src/demo")
+
 
 # blink.dll is what other programs will call out to in order to perform USB work
 add_library(blink SHARED
@@ -37,7 +40,7 @@ add_library(blink SHARED
 # Add GoogleTest
 add_executable(KeyboardTest
 	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp"
-	"src/demo/test_load_blink.cpp" "src/demo/test_load_blink.h"
+	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/messages.cpp" "include/main/messages.h"

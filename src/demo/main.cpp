@@ -1,14 +1,16 @@
-#include <windows.h>
 #include <iostream>
-#include <fmt/core.h>
 #include <basetsd.h>
 #include <vector>
 #include <stdexcept>
 #include <unordered_map>
-#include "test_load_blink.h"
-#include "push_to_light.h"
-#include "cycle_keyids.h"
+
+#include <windows.h>
+#include <fmt/core.h>
+
 #include "choose_keyboard.h"
+#include "blink_loader.h"
+#include "activities/push_to_light.h"
+#include "activities/cycle_keyids.h"
 #include "misc.h"
 
 
@@ -25,7 +27,7 @@ int main() {
     //push_to_light();
     //return 0;
 
-    fmt::println("Hello fmt, a simple dependency.");
+    /*fmt::println("Hello fmt, a simple dependency.");
 
     std::vector<std::string> key_names = { "esc", "~", "f1", "f2", "f3", "f4",
         "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12" };
@@ -34,5 +36,5 @@ int main() {
     Sleep(1050);
     demo::CallDllTurnOffKeyNames(key_names);
 
-    return 0;
+    return 0;*/
 }
