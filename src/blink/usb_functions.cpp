@@ -45,8 +45,8 @@ HANDLE open_device(LPCSTR device_path) {
 
 void PrintDeviceDetails(HANDLE hDev,
     SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails,
-    SP_DEVICE_INTERFACE_DATA deviceInfo, 
-    SP_DEVINFO_DATA device_info_data, 
+    SP_DEVICE_INTERFACE_DATA deviceInfo,
+    SP_DEVINFO_DATA device_info_data,
     HIDD_ATTRIBUTES deviceAttributes
 ) {
     char productString[256];
@@ -170,9 +170,6 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
             char devicePath[1024];
             sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
 
-            //char target_device_path_rk84_4_WINNER[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            char target_device_path_sk80[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-
             if (strstr(devicePath, target_device_path)) {
                 SetupDiDestroyDeviceInfoList(deviceInfoList);
                 return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
@@ -185,8 +182,8 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
     return 0;
 }
 
-/* 
- * Returns a list of keyboards that are attached to the system and are known to the program per known_keyboards.h 
+/*
+ * Returns a list of keyboards that are attached to the system and are known to the program per known_keyboards.h
  */
 std::vector<KeyboardInfo> ListAvailableKeyboards() {
     std::vector<KeyboardInfo> available_keyboards;

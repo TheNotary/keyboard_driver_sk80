@@ -28,11 +28,13 @@ add_library(blink SHARED
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"include/main/keyboards/abstract_keyboard.h"
-	"include/main/keyboards/sk80/messages_sk80.h" "src/blink/keyboards/sk80/messages_sk80.cpp"
-	"include/main/keyboards/rk84/constants_rk84.h"
+    "include/main/keyboards/sk80/sk80.h"
+	
+	"include/main/keyboards/sk80/constants_sk80.h" "include/main/keyboards/sk80/messages_sk80.h" "include/main/keyboards/sk80/key_mappings_sk80.h"
+    "include/main/keyboards/rk84/constants_rk84.h"
 	"src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
 	"include/main/keyboards/rk84/key_mappings_rk84.h"
-	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h"
+	"include/main/misc.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h")
 
@@ -43,12 +45,16 @@ add_executable(KeyboardTest
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
-	"include/main/keyboards/rk84/constants_rk84.h"
-	"src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
+    "include/main/keyboards/sk80/sk80.h"
+	"include/main/keyboards/sk80/constants_sk80.h" "include/main/keyboards/sk80/messages_sk80.h" "include/main/keyboards/sk80/key_mappings_sk80.h"
+    "src/blink/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
+    "include/main/keyboards/rk84/constants_rk84.h" "include/main/keyboards/rk84/messages_rk84.h"
 	"include/main/keyboards/abstract_keyboard.h"
-	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h"
+	"include/main/misc.h"
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
-	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h" "include/main/keyboards/rk84/messages_rk84.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h" "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
+	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
+    "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
+    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
@@ -67,9 +73,5 @@ target_link_libraries(KeyboardTest PRIVATE fmt::fmt)
 
 # Google Benchmark
 find_package(benchmark CONFIG REQUIRED)
-add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp"
-	"include/main/keyboards/abstract_keyboard.h" "include/main/misc.h"
-	"include/main/keyboards/sk80/sk80.h"
-	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
-	"include/main/keyboards/rk84/messages_rk84.h" )
+add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp")
 target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)

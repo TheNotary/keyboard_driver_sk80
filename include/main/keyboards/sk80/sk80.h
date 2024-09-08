@@ -1,44 +1,37 @@
+#pragma once
+#include <array>
 
-//std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings = {
-//    {
-//        kSK80, {
-//            { kOn, 0xff },
-//            { kOff, 0x00 }
-//         }
-//    },
-//};
-
+#include "misc.h"
+#include "keyboards/abstract_keyboard.h"
+#include "keyboards/sk80/constants_sk80.h"
+#include "keyboards/sk80/messages_sk80.h"
+#include "keyboards/sk80/key_mappings_sk80.h"
 
 
-//std::unordered_map<KeyboardModel, DeviceInfo> device_mappings = {
-//         { kSK80, {0x05ac, 0x024f} },
-//         { kMK84, {0x0000, 0x0000} },
-//};
+namespace sk80 {
+
+    class SK80 : public AbstractKeyboard {
+    public:
+        SK80()
+            : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
+                DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings)
+        {}
+
+        void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
+        DeviceInfo GetDeviceInfo() const;
 
 
-//std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
-//    {
-//        kSK80, {
-//            {"esc", 0x01},
-//            {"f1" , 0x02},
-//            {"f2" , 0x03},
-//            {"f3" , 0x04},
-//            {"f4" , 0x05},
-//            {"f5" , 0x06},
-//            {"f6" , 0x07},
-//            {"f7" , 0x08},
-//            {"f8" , 0x09},
-//            {"f9" , 0x0a},
-//            {"f10", 0x0b},
-//            {"f11", 0x0c},
-//            {"f12", 0x0d},
-//
-//            {"~", 0x10},
-//        }
-//    },
-//    {
-//        kMK84, {
-//            {"f12", 0x0d}
-//        }
-//    },
-//};
+    private:
+        KeyValueBytesPair on_off_mappings = sk80::on_off_mappings;
+
+    };
+
+}
+
+
+namespace sk80::internal {
+
+    TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key);
+
+}
+

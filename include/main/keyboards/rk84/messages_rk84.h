@@ -1,4 +1,4 @@
-#include "keyboards/rk84/constants_rk84.h"
+#include "keyboards/rk84/rk84.h"
 
 namespace rk84 {
 
