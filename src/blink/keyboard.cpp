@@ -12,129 +12,6 @@
 #include "keyboards/keyboard_spec_factory.h"
 
 
-std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mappings = {
-    {
-        kSK80, {
-            {"esc", 0x01},
-            {"f1" , 0x02},
-            {"f2" , 0x03},
-            {"f3" , 0x04},
-            {"f4" , 0x05},
-            {"f5" , 0x06},
-            {"f6" , 0x07},
-            {"f7" , 0x08},
-            {"f8" , 0x09},
-            {"f9" , 0x0a},
-            {"f10", 0x0b},
-            {"f11", 0x0c},
-            {"f12", 0x0d},
-
-            {"~", 0x10},
-        }
-    },
-    {
-        kMK84, {
-            {"f12", 0x0d}
-        }
-    },
-    {
-        kRK84, {
-            {"esc", 1},
-            {"f1", 7},
-            {"f2", 13},
-            {"f3", 19},
-            {"f4", 25},
-            {"f5", 31},
-            {"f6", 37},
-            {"f7", 43},
-            {"f8", 49},
-            {"f9", 55},
-            {"f10", 61},
-            {"f11", 67},
-            {"f12", 73},
-            {"print", 79},
-            {"pause", 85},
-            {"delete", 91},
-
-            {"`", 2},
-            {"1", 8},
-            {"2", 14},
-            {"3", 20},
-            {"4", 26},
-            {"5", 32},
-            {"6", 38},
-            {"7", 44},
-            {"8", 50},
-            {"9", 56},
-            {"0", 62},
-            {"-", 68},
-            {"=", 74},
-            {"backspace", 80},
-            {"home", 92},
-
-            {"tab", 3},
-            {"q", 9},
-            {"w", 15},
-            {"e", 21},
-            {"r", 27},
-            {"t", 33},
-            {"y", 39},
-            {"u", 45},
-            {"i", 51},
-            {"o", 57},
-            {"p", 63},
-            {"[", 69},
-            {"]", 75},
-            {"\\", 81},
-            {"end", 93},
-
-            {"caps", 4},
-            {"a", 10},
-            {"s", 16},
-            {"d", 22},
-            {"f", 28},
-            {"g", 34},
-            {"h", 40},
-            {"j", 46},
-            {"k", 52},
-            {"l", 58},
-            {";", 64},
-            {"'", 70},
-            {"enter", 82},
-            {"pageup", 94},
-
-            {"lshift", 5},
-            {"z", 11},
-            {"x", 17},
-            {"c", 23},
-            {"v", 29},
-            {"b", 35},
-            {"n", 41},
-            {"m", 47},
-            {",", 53},
-            {".", 59},
-            {"/", 65},
-            {"rshift", 71},
-            {"up", 83},
-            {"pagedown", 95},
-
-            {"lctrl", 6},
-            {"lmeta", 12},
-            {"lalt", 18},
-            {"space", 36},
-            {"ralt", 54},
-            {"fn", 60},
-            {"rctrl", 66},
-            {"left", 72},
-            {"down", 84},
-            {"right", 96},
-        }
-    }
-};
-
-
-
-
 Keyboard::Keyboard(KeyboardModel keyboard_model)
 {
     this->SetupKeyboardModel(keyboard_model);
@@ -233,7 +110,7 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     for (UINT8 i = 0; i < key_names.size(); ++i) {
         // std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
         std::string key_name = key_names[i];
-        char key_id = keyname_keyid_mappings[this->keyboard_model][key_name];
+        char key_id = this->keyboard_spec->keyname_keyid_mappings[key_name];
         if (key_id == 0) {
             std::cout << "Error: could not lookup up key " 
                 << "[ " << key_name << " ]"
@@ -380,7 +257,6 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
         printf("this keyboard_spec not implemented yet");
         throw("keyboard_spec not implemented yet");
     }
-
 
     AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
     this->pid = device_info.pid;
