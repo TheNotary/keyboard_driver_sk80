@@ -41,8 +41,8 @@ extern "C" int BlinkKeys(char* keyIds, int nKeys) {
     return 0;
 }
 
-int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff) {
-    Keyboard kbd(KeyboardModel::kRK84);
+int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, KeyboardInfo keyboard) {
+    Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
@@ -83,8 +83,8 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char mess
     return 0;
 }
 
-int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff) {
-    Keyboard kbd(KeyboardModel::kRK84);
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keyboard) {
+    Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.Found()) {
         printf("Could not find keyboard\n");
@@ -108,20 +108,20 @@ extern "C" int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages
     return TurnKeyIds(key_ids, n_keys, kOn, messages_sent, keyboard);
 }
 
-extern "C" int TurnOnKeyIds(char* key_ids, UINT8 n_keys) {
-    return TurnKeyIds(key_ids, n_keys, kOn);
+extern "C" int TurnOnKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard) {
+    return TurnKeyIds(key_ids, n_keys, kOn, keyboard);
 }
 
-extern "C" int TurnOffKeyIds(char* key_ids, UINT8 n_keys) {
-    return TurnKeyIds(key_ids, n_keys, kOff);
+extern "C" int TurnOffKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard) {
+    return TurnKeyIds(key_ids, n_keys, kOff, keyboard);
 }
 
-extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names) {
-    return TurnKeyNames(key_names, kOn);
+extern "C" int TurnOnKeyNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
+    return TurnKeyNames(key_names, kOn, keyboard);
 }
 
-extern "C" int TurnOnOffNames(const std::vector<std::string>& key_names) {
-    return TurnKeyNames(key_names, kOff);
+extern "C" int TurnOnOffNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
+    return TurnKeyNames(key_names, kOff, keyboard);
 }
 
 extern "C" int ListAvailableKeyboards(KeyboardInfo** out_keyboards) {

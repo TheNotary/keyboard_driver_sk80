@@ -3,6 +3,6 @@
 
 namespace demo {
 
-int push_to_light();
+int PushToLight(KeyboardInfo keyboard);
 
 }

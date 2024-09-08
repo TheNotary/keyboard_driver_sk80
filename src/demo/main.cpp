@@ -8,6 +8,7 @@
 #include <fmt/core.h>
 
 #include "choose_keyboard.h"
+#include "choose_activity.h"
 #include "blink_loader.h"
 #include "activities/push_to_light.h"
 #include "activities/cycle_keyids.h"
@@ -21,14 +22,23 @@ int main() {
         return 0;
     }
 
-    demo::CycleKeyIds(keyboard);
+
+    int activity = demo::ChooseActivity();  // 1 == CycleKeyIds
+
+    if (activity == 1) {
+        demo::CycleKeyIds(keyboard);
+        return 0;
+    }
+    if (activity == 2) {
+        demo::PushToLight(keyboard);
+        return 0;
+    }
+
+    std::cout << "Invalid choice." << std::endl;
     return 0;
 
-    //push_to_light();
-    //return 0;
 
-    /*fmt::println("Hello fmt, a simple dependency.");
-
+    /*
     std::vector<std::string> key_names = { "esc", "~", "f1", "f2", "f3", "f4",
         "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12" };
 

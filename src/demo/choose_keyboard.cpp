@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "util.h"
 #include "misc.h"
 #include "blink_loader.h"
 
@@ -30,20 +31,7 @@ KeyboardInfo ChooseKeyboard() {
 
     std::cout << std::endl << "keyboard [1-" << i << "]:" << std::endl;
 
-    std::string line;
-    std::getline(std::cin, line);
-
-
-    int choice;
-
-    try {
-        choice = std::stoi(line);
-    }
-    catch (...) {
-        //catch (std::invalid_argument & err) {
-        printf("Error: Invalid input, specify a number.\n");
-        return {};
-    }
+    int choice = ParseNumericChoiceFromStdin();
 
     if (choice > i || choice < 0) {
         printf("Error: The number specified isn't a valid choice.\n");

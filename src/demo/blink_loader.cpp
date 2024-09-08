@@ -161,7 +161,7 @@ std::vector<KeyboardInfo> _ListAvailableKeyboards() {
     return list;
 }
 
-int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names) {
+int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
     if (!hModule) {
         std::cerr << "Failed to load DLL" << std::endl;
@@ -174,10 +174,10 @@ int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names) {
         return 1;
     }
 
-    return TurnOnKeyNames(key_names);
+    return TurnOnKeyNames(key_names, keyboard);
 }
 
-int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names) {
+int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
     if (!hModule) {
         std::cerr << "Failed to load DLL" << std::endl;
@@ -190,7 +190,7 @@ int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names) {
         return 1;
     }
 
-    return TurnOffKeyNames(key_names);
+    return TurnOffKeyNames(key_names, keyboard);
 }
 
 }

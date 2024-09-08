@@ -16,7 +16,7 @@ add_executable(main "src/demo/main.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/demo/activities/push_to_light.cpp" "src/demo/activities/push_to_light.h"
 	"src/demo/activities/cycle_keyids.cpp" "src/demo/activities/cycle_keyids.h"
-	"include/main/misc.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h")
+	"include/main/misc.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h" "src/demo/util.cpp" "src/demo/util.h")
 
 target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/src/demo")
 
@@ -49,7 +49,7 @@ add_executable(KeyboardTest
 	"include/main/keyboards/abstract_keyboard.h"
 	"include/main/misc.h" "include/main/keyboards/sk80/sk80.h"
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
-	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h" "include/main/keyboards/rk84/messages_rk84.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h")
+	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h" "include/main/keyboards/rk84/messages_rk84.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h" "src/demo/util.cpp" "src/demo/util.h")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
@@ -72,5 +72,5 @@ add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp"
 	"include/main/keyboards/abstract_keyboard.h" "include/main/misc.h"
 	"include/main/keyboards/sk80/sk80.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
-	"include/main/keyboards/rk84/messages_rk84.h")
+	"include/main/keyboards/rk84/messages_rk84.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h" "src/demo/util.cpp" "src/demo/util.h")
 target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)
