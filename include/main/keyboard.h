@@ -18,24 +18,30 @@ class Keyboard {
 public:
      // Name GetNameObject(const std::string& name) const; // interesting syntax, right?
      Keyboard(KeyboardModel keyboard_model);
-     bool AccessDeviceHandle();
-     HANDLE GetDeviceHandle();
+
+     // convenience
+     void TurnOnActiveKeys();
+     void TurnOffActiveKeys();
+
+     // The Driver API!
      void SetKeysOnOff(KeyValue key_value);
      void SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent);
      void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
      void SetActiveKeys(const std::vector<std::string>& key_names);
+     char GetActiveKeyId(int index);
+     void SetActiveKeyId(int index, char key_id);
+
+     // utility
+     void Dispose();
+     bool Found();
+
+     // Below is not well defined yet and may be removed...
      void BlinkActiveKeys(int n, int interval);
      void TurnOnActiveKeys(unsigned char* messages_sent);
-     void TurnOnActiveKeys();
-     void TurnOffActiveKeys();
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
      void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
      void Blink(int n, int interval);
-     void Dispose();
-     bool Found();
-     char GetActiveKeyId(int index);
-     void SetActiveKeyId(int index, char key_id);
-     short GetPid();
+     
 private:
      HANDLE device_handle;
      short vid; //  = 0x05ac
@@ -46,6 +52,8 @@ private:
 
      // This class is injected and provides functionality specific to the given keyboard model
      AbstractKeyboard* keyboard_spec;
+
+     bool AccessDeviceHandle();
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
      void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;

@@ -27,7 +27,6 @@ namespace KeyboardRK84
     }
 
     TEST(KeyboardRK84, CastALongIntoTwoShorts) {
-
         short expected_vid = 0x258a;
         short expected_pid = 0x00c0;
         long blah = 0x258a00c0;
@@ -40,7 +39,6 @@ namespace KeyboardRK84
     }
 
     TEST(KeyboardRK84, TreatALongAsTwoShorts) {
-
         short expected_vid = 0x258a;
         short expected_pid = 0x00c0;
         long blah = 0x258a00c0;
@@ -52,7 +50,6 @@ namespace KeyboardRK84
 
         EXPECT_EQ(expected_vid, (short)ptr[1]);
         EXPECT_EQ(expected_pid, (short)ptr[0]);
-
     }
 
     TEST(KeyboardRK84, ItHasTheCorrectConstsAvailable) {

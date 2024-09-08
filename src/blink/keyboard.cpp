@@ -24,10 +24,6 @@ bool Keyboard::AccessDeviceHandle() {
     return true;
 }
 
-HANDLE Keyboard::GetDeviceHandle() {
-    return this->device_handle;
-}
-
 void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
     std::cout << "Setting LED" << std::endl;
 
@@ -262,8 +258,4 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     this->pid = device_info.pid;
     this->vid = device_info.vid;
     this->keyboard_model = keyboard_model;
-}
-
-short Keyboard::GetPid() {
-    return this->pid;
 }

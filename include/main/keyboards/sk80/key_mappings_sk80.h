@@ -23,6 +23,9 @@ const std::unordered_map<std::string, char> keyname_keyid_mappings = {
 
         {"~", 16},
 
+        {"tab", 3},  // this is wrong
+
+
         /*
         {"1", 8},
         {"2", 14},

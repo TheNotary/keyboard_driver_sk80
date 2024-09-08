@@ -131,7 +131,7 @@ const unsigned char BULK_LED_FOOTER_MESSAGES[][MESSAGE_LENGTH] = {
 //     (byte) Red value (Value 0x00 - 0xff)
 //     (byte) Green value (Value 0x00 - 0xff)
 //     (byte) Blue value (Value 0x00 - 0xff)
-const unsigned char BULK_LED_VALUE_MESSAGES_SK80[][MESSAGE_LENGTH] = {
+const unsigned char BULK_LED_VALUE_MESSAGES[][MESSAGE_LENGTH] = {
     { // 1 - Top Row, esc - f12
         0x00,
         0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // KeyId 0x00 - 0x0f

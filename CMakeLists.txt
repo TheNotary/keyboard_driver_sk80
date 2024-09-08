@@ -36,11 +36,11 @@ add_library(blink SHARED
 	"include/main/keyboards/rk84/key_mappings_rk84.h"
 	"include/main/misc.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
-	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h")
+	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/sk80/sk80.cpp")
 
 # Add GoogleTest
 add_executable(KeyboardTest
-	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp"
+	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp" "test/keyboard_sk80_test.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
@@ -54,7 +54,7 @@ add_executable(KeyboardTest
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
     "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
-    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
+    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/blink/keyboards/sk80/sk80.cpp")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)

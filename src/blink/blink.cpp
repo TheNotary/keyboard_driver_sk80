@@ -85,8 +85,6 @@ extern "C" {
         //Keyboard kbd(KeyboardModel::SK80);
         Keyboard kbd(KeyboardModel::kRK84);
 
-        printf("pid: %x\n", kbd.GetPid());
-
         if (!kbd.Found()) {
             printf("Could not find keyboard\n");
             return 1;
