@@ -11,8 +11,9 @@ int ChooseActivity() {
 
     std::cout << "1. CycleKeyIds" << std::endl;
     std::cout << "2. PushToLight" << std::endl;
+    std::cout << "3. Test esc Key" << std::endl;
 
-    std::cout << std::endl << "Press 1 or 2: ";
+    std::cout << std::endl << "Press 1, 2 or 3: ";
 
     return ParseNumericChoiceFromStdin();
 }

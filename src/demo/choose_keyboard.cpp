@@ -24,6 +24,11 @@ KeyboardInfo ChooseKeyboard() {
             << std::endl;
     }
 
+    if (i == 1) {
+        std::cout << "Only one keyboard available, choosing it." << std::endl << std::endl;
+        return available_keebs[0];
+    }
+
     if (i == 0) {
         printf("Error:  No keyboard detected!");
         return {};

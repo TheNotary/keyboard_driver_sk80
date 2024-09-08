@@ -231,7 +231,7 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     }
 
     for (UINT8 i = 0; i < key_names.size(); ++i) {
-        std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
+        // std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
         std::string key_name = key_names[i];
         char key_id = keyname_keyid_mappings[this->keyboard_model][key_name];
         if (key_id == 0) {

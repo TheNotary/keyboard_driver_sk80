@@ -10,18 +10,19 @@
 #include "choose_keyboard.h"
 #include "choose_activity.h"
 #include "blink_loader.h"
+#include "misc.h"
 #include "activities/push_to_light.h"
 #include "activities/cycle_keyids.h"
-#include "misc.h"
+#include "activities/test_single_key.h"
 
 
 int main() {
 
     KeyboardInfo keyboard = demo::ChooseKeyboard();
     if (keyboard.display_name[0] == 0x00) {
+        std::cout << "Exiting, no valid keyboard selected" << std::endl;
         return 0;
     }
-
 
     int activity = demo::ChooseActivity();  // 1 == CycleKeyIds
 
@@ -33,18 +34,15 @@ int main() {
         demo::PushToLight(keyboard);
         return 0;
     }
+    if (activity == 3) {
+        demo::TestSingleKey(keyboard);
+        return 0;
+    }
 
     std::cout << "Invalid choice." << std::endl;
     return 0;
 
 
-    /*
-    std::vector<std::string> key_names = { "esc", "~", "f1", "f2", "f3", "f4",
-        "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12" };
-
-    demo::CallDllTurnOnKeyNames(key_names);
-    Sleep(1050);
-    demo::CallDllTurnOffKeyNames(key_names);
-
-    return 0;*/
+    
+    
 }
