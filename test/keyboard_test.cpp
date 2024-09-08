@@ -3,7 +3,10 @@
 #include "../include/main/keyboard.h"
 #include "keyboards/rk84/rk84.h"
 #include "misc.h"
-#include "test_load_blink.h"
+
+// TODO: move to separate file for test_demo 
+#include "../src/demo/test_load_blink.h"
+
 
 
 namespace KeyboardTest
