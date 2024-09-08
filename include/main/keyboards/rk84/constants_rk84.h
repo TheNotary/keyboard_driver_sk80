@@ -13,17 +13,5 @@ namespace rk84 {
 		{ kOn, 0x07 },
 		{ kOff, 0x00 }
 	};
+	const char target_device_path[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 }
-
-
-// FIXME: I currently have a circular dependency so I can't define anything other than a const in this file or I will get errors that
-// I'm redefining attributes
-//
-// To solve this, it's clever to instead focus on removing the need to include 
-// #include "keyboards/rk84/messages_rk84.h"
-// from within keyboard.cpp
-// That means I need to define the data on the RK84 class and access the data through that class
-//
-// But for that to work out, I need to move all the function calls that turn lights on/ off which use those message buffers, 
-// so that the KB84 class never needs to expose those members which would really mess up the abstract_keyboard class declaration
-

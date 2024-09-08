@@ -1,3 +1,1 @@
-- SearchForDevice has some hard-coded stuff for matching up the correct device path to write to.  
-  Move that to the keyboards/ folder
 - Map sk80

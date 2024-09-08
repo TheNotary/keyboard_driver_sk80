@@ -58,9 +58,18 @@ namespace KeyboardRK84
     TEST(KeyboardRK84, ItHasTheCorrectConstsAvailable) {
         RK84 rk_84;
 
+        AbstractKeyboard* abstr = &rk_84;
+
         EXPECT_EQ(rk_84.BULK_LED_VALUE_MESSAGES_COUNT, 3);
+        EXPECT_EQ(abstr->BULK_LED_VALUE_MESSAGES_COUNT, 3);
         EXPECT_EQ(rk_84.MESSAGE_LENGTH, 65);
+        EXPECT_EQ(abstr->MESSAGE_LENGTH, 65);
         EXPECT_EQ(rk_84.keyname_keyid_mappings["tab"], 3);
+        EXPECT_EQ(abstr->keyname_keyid_mappings["tab"], 3);
+        EXPECT_EQ(rk_84.target_device_path[0], '\\');
+        EXPECT_EQ(abstr->target_device_path[0], '\\');
+        EXPECT_EQ(rk_84.device_info.vid, 0x258a);
+        EXPECT_EQ(abstr->device_info.vid, 0x258a);
     }
 
 }

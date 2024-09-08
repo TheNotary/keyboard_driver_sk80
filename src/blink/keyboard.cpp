@@ -19,7 +19,7 @@ Keyboard::Keyboard(KeyboardModel keyboard_model)
 }
 
 bool Keyboard::AccessDeviceHandle() {
-    this->device_handle = SearchForDevice(this->vid, this->pid);
+    this->device_handle = SearchForDevice(this->vid, this->pid, this->keyboard_spec->target_device_path);
     //this->device_handle = SearchForDevice("0C45", "8006");
     return true;
 }

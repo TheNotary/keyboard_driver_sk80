@@ -1,15 +1,18 @@
 #include "usb_functions.h"
-#include <windows.h>
+
 #include <iostream>
-#include <fmt/core.h>
 #include <vector>
 #include <algorithm>
+
+#include <windows.h>
+#include <fmt/core.h>
 #include <setupapi.h>
 #include <stdio.h>
 #include <hidsdi.h>
+
 #include "messages.h"
 #include "keyboard.h"
-#include <keyboards/known_keyboards.h>
+#include "keyboards/known_keyboards.h"
 
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "hid.lib")
@@ -110,7 +113,7 @@ void DoAdditionalUsbThings(HANDLE hDev) {
     HidD_FreePreparsedData(preparsedData);
 }
 
-HANDLE SearchForDevice(short vid, short pid) {
+HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
     GUID hidGuid;
     HDEVINFO deviceInfoList;
     const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
@@ -167,22 +170,11 @@ HANDLE SearchForDevice(short vid, short pid) {
             char devicePath[1024];
             sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
 
-            //                     "\\\\?\\hid#vid_05ac&pid_024f&mi_00#8&16781069&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
-
-            // 012FCB54  0323D8EC   L"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col04#9&3b698677&0&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}\\kbd"
-
-            // 009DCC04  00349344   devicedrive"\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}"
-            //                                 "\\\\?\\hid#vid_0b05&pid_19af&mi_02#7&382c88b3&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"
-            char target_device_path_rk84_1[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col01#9&3b698677&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            char target_device_path_rk84_2[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col02#9&3b698677&0&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            char target_device_path_rk84_3[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col03#9&3b698677&0&0002#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-            char target_device_path_rk84_4[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
-
+            //char target_device_path_rk84_4_WINNER[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
             char target_device_path_sk80[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 
-            if (strstr(devicePath, target_device_path_rk84_4)) {
-                // I think I should destroy the InfoList but I think that breaks my handle so I need to handle that piece of memory's lifecycle if I enable switching devices...
-                // SetupDiDestroyDeviceInfoList(deviceInfoList);
+            if (strstr(devicePath, target_device_path)) {
+                SetupDiDestroyDeviceInfoList(deviceInfoList);
                 return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
             }
         }

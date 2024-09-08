@@ -18,16 +18,15 @@ namespace rk84 {
     class RK84 : public AbstractKeyboard {
     public:
         RK84()
-            : AbstractKeyboard(rk84::MESSAGE_LENGTH, rk84::BULK_LED_VALUE_MESSAGES_COUNT),
-            device_info({ rk84::VID, rk84::PID }),
-            keyname_keyid_mappings(rk84::keyname_keyid_mappings)
+            : AbstractKeyboard(rk84::MESSAGE_LENGTH, rk84::BULK_LED_VALUE_MESSAGES_COUNT, rk84::target_device_path, 
+            DeviceInfo{ rk84::VID, rk84::PID }, rk84::keyname_keyid_mappings)
         {}
 
         void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
         DeviceInfo GetDeviceInfo() const;
-        DeviceInfo device_info;
-
-        std::unordered_map<std::string, char> keyname_keyid_mappings; // = rk84::keyname_keyid_mappings;
+        //DeviceInfo device_info;
+        //std::unordered_map<std::string, char> keyname_keyid_mappings;
+        // const char* target_device_path;
 
 
     private:
