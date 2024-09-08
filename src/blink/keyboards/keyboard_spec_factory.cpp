@@ -8,7 +8,7 @@
 AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard_model) {
     switch (keyboard_model) {
     case kRK84:
-        return new RK84();
+        return new rk84::RK84();
         //case kSK80:
         //    return new SK80();
     }

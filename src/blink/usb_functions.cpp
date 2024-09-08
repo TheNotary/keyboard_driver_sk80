@@ -181,7 +181,8 @@ HANDLE SearchForDevice(short vid, short pid) {
             char target_device_path_sk80[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 
             if (strstr(devicePath, target_device_path_rk84_4)) {
-                SetupDiDestroyDeviceInfoList(deviceInfoList);
+                // I think I should destroy the InfoList but I think that breaks my handle so I need to handle that piece of memory's lifecycle if I enable switching devices...
+                // SetupDiDestroyDeviceInfoList(deviceInfoList);
                 return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
             }
         }

@@ -4,7 +4,7 @@
 #include "misc.h"
 
 
-namespace nRK84 {
+namespace rk84 {
 	const short VID = 0x258a;
 	const short PID = 0x00c0;
 	const UINT8 MESSAGE_LENGTH = 65;
@@ -13,8 +13,6 @@ namespace nRK84 {
 		{ kOn, 0x07 },
 		{ kOff, 0x00 }
 	};
-
-	unsigned char BULK_LED_VALUE_MESSAGES[][MESSAGE_LENGTH];
 }
 
 

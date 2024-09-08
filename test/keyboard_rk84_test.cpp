@@ -2,6 +2,8 @@
 #include "../include/main/keyboard.h"
 #include <keyboards/rk84/rk84.h>
 
+using namespace rk84;
+
 namespace KeyboardRK84
 {
     // Test , returns the message_index 
@@ -51,6 +53,13 @@ namespace KeyboardRK84
         EXPECT_EQ(expected_vid, (short)ptr[1]);
         EXPECT_EQ(expected_pid, (short)ptr[0]);
 
+    }
+
+    TEST(KeyboardRK84, ItHasTheCorrectConstsAvailable) {
+        RK84 rk_84;
+
+        EXPECT_EQ(rk_84.BULK_LED_VALUE_MESSAGES_COUNT, 3);
+        EXPECT_EQ(rk_84.MESSAGE_LENGTH, 65);
     }
 
 

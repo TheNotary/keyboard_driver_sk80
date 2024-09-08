@@ -7,7 +7,9 @@
 class AbstractKeyboard {
 public:
     AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount)
-        : MESSAGE_LENGTH(messageLength), BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
+        : 
+        MESSAGE_LENGTH(messageLength), 
+        BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
         device_info({ 0, 0 }) 
     {}
     
