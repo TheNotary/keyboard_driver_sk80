@@ -65,7 +65,7 @@ namespace KeyboardTest
 
     // Mock this or delete it, it's actually listing keyboards...
     TEST(KeyboardTest, ListAvailableKeyboardsReturnsAListOfBoards) {
-        std::vector<KeyboardInfo> list = _ListAvailableKeyboards();
+        std::vector<KeyboardInfo> list = demo::_ListAvailableKeyboards();
 
         EXPECT_EQ(list.size(), 1);
     }

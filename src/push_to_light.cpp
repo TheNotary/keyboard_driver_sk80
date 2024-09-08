@@ -4,6 +4,9 @@
 #include "test_load_blink.h"
 
 
+namespace demo {
+
+
 int push_to_light() {
     std::cout << "Press F12..." << std::endl;
 
@@ -115,4 +118,6 @@ int push_to_light() {
     }
 
     return 0;
+}
+
 }

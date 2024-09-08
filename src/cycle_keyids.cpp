@@ -7,6 +7,9 @@ using std::cout;
 using std::endl;
 
 
+namespace demo {
+
+
 void PrintKeyId(char key_id) {
     std::cout << "\r" << std::string(12, ' ');
     std::cout << "\r" << "KeyId: " << (int)key_id;
@@ -82,4 +85,6 @@ int CycleKeyIds(KeyboardInfo keyboard) {
         Sleep(10);
     }
 	return 0;
+}
+
 }

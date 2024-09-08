@@ -5,6 +5,8 @@
 #include "misc.h"
 
 
+namespace demo {
+
 /*
 * @brief A generic function for loading a function from a dll.
 * 
@@ -189,4 +191,6 @@ int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names) {
     }
 
     return TurnOffKeyNames(key_names);
+}
+
 }
