@@ -10,7 +10,9 @@ public:
         : 
         MESSAGE_LENGTH(messageLength), 
         BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
-        device_info({ 0, 0 }) 
+        device_info({ 0, 0 }),
+        keyname_keyid_mappings({ 0 })
+
     {}
     
 
@@ -28,7 +30,8 @@ public:
 
     DeviceInfo device_info;
 
-    KeyNameKeyIdPair keyname_keyid_mappings;
+    //KeyNameKeyIdPair keyname_keyid_mappings;
+    std::unordered_map<std::string, char> keyname_keyid_mappings;
 
     const UINT8 MESSAGE_LENGTH;
     const UINT8 BULK_LED_VALUE_MESSAGES_COUNT;

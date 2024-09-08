@@ -60,8 +60,8 @@ namespace KeyboardRK84
 
         EXPECT_EQ(rk_84.BULK_LED_VALUE_MESSAGES_COUNT, 3);
         EXPECT_EQ(rk_84.MESSAGE_LENGTH, 65);
+        EXPECT_EQ(rk_84.keyname_keyid_mappings["tab"], 3);
     }
-
 
 }
 

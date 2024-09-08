@@ -4,6 +4,8 @@
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/rk84/constants_rk84.h"
 #include "keyboards/rk84/messages_rk84.h"
+#include "keyboards/rk84/key_mappings_rk84.h"
+
 
 namespace rk84::internal {
 
@@ -15,15 +17,21 @@ namespace rk84 {
 
     class RK84 : public AbstractKeyboard {
     public:
-        RK84() 
+        RK84()
             : AbstractKeyboard(rk84::MESSAGE_LENGTH, rk84::BULK_LED_VALUE_MESSAGES_COUNT),
-            device_info({ VID, PID })
+            device_info({ rk84::VID, rk84::PID }),
+            keyname_keyid_mappings(rk84::keyname_keyid_mappings)
         {}
+
         void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
         DeviceInfo GetDeviceInfo() const;
         DeviceInfo device_info;
 
+        std::unordered_map<std::string, char> keyname_keyid_mappings; // = rk84::keyname_keyid_mappings;
+
+
     private:
+        // TODO: this isn't set the same way the other properties from const are set, update it if it makes sense for sk80 too
         KeyValueBytesPair on_off_mappings = rk84::on_off_mappings;
 
     };
