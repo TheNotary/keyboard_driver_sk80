@@ -20,6 +20,8 @@ public:
     void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
     void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys);
 
+    void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);
+
 
 private:
     // TODO: this isn't set the same way the other properties from const are set, update it if it makes sense for sk80 too

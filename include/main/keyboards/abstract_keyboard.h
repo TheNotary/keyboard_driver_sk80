@@ -7,6 +7,17 @@
 
 #include "misc.h"
 
+//#include "keyboard.h"
+
+// Forward declaration allows us to escape that circular dependency trap, though it feels sloppy
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+
+class Keyboard;
+
+#endif
+
+
 
 class AbstractKeyboard {
 public:
@@ -33,6 +44,8 @@ public:
 
     // Determines the packets to send and sends them to the usb device
     virtual void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys) = 0;
+
+    virtual void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b) = 0;
 
     DeviceInfo GetDeviceInfo() const {
         return this->device_info;

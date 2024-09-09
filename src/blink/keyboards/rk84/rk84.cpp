@@ -3,6 +3,7 @@
 #include "misc.h"
 #include <array>
 #include <usb_functions.h>
+#include <keyboard.h>
 
 // This namespace makes TDD still possible, without muddying up the namespace disrupting drop-down menu style programming
 namespace rk84::internal {
@@ -67,5 +68,16 @@ void RK84::SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* activ
 
     SendBufferToDevice(this->device_handle, messages, this->BULK_LED_VALUE_MESSAGES_COUNT, this->MESSAGE_LENGTH);
 }
+
+void RK84::SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b)
+{
+    std::cerr << "Not supported" << std::endl;
+    throw("Not supported");
+}
+
+//void RK84::SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b)
+//{
+
+//}
 
 }

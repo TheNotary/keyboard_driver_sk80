@@ -2,6 +2,7 @@
 #include <array>
 
 #include "misc.h"
+#include "keyboard.h"
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/sk80/constants_sk80.h"
 #include "keyboards/sk80/messages_sk80.h"
@@ -20,6 +21,8 @@ public:
     void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
     void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys);
 
+    void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
+    void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);
 
 private:
     KeyValueBytesPair on_off_mappings = sk80::on_off_mappings;

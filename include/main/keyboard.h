@@ -1,11 +1,13 @@
 #pragma once
+
 #include <string>
 #include <unordered_map>
 #include <windows.h>
 #include <memory>
+
+#include "misc.h"
 #include "usb_functions.h"
 #include "keyboards/abstract_keyboard.h"
-#include "misc.h"
 
 
 /**
@@ -39,7 +41,9 @@ public:
      // Set's the active keys to their on state
      void SetKeysOnOff(KeyValue key_value);
      void SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent);
-     
+
+     // TODO: remove the key_id param, just work on active keys as SetKeysOnOff does 
+     void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
 
      // utility
      void Dispose();
@@ -48,16 +52,17 @@ public:
      // Below is not well defined yet and may be removed...
      void BlinkActiveKeys(int n, int interval);
      void TurnOnActiveKeys(unsigned char* messages_sent);
-     void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
-     void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
      void Blink(int n, int interval);
-     
+
+     // TODO: move this out since we work against the active_keys index
+     // void SetKeyRGB(Keyboard keyboard_manager, char key_id, unsigned char r, unsigned char g, unsigned char b);
+     UINT8 n_active_keys = 0;
+
 private:
      HANDLE device_handle;
      short vid; //  = 0x05ac
      short pid; //  = 0x024f
      char active_key_ids[256] = { 0 };
-     UINT8 n_active_keys = 0;
      KeyboardModel keyboard_model;
 
      // This class is injected and provides functionality specific to the given keyboard model

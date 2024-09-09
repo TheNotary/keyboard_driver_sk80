@@ -1,13 +1,10 @@
-#include <windows.h>
+#include "keyboard.h"
+
 #include <iostream>
-#include <fmt/core.h>
 #include <vector>
-#include <setupapi.h>
-#include <stdio.h>
-#include <hidsdi.h>
+
 #include "messages.h"
 #include "usb_functions.h"
-#include "keyboard.h"
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/keyboard_spec_factory.h"
 
@@ -133,26 +130,10 @@ void Keyboard::TurnOffActiveKeys() {
 }
 
 
-
-
-// TODO: This is implementation specific to SK80, move it out there
-void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
-    std::cout << "Setting LED" << std::endl;
-
-    SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
-
-    TEST_SLIM_MESSAGES[0][54] = r;
-    TEST_SLIM_MESSAGES[0][55] = g;
-    TEST_SLIM_MESSAGES[0][56] = b;
-
-    SendBufferToDevice(this->device_handle, *TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
-
-    SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
-}
-
 // TODO: Re-write this to accept a string, look up key_id from keyboard_spec
 void Keyboard::Blink(int n, int interval) {
-    for (int i = 0; i < n; i++) {
+    // this->keyboard_spec->blink();
+    /*for (int i = 0; i < n; i++) {
         this->SetKeyRGB(0x0d, 0xff, 0xff, 0xff);
         Sleep(50);
         this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
@@ -167,7 +148,7 @@ void Keyboard::Blink(int n, int interval) {
         Sleep(50);
         this->SetKeyRGB(0x0d, 0x00, 0x00, 0x00);
         Sleep(50);
-    }
+    }*/
 }
 
 // TODO: Rewrite this to accept a string, look up key_id from keyboard_spec
@@ -191,7 +172,7 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
 }
 
 // TODO: Specific to SK80
-void Keyboard::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
+void Keyboard::SetKeysRGB(unsigned char r, unsigned char b, unsigned char g) {
     if (this->n_active_keys == 0) {
         printf("SetKeysRGB was called with zero active keys... odd...");
         return;
