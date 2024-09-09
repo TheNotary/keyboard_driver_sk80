@@ -11,13 +11,11 @@ namespace demo {
 
 
 void PrintKeyId(char key_id) {
-    std::cout << "\r" << std::string(12, ' ');
-    std::cout << "\r" << "KeyId: " << (int)key_id;
+    cout << "\r" << std::string(12, ' ');
+    cout << "\r" << "KeyId: " << (int)key_id;
 }
 
-char IncrementKeyId(char value, int incrementation) {
-    const UINT8 max_index = 96;
-
+char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
     // if we don't cast result to unsigned, it screws up the '>' comparisons,
     // making 0xff -1 instead of 255!
     // We don't need to return unsigned char since the calling code does implicit cast
@@ -26,11 +24,11 @@ char IncrementKeyId(char value, int incrementation) {
 
     unsigned char result = ((unsigned)value) + incrementation;
 
-    if (result > max_index)  // If we're incrementing passed max_index
-        return 1;            // then overflow the char to 1 after incrementing max_index
+    if (result > max_key_id)  // If we're incrementing passed max_index
+        return 1;             // then overflow the char to 1 after incrementing max_index
 
-    if (result == 0)       // It is only possible to reach 0 if we're incrementing by -1
-        return max_index;  // Therefore overflow to max_index
+    if (result == 0)        // It is only possible to reach 0 if we're incrementing by -1
+        return max_key_id;  // Therefore overflow to max_index
 
     return result;
 }
@@ -56,7 +54,7 @@ int CycleKeyIds(KeyboardInfo keyboard) {
     while (true) {
         if (GetAsyncKeyState(VK_DOWN) & 0x8000
             || GetAsyncKeyState(VK_LEFT) & 0x8000) { // PREV
-            key_ids[0] = IncrementKeyId(key_ids[0], -1);
+            key_ids[0] = IncrementKeyId(key_ids[0], -1, keyboard.max_key_id);
             CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
             PrintKeyId(key_ids[0]);
 
@@ -65,17 +63,17 @@ int CycleKeyIds(KeyboardInfo keyboard) {
 
         if (GetAsyncKeyState(VK_UP) & 0x8000
             || GetAsyncKeyState(VK_RIGHT) & 0x8000) { // NEXT
-            key_ids[0] = IncrementKeyId(key_ids[0], 1);
+            key_ids[0] = IncrementKeyId(key_ids[0], 1, keyboard.max_key_id);
             CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
             PrintKeyId(key_ids[0]);
 
-            Sleep(40); // Simple debounce delay
+            Sleep(40);
         }
 
         if (GetAsyncKeyState(VK_SPACE) & 0x8000) {  // print packet buffer
             CallPrintMessagesInBuffer(*messages_sent, 3, 65);
 
-            Sleep(200); // Simple debounce delay
+            Sleep(200);
         }
 
         if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
@@ -86,5 +84,6 @@ int CycleKeyIds(KeyboardInfo keyboard) {
     }
 	return 0;
 }
+
 
 }

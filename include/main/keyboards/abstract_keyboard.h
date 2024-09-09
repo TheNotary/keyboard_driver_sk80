@@ -35,7 +35,7 @@ public:
     const UINT8 BULK_LED_VALUE_MESSAGES_COUNT;
     const UINT8 max_key_id;
     const char* target_device_path;
-    DeviceInfo device_info;
+    const DeviceInfo device_info;
     std::unordered_map<std::string, char> keyname_keyid_mappings;
 
 private:

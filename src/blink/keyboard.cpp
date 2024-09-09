@@ -57,6 +57,9 @@ void Keyboard::Blink(int n, int interval) {
     }
 }
 
+// Call this to
+//   - Close the open handle to the keyboard device
+//   - Clean up the keyboard_spec object from the heap
 void Keyboard::Dispose() {
     CloseHandle(this->device_handle);
     delete this->keyboard_spec;
