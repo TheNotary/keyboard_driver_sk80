@@ -2,7 +2,6 @@
 #include <basetsd.h>
 #include <unordered_map>
 #include <string>
-//#include <vector>
 
 
 enum KeyboardModel { kSK80, kMK84, kRK84 };

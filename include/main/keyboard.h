@@ -33,6 +33,7 @@ public:
      void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
      // TODO: make private since the driver should be calculating the key_id
      void SetActiveKeyId(int index, char key_id);
+     // Gets the KeyId for the index provided.  This function checks to make sure the KeyId being requested isn't > 255 which would cause problems
      char GetActiveKeyId(int index);
 
      // Set's the active keys to their on state
