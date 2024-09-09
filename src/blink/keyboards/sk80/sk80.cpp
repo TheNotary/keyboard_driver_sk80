@@ -53,8 +53,8 @@ namespace sk80 {
         unsigned char (*messages)[sk80::MESSAGE_LENGTH] = reinterpret_cast<unsigned char (*)[sk80::MESSAGE_LENGTH]>(messages_ptr);
 
         std::memcpy(messages, sk80::BULK_LED_VALUE_MESSAGES, sk80::BULK_LED_VALUE_MESSAGES_COUNT * sk80::MESSAGE_LENGTH);
-            
-        char bytesForValue = on_off_mappings.at(key_value); 
+        
+        char bytesForValue = on_off_mappings.at(key_value);
 
         for (int i = 0; i < n_active_keys; i++) {
             UINT8 active_key_id = active_key_ids[i];
@@ -78,6 +78,10 @@ namespace sk80 {
             messages[message_index][keycode_offset + 2] = bytesForValue;
             messages[message_index][keycode_offset + 3] = bytesForValue;
         }
+    }
+
+    void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys) {
+        throw("Not implemented");
     }
 
 }

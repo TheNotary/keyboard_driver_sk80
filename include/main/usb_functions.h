@@ -3,7 +3,10 @@
 #include <vector>
 #include "misc.h"
 
+
 void PrintWideString(const char* buffer, int bufferLen);
+void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length);
+void PrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length);
 
 HANDLE SearchForDevice(short vid, short pid, const char* target_device_path);
 

@@ -17,6 +17,26 @@
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "hid.lib")
 
+
+void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length) {
+    for (size_t j = 0; j < message_length; j++) {
+        if (j % 8 == 0)
+            printf("\n");
+        printf("0x%02x ", buffer[i * message_length + j]);
+    }
+}
+
+void PrintMessagesInBuffer(
+    unsigned char* buffer,
+    size_t message_count,
+    size_t message_length
+) {
+    for (size_t i = 0; i < message_count; i++) {
+        PrintMessageInBuffer(buffer, i, message_length);
+        printf("\n");
+    }
+}
+
 static void PrintWideString(const char* buffer, int bufferLen) {
     for (int i = 0; i < bufferLen; i += 2) {
         if (buffer[i] == 0)

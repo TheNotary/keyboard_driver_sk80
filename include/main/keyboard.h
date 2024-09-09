@@ -23,13 +23,22 @@ public:
      void TurnOnActiveKeys();
      void TurnOffActiveKeys();
 
-     // The Driver API!
+     /////////////////////
+     // The Driver API! //
+     /////////////////////
+
+     // Set's the active keys for the keyboard.  When functions like SetKeysOnOff are invoked, only active keys set by this function are effected
+     void SetActiveKeys(const std::vector<std::string>& key_names);
+     // Recommended only for use in testing.  TODO: make private or something
+     void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
+     // TODO: make private since the driver should be calculating the key_id
+     void SetActiveKeyId(int index, char key_id);
+     char GetActiveKeyId(int index);
+
+     // Set's the active keys to their on state
      void SetKeysOnOff(KeyValue key_value);
      void SetKeysOnOff(KeyValue key_value, unsigned char* messages_sent);
-     void SetActiveKeyIds(char* key_ids, UINT8 n_keys);
-     void SetActiveKeys(const std::vector<std::string>& key_names);
-     char GetActiveKeyId(int index);
-     void SetActiveKeyId(int index, char key_id);
+     
 
      // utility
      void Dispose();
@@ -56,6 +65,4 @@ private:
      bool AccessDeviceHandle();
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
-     void SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const;
-
 };

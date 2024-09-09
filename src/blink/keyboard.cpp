@@ -18,44 +18,27 @@ Keyboard::Keyboard(KeyboardModel keyboard_model)
     this->AccessDeviceHandle();
 }
 
+void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
+    KeyboardSpecFactory kf;
+    this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model);
+
+    if (this->keyboard_spec == nullptr) {
+        printf("this keyboard_spec not implemented yet");
+        throw("keyboard_spec not implemented yet");
+    }
+
+    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
+    this->pid = device_info.pid;
+    this->vid = device_info.vid;
+    this->keyboard_model = keyboard_model;
+}
+
 bool Keyboard::AccessDeviceHandle() {
     this->device_handle = SearchForDevice(this->vid, this->pid, this->keyboard_spec->target_device_path);
-    //this->device_handle = SearchForDevice("0C45", "8006");
+    this->keyboard_spec->device_handle = this->device_handle;
     return true;
 }
 
-void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
-    std::cout << "Setting LED" << std::endl;
-
-    SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
-
-    TEST_SLIM_MESSAGES[0][54] = r;
-    TEST_SLIM_MESSAGES[0][55] = g;
-    TEST_SLIM_MESSAGES[0][56] = b;
-
-    SendBufferToDevice(this->device_handle, *TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
-
-    SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
-}
-
-void Keyboard::Blink(int n, int interval) {
-    for (int i = 0; i < n; i++) {
-        this->SetKeyRGB(0x0d, 0xff, 0xff, 0xff);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0x00, 0xff, 0x00);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0x00, 0x00, 0xff);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
-        Sleep(50);
-        this->SetKeyRGB(0x0d, 0x00, 0x00, 0x00);
-        Sleep(50);
-    }
-}
 
 // Call this to
 //   - Close the open handle to the keyboard device
@@ -201,18 +184,58 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
-    if (this->n_active_keys == 0) {
-        printf("SetKeysOnOff was called with zero active keys... odd...skipping");
-        return;
-    }
-
-    this->keyboard_spec->SetBytesInValuePackets(messages, key_value, this->active_key_ids, this->n_active_keys);
-
-    //PrintMessagesInBuffer(messages, this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT, this->keyboard_spec->MESSAGE_LENGTH);
-
-    SendBufferToDevice(this->device_handle, messages, this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT, this->keyboard_spec->MESSAGE_LENGTH);
+    this->keyboard_spec->SetKeysOnOff(key_value, messages, this->active_key_ids, this->n_active_keys);
 }
 
+void Keyboard::TurnOnActiveKeys() {
+    this->SetKeysOnOff(kOn);
+}
+
+void Keyboard::TurnOnActiveKeys(unsigned char* messages_sent) {
+    this->SetKeysOnOff(kOn, messages_sent);
+}
+
+void Keyboard::TurnOffActiveKeys() {
+    this->SetKeysOnOff(kOff);
+}
+
+
+// TODO: This is implementation specific to SK80, move it out there
+void Keyboard::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
+    std::cout << "Setting LED" << std::endl;
+
+    SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
+
+    TEST_SLIM_MESSAGES[0][54] = r;
+    TEST_SLIM_MESSAGES[0][55] = g;
+    TEST_SLIM_MESSAGES[0][56] = b;
+
+    SendBufferToDevice(this->device_handle, *TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
+
+    SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
+}
+
+// TODO: Re-write this to accept a string, look up key_id from keyboard_spec
+void Keyboard::Blink(int n, int interval) {
+    for (int i = 0; i < n; i++) {
+        this->SetKeyRGB(0x0d, 0xff, 0xff, 0xff);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0x00, 0xff, 0x00);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0x00, 0x00, 0xff);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0xff, 0x00, 0x00);
+        Sleep(50);
+        this->SetKeyRGB(0x0d, 0x00, 0x00, 0x00);
+        Sleep(50);
+    }
+}
+
+// TODO: Rewrite this to accept a string, look up key_id from keyboard_spec
 void Keyboard::BlinkActiveKeys(int n, int interval) {
     for (int i = 0; i < n; i++) {
         this->SetKeysRGB(0xff, 0xff, 0xff);
@@ -232,33 +255,3 @@ void Keyboard::BlinkActiveKeys(int n, int interval) {
     }
 }
 
-void Keyboard::TurnOnActiveKeys() {
-    this->SetKeysOnOff(kOn);
-}
-
-void Keyboard::TurnOnActiveKeys(unsigned char* messages_sent) {
-    this->SetKeysOnOff(kOn, messages_sent);
-}
-
-void Keyboard::TurnOffActiveKeys() {
-    this->SetKeysOnOff(kOff);
-}
-
-void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const {
-    this->keyboard_spec->SetBytesInValuePackets(messages, key_value, active_key_ids, n_active_keys);
-}
-
-void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
-    KeyboardSpecFactory kf;
-    this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model);
-
-    if (this->keyboard_spec == nullptr) {
-        printf("this keyboard_spec not implemented yet");
-        throw("keyboard_spec not implemented yet");
-    }
-
-    AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
-    this->pid = device_info.pid;
-    this->vid = device_info.vid;
-    this->keyboard_model = keyboard_model;
-}

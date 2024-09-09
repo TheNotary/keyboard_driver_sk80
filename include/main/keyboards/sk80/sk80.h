@@ -18,6 +18,7 @@ public:
     {}
 
     void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
+    void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys);
 
 
 private:

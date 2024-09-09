@@ -1,3 +1,5 @@
+- clean out messages.h/ .cpp and messages_data.h
+
 - Map sk80
   - update SetKeysOnOff to call out to a function defined on AbstractKeyboard derrivations as that it's device specific
   

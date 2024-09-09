@@ -2,6 +2,7 @@
 #include "keyboards/rk84/constants_rk84.h"
 #include "misc.h"
 #include <array>
+#include <usb_functions.h>
 
 // This namespace makes TDD still possible, without muddying up the namespace disrupting drop-down menu style programming
 namespace rk84::internal {
@@ -28,8 +29,8 @@ TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key) {
 
 namespace rk84 {
 
-void RK84::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys)
-{
+// TODO: this could become private, though I'd expect to define in in every keyboard anyway, so... idk
+void RK84::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) {
     // Cast the flat buffer to a 3x65 array
     unsigned char (*messages)[65] = reinterpret_cast<unsigned char (*)[65]>(messages_ptr);
     
@@ -51,6 +52,20 @@ void RK84::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_valu
         if (message_index == 1)  // the third page is always written to the same way the second page is written due to a bug I assume
             messages[2][keycode_offset] = bytesForValue;
     }
+}
+
+void RK84::SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys) {
+    if (n_active_keys == 0) {
+        printf("SetKeysOnOff was called with zero active keys... odd...skipping");
+        return;
+    }
+
+    this->SetBytesInValuePackets(messages, key_value, active_key_ids, n_active_keys);
+
+    if (settings::print_packets)
+        PrintMessagesInBuffer(messages, this->BULK_LED_VALUE_MESSAGES_COUNT, this->MESSAGE_LENGTH);
+
+    SendBufferToDevice(this->device_handle, messages, this->BULK_LED_VALUE_MESSAGES_COUNT, this->MESSAGE_LENGTH);
 }
 
 }
