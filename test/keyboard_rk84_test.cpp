@@ -18,7 +18,7 @@ namespace KeyboardRK84
 
         RK84 rk_84;
 
-        rk_84.SetBytesInPacket(*messages, kOn, active_key_ids, sizeof(active_key_ids));
+        rk_84.SetBytesInValuePackets(*messages, kOn, active_key_ids, sizeof(active_key_ids));
 
         EXPECT_EQ(messages[0][offset + active_key_ids[0]], onCode);
         EXPECT_EQ(messages[0][offset + active_key_ids[1]], onCode);

@@ -203,7 +203,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
         return;
     }
 
-    this->keyboard_spec->SetBytesInPacket(messages, key_value, this->active_key_ids, this->n_active_keys);
+    this->keyboard_spec->SetBytesInValuePackets(messages, key_value, this->active_key_ids, this->n_active_keys);
 
     //PrintMessagesInBuffer(messages, this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT, this->keyboard_spec->MESSAGE_LENGTH);
 
@@ -242,7 +242,7 @@ void Keyboard::TurnOffActiveKeys() {
 }
 
 void Keyboard::SetBytesInPacket(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys) const {
-    this->keyboard_spec->SetBytesInPacket(messages, key_value, active_key_ids, n_active_keys);
+    this->keyboard_spec->SetBytesInValuePackets(messages, key_value, active_key_ids, n_active_keys);
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {

@@ -12,6 +12,7 @@ struct KeyboardInfo {
     short vid;
     short pid;
     char display_name[25];
+    UINT8 max_key_id;
 
     bool operator==(const KeyboardInfo& other) const {
         return (keyboard_model == other.keyboard_model &&

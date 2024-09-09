@@ -1,17 +1,24 @@
 #include <vector>
 #include "misc.h"
+#include "keyboards/rk84/constants_rk84.h"
+#include "keyboards/sk80/constants_sk80.h"
+
+
+// TODO:  Make it so this file isn't needed and derrivations of all the keyboards can be searched
 
 std::vector<KeyboardInfo> known_keyboards = {
     {
         KeyboardModel::kRK84,
         0x258a,
         0x00c0,
-        "RK84"
+        "RK84",
+        rk84::max_key_id
     },
     {
         KeyboardModel::kSK80,
-        0x0000,
-        0x0001,
-        "SK80"
+        0x05ac,
+        0x024f,
+        "SK80",
+        sk80::max_key_id
     },
 };

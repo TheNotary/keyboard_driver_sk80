@@ -1,3 +1,3 @@
 #pragma once
 
-void PrintBlinkKeysArguments(char* keyIds, int nKeys);
+void PrintBlinkKeysArguments(char* key_ids, int n_keys);

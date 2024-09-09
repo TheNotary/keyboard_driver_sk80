@@ -26,6 +26,68 @@ namespace KeyboardSK80
     //     EXPECT_EQ(messages[0][offset + active_key_ids[3]], offCode); // this won't be set to 0x03 because it's bad
     // }
 
+//{ // 1 - Top Row, esc - f12
+//    0x00,
+//        0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // KeyId 0x00 - 0x0f
+//        0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+//        0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00,
+//        0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
+//        0x08, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00,
+//        0x0a, 0x00, 0x00, 0x00, 0x0b, 0x00, 0x00, 0x00,
+//        0x0c, 0x00, 0x00, 0x00, 0x0d, 0xff, 0x00, 0x00,
+//        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+//    },
+
+    TEST(KeyboardSK80, SetBytesInPacket_PutsEscapeInExpectedSpot) {
+        unsigned char onCode = 0xff;
+        unsigned char offCode = 0x00;
+        int offset = 1;
+
+        unsigned char messages[9][65];
+        char active_key_ids[] = { 1, 13, 19, 20, 21 };
+
+        SK80 sk_80;
+
+        sk_80.SetBytesInValuePackets(*messages, kOn, active_key_ids, sizeof(active_key_ids));
+
+        int i;
+
+        // Escape key
+        i = 0;
+        EXPECT_EQ(messages[0][offset + 0 + active_key_ids[i] * 4], active_key_ids[i]);
+        EXPECT_EQ(messages[0][offset + 1 + active_key_ids[i] * 4], onCode);
+        EXPECT_EQ(messages[0][offset + 2 + active_key_ids[i] * 4], onCode);
+        EXPECT_EQ(messages[0][offset + 3 + active_key_ids[i] * 4], onCode);
+
+        // 1 key
+        i = 1;
+        EXPECT_EQ(messages[0][offset + 0 + active_key_ids[i] * 4], active_key_ids[i]); //
+        EXPECT_EQ(messages[0][offset + 1 + active_key_ids[i] * 4], onCode);
+        EXPECT_EQ(messages[0][offset + 2 + active_key_ids[i] * 4], onCode);
+        EXPECT_EQ(messages[0][offset + 3 + active_key_ids[i] * 4], onCode);
+
+        // idk key, second page
+        i = 2;
+        EXPECT_EQ(messages[1][offset + 0 + 3 * 4], active_key_ids[i]);
+        EXPECT_EQ(messages[1][offset + 1 + 3 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 2 + 3 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 3 + 3 * 4], onCode);
+
+        // idk key, second page
+        i = 3;
+        EXPECT_EQ(messages[1][offset + 0 + 4 * 4], active_key_ids[i]);
+        EXPECT_EQ(messages[1][offset + 1 + 4 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 2 + 4 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 3 + 4 * 4], onCode);
+
+        // 4 key, this should be off since it's not specified
+        i = 4;
+        EXPECT_EQ(messages[1][offset + 0 + 5 * 4], active_key_ids[i]);
+        EXPECT_EQ(messages[1][offset + 1 + 5 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 2 + 5 * 4], onCode);
+        EXPECT_EQ(messages[1][offset + 3 + 5 * 4], onCode);
+    }
+
     TEST(KeyboardSK80, ItHasTheCorrectConstsAvailable) {
         SK80 sk_80;
 

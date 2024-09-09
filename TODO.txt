@@ -1,1 +1,5 @@
 - Map sk80
+  - update SetKeysOnOff to call out to a function defined on AbstractKeyboard derrivations as that it's device specific
+  
+  - Begin mapping all the keys
+    - turn on the escape key

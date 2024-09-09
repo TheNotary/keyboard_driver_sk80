@@ -67,9 +67,16 @@ namespace KeyboardTest
     }
 
     // Mock this or delete it, it's actually listing keyboards...
+    // Actually I like this test alot.  If a known keyboard isn't attached, just comment out the last assertion 
     TEST(KeyboardTest, ListAvailableKeyboardsReturnsAListOfBoards) {
         std::vector<KeyboardInfo> list = demo::_ListAvailableKeyboards();
 
+        bool was_reasonable = false;
+
+        if (list.size() == 0 || list.size() == 1)
+            was_reasonable = true;
+
+        EXPECT_TRUE(was_reasonable);
         EXPECT_EQ(list.size(), 1);
     }
 
