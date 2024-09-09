@@ -15,11 +15,16 @@ class SK80 : public AbstractKeyboard {
 public:
     SK80()
         : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
-            DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id)
+            DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, nullptr)
     {}
 
-    void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
-    void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys);
+    SK80(Keyboard* keyboard_manager)
+        : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
+            DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, keyboard_manager)
+    {}
+    
+    void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value);
+    void SetKeysOnOff(KeyValue key_value, unsigned char* messages);
 
     void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
     void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);

@@ -14,11 +14,16 @@ class RK84 : public AbstractKeyboard {
 public:
     RK84()
         : AbstractKeyboard(rk84::MESSAGE_LENGTH, rk84::BULK_LED_VALUE_MESSAGES_COUNT, rk84::target_device_path,
-        DeviceInfo{ rk84::VID, rk84::PID }, rk84::keyname_keyid_mappings, rk84::max_key_id)
+            DeviceInfo{ rk84::VID, rk84::PID }, rk84::keyname_keyid_mappings, rk84::max_key_id, nullptr)
     {}
 
-    void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys);
-    void SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys);
+    RK84(Keyboard* keyboard_manager)
+        : AbstractKeyboard(rk84::MESSAGE_LENGTH, rk84::BULK_LED_VALUE_MESSAGES_COUNT, rk84::target_device_path,
+        DeviceInfo{ rk84::VID, rk84::PID }, rk84::keyname_keyid_mappings, rk84::max_key_id, keyboard_manager)
+    {}
+
+    void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value);
+    void SetKeysOnOff(KeyValue key_value, unsigned char* messages);
 
     void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);
 

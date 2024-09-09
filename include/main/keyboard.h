@@ -46,6 +46,7 @@ public:
      void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
 
      // utility
+     bool ConnectToDevice();
      void Dispose();
      bool Found();
 
@@ -58,17 +59,15 @@ public:
      // void SetKeyRGB(Keyboard keyboard_manager, char key_id, unsigned char r, unsigned char g, unsigned char b);
      UINT8 n_active_keys = 0;
 
+     // This class is injected and provides functionality specific to the given keyboard model
+     AbstractKeyboard* keyboard_spec;
+
 private:
      HANDLE device_handle;
      short vid; //  = 0x05ac
      short pid; //  = 0x024f
      char active_key_ids[256] = { 0 };
      KeyboardModel keyboard_model;
-
-     // This class is injected and provides functionality specific to the given keyboard model
-     AbstractKeyboard* keyboard_spec;
-
-     bool AccessDeviceHandle();
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
 };

@@ -51,7 +51,7 @@ namespace sk80::internal {
 
 namespace sk80 {
 
-    void SK80::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value, char* active_key_ids, UINT8 n_active_keys)
+    void SK80::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value)
     {
         // Cast the flat buffer to a 3x65 array
         unsigned char (*messages)[sk80::MESSAGE_LENGTH] = reinterpret_cast<unsigned char (*)[sk80::MESSAGE_LENGTH]>(messages_ptr);
@@ -60,8 +60,8 @@ namespace sk80 {
         
         char bytesForValue = on_off_mappings.at(key_value);
 
-        for (int i = 0; i < n_active_keys; i++) {
-            UINT8 active_key_id = active_key_ids[i];
+        for (int i = 0; i < this->keyboard_manager->n_active_keys; i++) {
+            UINT8 active_key_id = this->keyboard_manager->GetActiveKeyId(i);
 
             if (active_key_id == 0x00) // Stop writing when we reach a zero which terminates the buffer
                 break;
@@ -84,13 +84,12 @@ namespace sk80 {
         }
     }
 
-    void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages, char* active_key_ids, UINT8 n_active_keys) {
-        throw("Not implemented");
+    void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
+        // TODO: refactor signature to be SetKeysOnOff(Keyboard* keyboard_manager, unsigned char* messages, KeyValue key_value)
 
 
     }
 
-    // TODO: This is implementation specific to SK80, move it out there
     void SK80::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
         std::cout << "Setting LED" << std::endl;
 

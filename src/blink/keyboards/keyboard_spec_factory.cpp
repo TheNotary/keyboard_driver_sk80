@@ -6,15 +6,14 @@
 #include "keyboards/sk80/sk80.h"
 
 
-AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard_model) {
+AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard_model, Keyboard* keyboard_manager) {
     switch (keyboard_model) {
     case kRK84:
-        return new rk84::RK84();
+        return new rk84::RK84(keyboard_manager);
     case kSK80:
-        return new sk80::SK80();
+        return new sk80::SK80(keyboard_manager);
     }
 
     throw("Device not registered");
-
-    return nullptr; // or handle with exceptions
+    return nullptr;
 }

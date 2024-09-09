@@ -46,9 +46,13 @@ namespace KeyboardSK80
         unsigned char messages[9][65];
         char active_key_ids[] = { 1, 13, 19, 20, 21 };
 
-        SK80 sk_80;
+        Keyboard keyboard_manager(kSK80);
+        keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
 
-        sk_80.SetBytesInValuePackets(*messages, kOn, active_key_ids, sizeof(active_key_ids));
+        SK80* sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
+
+
+        sk_80->SetBytesInValuePackets(*messages, kOn);
 
         int i;
 

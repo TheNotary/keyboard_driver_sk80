@@ -4,5 +4,5 @@
 
 class KeyboardSpecFactory {
 public:
-    AbstractKeyboard* CreateKeyboardSpec(KeyboardModel keyboard_model);
+    AbstractKeyboard* CreateKeyboardSpec(KeyboardModel keyboard_model, Keyboard* keyboard_manager);
 };

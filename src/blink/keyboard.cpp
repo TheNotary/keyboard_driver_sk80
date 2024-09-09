@@ -12,12 +12,12 @@
 Keyboard::Keyboard(KeyboardModel keyboard_model)
 {
     this->SetupKeyboardModel(keyboard_model);
-    this->AccessDeviceHandle();
+    // this->ConnectToDevice();
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     KeyboardSpecFactory kf;
-    this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model);
+    this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model, this);
 
     if (this->keyboard_spec == nullptr) {
         printf("this keyboard_spec not implemented yet");
@@ -30,7 +30,7 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     this->keyboard_model = keyboard_model;
 }
 
-bool Keyboard::AccessDeviceHandle() {
+bool Keyboard::ConnectToDevice() {
     this->device_handle = SearchForDevice(this->vid, this->pid, this->keyboard_spec->target_device_path);
     this->keyboard_spec->device_handle = this->device_handle;
     return true;
@@ -102,8 +102,6 @@ void Keyboard::SetActiveKeyId(int index, char key_id) {
     this->active_key_ids[index] = key_id;
 }
 
-
-
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
     unsigned char* messages = new unsigned char[
         this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT * 
@@ -114,7 +112,7 @@ void Keyboard::SetKeysOnOff(KeyValue key_value) {
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
-    this->keyboard_spec->SetKeysOnOff(key_value, messages, this->active_key_ids, this->n_active_keys);
+    this->keyboard_spec->SetKeysOnOff(key_value, messages);
 }
 
 void Keyboard::TurnOnActiveKeys() {

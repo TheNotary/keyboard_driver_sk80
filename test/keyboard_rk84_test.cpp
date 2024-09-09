@@ -16,9 +16,12 @@ namespace KeyboardRK84
         unsigned char messages[3][65];
         char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
 
-        RK84 rk_84;
+        Keyboard keyboard_manager(kRK84);
+        keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
 
-        rk_84.SetBytesInValuePackets(*messages, kOn, active_key_ids, sizeof(active_key_ids));
+        RK84* rk_84 = dynamic_cast<RK84*>(keyboard_manager.keyboard_spec);
+
+        rk_84->SetBytesInValuePackets(*messages, kOn);
 
         EXPECT_EQ(messages[0][offset + active_key_ids[0]], onCode);
         EXPECT_EQ(messages[0][offset + active_key_ids[1]], onCode);
@@ -52,7 +55,7 @@ namespace KeyboardRK84
         EXPECT_EQ(expected_pid, (short)ptr[0]);
     }
 
-    TEST(KeyboardRK84, ItHasTheCorrectConstsAvailable) {
+    TEST(KeyboardRK84, TheAbstractClassHasTheCorrectConstsAvailable) {
         RK84 rk_84;
 
         AbstractKeyboard* abstr = &rk_84;

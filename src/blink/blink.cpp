@@ -14,7 +14,7 @@
 int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, KeyboardInfo keyboard) {
     Keyboard kbd(keyboard.keyboard_model);
 
-    if (!kbd.Found()) {
+    if (!kbd.ConnectToDevice()) {
         printf("Could not find keyboard\n");
         return 1;
     }
@@ -35,7 +35,7 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, Ke
 int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65], KeyboardInfo keyboard) {
     Keyboard kbd(keyboard.keyboard_model);
 
-    if (!kbd.Found()) {
+    if (!kbd.ConnectToDevice()) {
         printf("Could not find keyboard\n");
         return 1;
     }
@@ -56,7 +56,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char mess
 int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keyboard) {
     Keyboard kbd(keyboard.keyboard_model);
 
-    if (!kbd.Found()) {
+    if (!kbd.ConnectToDevice()) {
         printf("Could not find keyboard\n");
         return 1;
     }
@@ -85,7 +85,7 @@ extern "C" {
         //Keyboard kbd(KeyboardModel::SK80);
         Keyboard kbd(KeyboardModel::kRK84);
 
-        if (!kbd.Found()) {
+        if (!kbd.ConnectToDevice()) {
             printf("Could not find keyboard\n");
             return 1;
         }
