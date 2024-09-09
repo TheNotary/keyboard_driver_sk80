@@ -72,15 +72,10 @@ void RK84::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
     SendBufferToDevice(this->device_handle, messages, this->BULK_LED_VALUE_MESSAGES_COUNT, this->MESSAGE_LENGTH);
 }
 
-void RK84::SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b)
+void RK84::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b)
 {
     std::cerr << "Not supported" << std::endl;
     throw("Not supported");
 }
-
-//void RK84::SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b)
-//{
-
-//}
 
 }

@@ -18,7 +18,7 @@
 #pragma comment(lib, "hid.lib")
 
 
-void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length) {
+void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_length) {
     for (size_t j = 0; j < message_length; j++) {
         if (j % 8 == 0)
             printf("\n");
@@ -27,7 +27,7 @@ void PrintMessageInBuffer(unsigned char* buffer, size_t i, size_t message_length
 }
 
 void PrintMessagesInBuffer(
-    unsigned char* buffer,
+    const unsigned char* buffer,
     size_t message_count,
     size_t message_length
 ) {
@@ -326,10 +326,10 @@ static int SendPayloadBytesToDeviceAndGetResp(HANDLE deviceHandle, const UCHAR* 
 }
 
 void SendBufferToDevice(
-    HANDLE deviceHandle, unsigned char* messages_ptr,
+    HANDLE deviceHandle, const unsigned char* messages_ptr,
     size_t messageCount, size_t messageLength
 ) {
-    unsigned char (*messages)[65] = reinterpret_cast<unsigned char (*)[65]>(messages_ptr);
+    const unsigned char (*messages)[65] = reinterpret_cast<const unsigned char (*)[65]>(messages_ptr);
 
     for (size_t i = 0; i < messageCount; i++)
     {
@@ -339,9 +339,10 @@ void SendBufferToDevice(
 }
 
 void SendBufferToDeviceAndGetResp(
-    HANDLE deviceHandle, unsigned char messages[][65],
+    HANDLE deviceHandle, const unsigned char* messages_ptr,
     size_t messageCount, size_t messageLength
 ) {
+    const unsigned char (*messages)[65] = reinterpret_cast<const unsigned char (*)[65]>(messages_ptr);
     for (size_t i = 0; i < messageCount; i++)
     {
         //std::cout << "send_buffer_to_device " << i << std::endl;

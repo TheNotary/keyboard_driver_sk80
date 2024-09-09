@@ -85,15 +85,28 @@ namespace sk80 {
     }
 
     void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
-        // TODO: refactor signature to be SetKeysOnOff(Keyboard* keyboard_manager, unsigned char* messages, KeyValue key_value)
+        if (this->keyboard_manager->n_active_keys == 0) {
+            printf("SetKeysOnOff was called with zero active keys... odd...skipping");
+            return;
+        }
 
+        std::cout << "DRY RUN:" << std::endl;
 
+        PrintMessagesInBuffer(*sk80::BULK_LED_HEADER_MESSAGES, sk80::BULK_LED_HEADER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        //SendBufferToDeviceAndGetResp(this->device_handle, *sk80::BULK_LED_HEADER_MESSAGES, sk80::BULK_LED_HEADER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+
+        this->SetBytesInValuePackets(messages, key_value);
+        PrintMessagesInBuffer(messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        //SendBufferToDevice(this->device_handle, messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        
+        PrintMessagesInBuffer(*sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        //SendBufferToDevice(this->device_handle, *sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     }
 
     void SK80::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
         std::cout << "Setting LED" << std::endl;
 
-        SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
+        SendBufferToDeviceAndGetResp(this->device_handle, *TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
 
         TEST_SLIM_MESSAGES[0][54] = r;
         TEST_SLIM_MESSAGES[0][55] = g;
@@ -104,7 +117,7 @@ namespace sk80 {
         SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
     }
 
-    void SK80::SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b) {
+    void SK80::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) {
         if (keyboard_manager->n_active_keys == 0) {
             printf("SetKeysRGB was called with zero active keys... odd...");
             return;
@@ -150,7 +163,7 @@ namespace sk80 {
         }
         printf("\n");
 
-        SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, this->MESSAGE_LENGTH);
+        SendBufferToDeviceAndGetResp(this->device_handle, *TEST_SLIM_HEADER_MESSAGES, 2, this->MESSAGE_LENGTH);
 
         SendBufferToDevice(this->device_handle, *key_message, 1, this->MESSAGE_LENGTH);
 

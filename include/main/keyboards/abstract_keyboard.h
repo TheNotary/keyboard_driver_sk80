@@ -25,7 +25,9 @@ public:
         short pid;
     };
 
-    AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount, const char* target_device_path, DeviceInfo device_info, std::unordered_map<std::string, char> keyname_keyid_mappings, const UINT8 max_key_id, Keyboard* keyboard_manager)
+    AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount, const char* target_device_path, 
+        DeviceInfo device_info, std::unordered_map<std::string, char> keyname_keyid_mappings, const UINT8 max_key_id, 
+        Keyboard* keyboard_manager)
         :
         MESSAGE_LENGTH(messageLength),
         BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
@@ -45,7 +47,7 @@ public:
     // Determines the packets to send and sends them to the usb device
     virtual void SetKeysOnOff(KeyValue key_value, unsigned char* messages) = 0;
 
-    virtual void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b) = 0;
+    virtual void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b) = 0;
 
     DeviceInfo GetDeviceInfo() const {
         return this->device_info;

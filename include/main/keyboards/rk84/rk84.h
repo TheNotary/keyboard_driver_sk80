@@ -25,7 +25,7 @@ public:
     void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value);
     void SetKeysOnOff(KeyValue key_value, unsigned char* messages);
 
-    void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);
+    void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
 
 
 private:

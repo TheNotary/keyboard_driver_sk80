@@ -27,7 +27,7 @@ public:
     void SetKeysOnOff(KeyValue key_value, unsigned char* messages);
 
     void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
-    void SetKeysRGB(Keyboard* keyboard_manager, unsigned char r, unsigned char g, unsigned char b);
+    void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
 
 private:
     KeyValueBytesPair on_off_mappings = sk80::on_off_mappings;

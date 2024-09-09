@@ -1,5 +1,7 @@
 - clean out messages.h/ .cpp and messages_data.h
 
+- SendBufferToDeviceAndGetResp et. al. use a hard-coded message_length value of 65.  Technically not currently an issue but should be possible to make it more dynamic
+
 - Map sk80
   - define SetKeysOnOff for the SK80
   

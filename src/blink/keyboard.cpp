@@ -216,7 +216,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char b, unsigned char g) {
     }
     printf("\n");
 
-    SendBufferToDeviceAndGetResp(this->device_handle, TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
+    SendBufferToDeviceAndGetResp(this->device_handle, *TEST_SLIM_HEADER_MESSAGES, 2, MESSAGE_LENGTH);
 
     SendBufferToDevice(this->device_handle, *key_message, 1, MESSAGE_LENGTH);
 
