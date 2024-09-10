@@ -71,7 +71,7 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     this->n_active_keys = (UINT8)key_names.size();
 }
 
-void Keyboard::SetActiveKeyIds(char* key_ids, UINT8 n_keys) {
+void Keyboard::SetActiveKeyIds(const char* key_ids, UINT8 n_keys) {
     if (n_keys >= 255) {
         std::cerr << "Error SetActiveKeyIds: Tried to set over 255 keys!  "
             << "n_keys: " << n_keys << std::endl;

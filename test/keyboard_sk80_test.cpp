@@ -6,54 +6,74 @@ using namespace sk80;
 
 namespace KeyboardSK80
 {
-    // Test , returns the message_index
-    // to be 0 (the key is transmitted within the first message) and slot 9 of that message.
-    // TEST(KeyboardSK80, SetBytesInPacket_SK80WillStopAtNullKeyIds) {
-    //     unsigned char onCode = 0x07;
-    //     unsigned char offCode = 0x00;
-    //     int offset = 5;
-
-    //     unsigned char messages[3][65];
-    //     char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
-
-    //     SK80 sk_80;
-
-    //     sk_80.SetBytesInPacket(*messages, kOn, active_key_ids, sizeof(active_key_ids));
-
-    //     EXPECT_EQ(messages[0][offset + active_key_ids[0]], onCode);
-    //     EXPECT_EQ(messages[0][offset + active_key_ids[1]], onCode);
-    //     EXPECT_EQ(messages[0][offset], 0x01);  // This zero value of the offset should never be overwritten by SetBytesInPacket_SK80, it must be 0x01 per the packet definition
-    //     EXPECT_EQ(messages[0][offset + active_key_ids[3]], offCode); // this won't be set to 0x03 because it's bad
-    // }
-
-//{ // 1 - Top Row, esc - f12
-//    0x00,
-//        0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // KeyId 0x00 - 0x0f
-//        0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-//        0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00,
-//        0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
-//        0x08, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00,
-//        0x0a, 0x00, 0x00, 0x00, 0x0b, 0x00, 0x00, 0x00,
-//        0x0c, 0x00, 0x00, 0x00, 0x0d, 0xff, 0x00, 0x00,
-//        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-//    },
-
-    TEST(KeyboardSK80, SetBytesInPacket_PutsEscapeInExpectedSpot) {
+    class KeyboardSK80Test : public ::testing::Test {
+    protected:
         unsigned char onCode = 0xff;
         unsigned char offCode = 0x00;
-        int offset = 1;
+        unsigned char messages[sk80::BULK_LED_VALUE_MESSAGES_COUNT][sk80::MESSAGE_LENGTH] = { 0 };
+        Keyboard keyboard_manager;
+        SK80* sk_80;
 
-        unsigned char messages[9][65];
+        KeyboardSK80Test() : keyboard_manager(kSK80) {}
+
+        void SetUp() override {
+            sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
+        }
+
+        void SetUpWithKeyIds(const char* active_key_ids, size_t key_ids_count) {
+            keyboard_manager.SetActiveKeyIds(active_key_ids, key_ids_count);
+        }
+    };
+
+     TEST_F(KeyboardSK80Test, SetBytesInPacket_SK80WillStopAtNullKeyIds) {
+         char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
+         SetUpWithKeyIds(active_key_ids, std::size(active_key_ids));
+
+         sk_80->SetBytesInValuePackets(*messages, kOn);
+
+         int header_offset = 1;
+         int i, key_offset;
+
+         // escape key should be on
+         i = 0;
+         key_offset = 4;  // key_id * 4 for the first page...
+         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
+
+         // f1 key should be on
+         i = 1;
+         key_offset = 8; 
+         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
+
+         // The null key should always be off
+         i = 2;
+         key_offset = 0;
+         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
+
+         // f2 key should be off.  Even though f2, 0x03 is set in active_key_ids, active_key_ids was null terminated at index 2
+         i = 3;
+         key_offset = 12;
+         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
+         EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
+     }
+
+    TEST_F(KeyboardSK80Test, SetBytesInPacket_PutsVariousKeysInExpectedSpots) {
         char active_key_ids[] = { 1, 13, 19, 20, 21, 37 };
-
-        Keyboard keyboard_manager(kSK80);
-        keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
-
-        SK80* sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
-
+        SetUpWithKeyIds(active_key_ids, std::size(active_key_ids));
 
         sk_80->SetBytesInValuePackets(*messages, kOn);
 
+        int offset = 1;
         int i;
 
         // Escape key
@@ -99,37 +119,22 @@ namespace KeyboardSK80
         EXPECT_EQ(messages[2][offset + 3 + 5 * 4], onCode);
     }
 
-    TEST(KeyboardSK80, SetBytesInPacket_KeyId121Works) {
-        unsigned char onCode = 0xff;
-        unsigned char offCode = 0x00;
-        int offset = 1;
-
-        unsigned char messages[9][65];
+    TEST_F(KeyboardSK80Test, SetBytesInPacket_KeyId121Works) {
         char active_key_ids[] = { 121 };
-
-        Keyboard keyboard_manager(kSK80);
-        keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
-
-        SK80* sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
-
+        SetUpWithKeyIds(active_key_ids, std::size(active_key_ids));
 
         sk_80->SetBytesInValuePackets(*messages, kOn);
 
-        int i;
-
-        // Escape key
-        i = 0;
-        offset = 1 + 9 * 4;
-        EXPECT_EQ(messages[7][offset + 0], active_key_ids[i]);
+        // assert escape key is written to packet
+        int offset = 1 + 9 * 4;
+        EXPECT_EQ(messages[7][offset + 0], active_key_ids[0]);
         EXPECT_EQ(messages[7][offset + 1], onCode);
         EXPECT_EQ(messages[7][offset + 2], onCode);
         EXPECT_EQ(messages[7][offset + 3], onCode);
-
     }
 
-    TEST(KeyboardSK80, ItHasTheCorrectConstsAvailable) {
+    TEST(KeyboardSK80Attributes, ItHasTheCorrectConstsAvailable) {
         SK80 sk_80;
-
         AbstractKeyboard* abstr = &sk_80;
 
         EXPECT_EQ(sk_80.BULK_LED_VALUE_MESSAGES_COUNT, 9);
@@ -149,4 +154,3 @@ namespace KeyboardSK80
     }
 
 }
-
