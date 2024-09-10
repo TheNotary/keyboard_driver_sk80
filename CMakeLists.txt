@@ -25,8 +25,8 @@ target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/src/demo")
 
 # blink.dll is what other programs will call out to in order to perform USB work
 add_library(blink SHARED
-	"src/blink/blink.cpp" "include/blink.h"
-	"src/blink/print.cpp" "include/print.h"
+	"src/blink/blink.cpp" "include/main/blink.h"
+	"src/blink/print.cpp" "include/main/print.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
 	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"

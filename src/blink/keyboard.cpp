@@ -8,6 +8,8 @@
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/keyboard_spec_factory.h"
 
+namespace blink {
+
 
 Keyboard::Keyboard(KeyboardModel keyboard_model)
 {
@@ -238,4 +240,7 @@ void Keyboard::SetKeysRGB(unsigned char r, unsigned char b, unsigned char g) {
     //SendBufferToDevice(this->device_handle, TEST_SLIM_MESSAGES, 1, MESSAGE_LENGTH);
 
     SendBufferToDevice(this->device_handle, *END_BULK_UPDATE_MESSAGES, END_BULK_UPDATE_MESSAGE_COUNT, MESSAGE_LENGTH);
+}
+
+
 }

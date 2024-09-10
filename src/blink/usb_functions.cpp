@@ -16,6 +16,8 @@
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "hid.lib")
 
+namespace blink {
+
 
 void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_length) {
     printf("\n");
@@ -352,3 +354,5 @@ void SendBufferToDeviceAndGetResp(
     }
 }
 
+
+}

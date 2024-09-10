@@ -1,18 +1,23 @@
-#include "../../include/blink.h"
+#include "blink.h"
 
 #include <cstdio>
 #include <stdexcept>
 
 #include <windows.h>
 
-#include "../../include/print.h"
+#include "print.h"
 #include "keyboard.h"
 #include "misc.h"
 #include "usb_functions.h"
 
+namespace blinkdll {
+using KeyboardInfo = blink::KeyboardInfo;
+using KeyValue = blink::KeyValue;
+using Keyboard = blink::Keyboard;
+
 
 int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, KeyboardInfo keyboard) {
-    Keyboard kbd(keyboard.keyboard_model);
+    blink::Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.ConnectToDevice()) {
         printf("Could not find keyboard\n");
@@ -21,7 +26,7 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, Ke
 
     kbd.SetActiveKeys(key_names);
 
-    if (onOrOff == kOn) {
+    if (onOrOff == blink::kOn) {
         kbd.TurnOnActiveKeys();
     }
     else {
@@ -41,7 +46,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* mes
 
     kbd.SetActiveKeyIds(key_ids, n_keys);
 
-    if (onOrOff == kOn) {
+    if (onOrOff == blink::kOn) {
         kbd.TurnOnActiveKeys(messages_sent);
     }
     else {
@@ -61,7 +66,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keybo
 
     kbd.SetActiveKeyIds(key_ids, n_keys);
 
-    if (onOrOff == kOn) {
+    if (onOrOff == blink::kOn) {
         kbd.TurnOnActiveKeys();
     }
     else {
@@ -74,7 +79,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keybo
 extern "C" {
 
     void PrintMessagesInBufferA(const unsigned char* buffer, size_t message_count, size_t message_length) {
-        PrintMessagesInBuffer(buffer, message_count, message_length);
+        blink::PrintMessagesInBuffer(buffer, message_count, message_length);
     }
 
     void HelloDll() {
@@ -82,10 +87,10 @@ extern "C" {
     }
 
     int BlinkKeys(char* keyIds, int nKeys) {
-        PrintBlinkKeysArguments(keyIds, nKeys);
+        blink::PrintBlinkKeysArguments(keyIds, nKeys);
 
         //Keyboard kbd(KeyboardModel::SK80);
-        Keyboard kbd(KeyboardModel::kRK84);
+        Keyboard kbd(blink::KeyboardModel::kRK84);
 
         if (!kbd.ConnectToDevice()) {
             printf("Could not find keyboard\n");
@@ -105,27 +110,27 @@ extern "C" {
     }
 
     int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char* messages_sent, KeyboardInfo keyboard) {
-        return TurnKeyIds(key_ids, n_keys, kOn, messages_sent, keyboard);
+        return TurnKeyIds(key_ids, n_keys, blink::kOn, messages_sent, keyboard);
     }
 
     int TurnOnKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard) {
-        return TurnKeyIds(key_ids, n_keys, kOn, keyboard);
+        return TurnKeyIds(key_ids, n_keys, blink::kOn, keyboard);
     }
 
     int TurnOffKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard) {
-        return TurnKeyIds(key_ids, n_keys, kOff, keyboard);
+        return TurnKeyIds(key_ids, n_keys, blink::kOff, keyboard);
     }
 
     int TurnOnKeyNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
-        return TurnKeyNames(key_names, kOn, keyboard);
+        return TurnKeyNames(key_names, blink::kOn, keyboard);
     }
 
     int TurnOnOffNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard) {
-        return TurnKeyNames(key_names, kOff, keyboard);
+        return TurnKeyNames(key_names, blink::kOff, keyboard);
     }
 
     int ListAvailableKeyboards(KeyboardInfo** out_keyboards) {
-        std::vector<KeyboardInfo> keyboards = ListAvailableKeyboards();
+        std::vector<KeyboardInfo> keyboards = blink::ListAvailableKeyboards();
 
         *out_keyboards = (KeyboardInfo*)malloc(keyboards.size() * sizeof(KeyboardInfo));
         if (!(*out_keyboards)) {
@@ -140,4 +145,7 @@ extern "C" {
     void FreeKeyboards(KeyboardInfo* keyboards) {
         free(keyboards);
     }
+}
+
+
 }

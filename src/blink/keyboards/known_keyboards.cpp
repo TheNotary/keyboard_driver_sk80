@@ -1,14 +1,19 @@
+#include "keyboards/known_keyboards.h"
+
 #include <vector>
+
 #include "misc.h"
 #include "keyboards/rk84/constants_rk84.h"
 #include "keyboards/sk80/constants_sk80.h"
 
+namespace blink {
+
 
 // TODO:  Make it so this file isn't needed and derrivations of all the keyboards can be searched
 
-std::vector<KeyboardInfo> known_keyboards = {
+std::vector<blink::KeyboardInfo> known_keyboards = {
     {
-        KeyboardModel::kRK84,
+        blink::KeyboardModel::kRK84,
         0x258a,
         0x00c0,
         "RK84",
@@ -17,7 +22,7 @@ std::vector<KeyboardInfo> known_keyboards = {
         rk84::BULK_LED_VALUE_MESSAGES_COUNT
     },
     {
-        KeyboardModel::kSK80,
+        blink::KeyboardModel::kSK80,
         0x05ac,
         0x024f,
         "SK80",
@@ -26,3 +31,6 @@ std::vector<KeyboardInfo> known_keyboards = {
         sk80::BULK_LED_VALUE_MESSAGES_COUNT
     },
 };
+
+
+}

@@ -1,4 +1,7 @@
+#include "print.h"
 #include <cstdio>
+
+namespace blink {
 
 
 void PrintBlinkKeysArguments(char* key_ids, int n_keys) {
@@ -7,4 +10,6 @@ void PrintBlinkKeysArguments(char* key_ids, int n_keys) {
         printf(" 0x%02x", key_ids[i]);
     }
     printf(".  %d keys in total.\n", n_keys);
+}
+
 }

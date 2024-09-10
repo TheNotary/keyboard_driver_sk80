@@ -9,7 +9,7 @@
 
 namespace demo {
 
-	void TestSingleKey(KeyboardInfo keyboard) {
+	void TestSingleKey(blink::KeyboardInfo keyboard) {
         std::vector<std::string> key_names = { "esc" };
 
         demo::CallDllTurnOnKeyNames(key_names, keyboard);

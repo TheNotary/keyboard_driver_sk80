@@ -60,7 +60,7 @@ namespace KeyboardTest
     // Mock this or delete it, it's actually listing keyboards...
     // Actually I like this test alot.  If a known keyboard isn't attached, just comment out the last assertion 
     TEST(KeyboardTest, ListAvailableKeyboardsReturnsAListOfBoards) {
-        std::vector<KeyboardInfo> list = demo::_ListAvailableKeyboards();
+        std::vector<blink::KeyboardInfo> list = demo::ListAvailableKeyboards();
 
         bool was_reasonable = false;
 

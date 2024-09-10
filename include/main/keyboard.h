@@ -9,6 +9,8 @@
 #include "usb_functions.h"
 #include "keyboards/abstract_keyboard.h"
 
+namespace blink {
+
 
 /**
  * @brief The Keyboard class allows you to interface with the LEDs on the keyboard.
@@ -75,3 +77,6 @@ private:
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);
 };
+
+
+}

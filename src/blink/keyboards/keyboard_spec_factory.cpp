@@ -5,6 +5,8 @@
 #include "keyboards/rk84/rk84.h"
 #include "keyboards/sk80/sk80.h"
 
+namespace blink {
+
 
 AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard_model, Keyboard* keyboard_manager) {
     switch (keyboard_model) {
@@ -16,4 +18,7 @@ AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard
 
     throw("Device not registered");
     return nullptr;
+}
+
+
 }

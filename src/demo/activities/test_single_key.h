@@ -3,6 +3,6 @@
 
 namespace demo {
 
-void TestSingleKey(KeyboardInfo keyboard);
+void TestSingleKey(blink::KeyboardInfo keyboard);
 
 }

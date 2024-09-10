@@ -7,6 +7,8 @@
 
 namespace demo {
 
+using namespace blink;
+
 /*
 * @brief A generic function for loading a function from a dll.
 *
@@ -124,7 +126,7 @@ int CallTurnOnKeyIds(char* key_ids, UINT8 n_keys) {
     return dll_func(key_ids, n_keys);
 }
 
-std::vector<KeyboardInfo> _ListAvailableKeyboards() {
+std::vector<blink::KeyboardInfo> ListAvailableKeyboards() {
     std::vector<KeyboardInfo> list;
 
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));

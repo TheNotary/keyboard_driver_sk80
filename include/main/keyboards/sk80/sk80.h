@@ -10,26 +10,27 @@
 
 namespace sk80 {
 
-class SK80 : public AbstractKeyboard {
+
+class SK80 : public blink::AbstractKeyboard {
 public:
     SK80()
-        : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
+        : blink::AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
             DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, nullptr)
     {}
 
-    SK80(Keyboard* keyboard_manager)
+    SK80(blink::Keyboard* keyboard_manager)
         : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
         DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, keyboard_manager)
     {}
     
-    void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value);
-    void SetKeysOnOff(KeyValue key_value, unsigned char* messages);
+    void SetBytesInValuePackets(unsigned char* messages, blink::KeyValue key_value);
+    void SetKeysOnOff(blink::KeyValue key_value, unsigned char* messages);
 
     void SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b);
     void SetKeysRGB(unsigned char r, unsigned char g, unsigned char b);
 
 private:
-    KeyValueBytesPair on_off_mappings = sk80::on_off_mappings;
+    blink::KeyValueBytesPair on_off_mappings = sk80::on_off_mappings;
 
 };
 
@@ -38,6 +39,6 @@ private:
 
 namespace sk80::internal {
 
-TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key);
+blink::TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key);
 
 }

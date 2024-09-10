@@ -1,8 +1,9 @@
 #pragma once
 
-
 namespace demo {
 
-int PushToLight(KeyboardInfo keyboard);
+
+int PushToLight(blink::KeyboardInfo keyboard);
+
 
 }

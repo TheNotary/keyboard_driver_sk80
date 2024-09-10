@@ -3,6 +3,7 @@
 #include <keyboards/sk80/sk80.h>
 
 using namespace sk80;
+using namespace blink;
 
 namespace KeyboardSK80
 {

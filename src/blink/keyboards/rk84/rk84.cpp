@@ -9,6 +9,7 @@
 
 // This namespace makes TDD still possible, without muddying up the namespace disrupting drop-down menu style programming
 namespace rk84::internal {
+using namespace blink; // this is ok because our intent is to isolate the keyboards from blink, not the other way around
 
 TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key) {
     if (active_key > ::rk84::max_key_id) {
@@ -32,6 +33,7 @@ TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key) {
 
 
 namespace rk84 {
+using namespace blink;
 
 // TODO: this could become private, though I'd expect to define in in every keyboard anyway, so... idk
 void RK84::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value) {

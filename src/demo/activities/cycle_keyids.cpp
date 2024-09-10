@@ -37,7 +37,7 @@ char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
     return result;
 }
 
-int CycleKeyIds(KeyboardInfo keyboard) {
+int CycleKeyIds(blink::KeyboardInfo keyboard) {
     cout << "CycleKeyIds Debug Mode:" << endl
         << "The key id will be shown on the screen, and the LED for that key will be switched "
         << "on making mapping the keyboard easy.  "

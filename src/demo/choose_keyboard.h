@@ -4,6 +4,6 @@
 
 namespace demo {
 
-KeyboardInfo ChooseKeyboard();
+blink::KeyboardInfo ChooseKeyboard();
 
 }

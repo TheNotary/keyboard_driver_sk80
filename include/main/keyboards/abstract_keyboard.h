@@ -13,9 +13,13 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-class Keyboard;
+namespace blink {
+    class Keyboard;
+}
 
 #endif
+
+namespace blink {
 
 
 class AbstractKeyboard {
@@ -27,7 +31,7 @@ public:
 
     AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount, const char* target_device_path, 
         DeviceInfo device_info, std::unordered_map<std::string, char> keyname_keyid_mappings, const UINT8 max_key_id, 
-        Keyboard* keyboard_manager)
+        blink::Keyboard* keyboard_manager)
         :
         MESSAGE_LENGTH(messageLength),
         BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
@@ -53,7 +57,7 @@ public:
         return this->device_info;
     };
 
-    Keyboard* keyboard_manager;
+    blink::Keyboard* keyboard_manager;
     const UINT8 MESSAGE_LENGTH;
     const UINT8 BULK_LED_VALUE_MESSAGES_COUNT;
     const UINT8 max_key_id;
@@ -65,3 +69,6 @@ public:
 private:
 
 };
+
+
+}

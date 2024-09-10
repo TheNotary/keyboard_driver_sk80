@@ -3,6 +3,7 @@
 #include <keyboards/rk84/rk84.h>
 
 using namespace rk84;
+using namespace blink;
 
 namespace KeyboardRK84
 {

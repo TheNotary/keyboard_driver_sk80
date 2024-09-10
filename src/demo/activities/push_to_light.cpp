@@ -5,6 +5,7 @@
 
 
 namespace demo {
+using KeyboardInfo = blink::KeyboardInfo;
 
 
 int PushToLight(KeyboardInfo keyboard) {

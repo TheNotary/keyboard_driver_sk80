@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 
+namespace blink {
+
 
 enum KeyboardModel { kSK80, kMK84, kRK84 };
 
@@ -36,6 +38,9 @@ extern std::unordered_map<KeyboardModel, KeyNameKeyIdPair> keyname_keyid_mapping
 
 using KeyValueBytesPair = std::unordered_map<KeyValue, char>;
 extern std::unordered_map<KeyboardModel, KeyValueBytesPair> on_off_mappings;
+
+
+}
 
 
 namespace settings {
