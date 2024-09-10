@@ -7,6 +7,8 @@ As that the project is my only repo demonstrating sourcing dependencies in a C++
 
 #### Building on Terminal ("Developer Command Prompt")
 
+Note:  There's an integration test that can be enabled by setting the env variable "KEYBOARD_ATTACHED" to 1.  
+
 At the root of the repo, run:
 ```
 # Skip these, they were for gitbash but there are pathing issues that ruined it

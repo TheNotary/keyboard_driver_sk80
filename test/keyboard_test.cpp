@@ -8,7 +8,6 @@
 #include "../src/demo/blink_loader.h"
 
 
-
 namespace KeyboardTest
 {
     using namespace rk84;
@@ -77,7 +76,11 @@ namespace KeyboardTest
             was_reasonable = true;
 
         EXPECT_TRUE(was_reasonable);
-        EXPECT_EQ(list.size(), 1);
+        
+        // Only do this if an KEYBOARD_ATTACHED is set to 1
+        const char* keyboardAttachedEnv = std::getenv("KEYBOARD_ATTACHED");
+        if (keyboardAttachedEnv != nullptr && std::string(keyboardAttachedEnv) == "1")
+            EXPECT_EQ(list.size(), 1);
     }
 
 }
