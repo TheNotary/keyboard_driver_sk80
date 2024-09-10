@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include <windows.h>
-#include <fmt/core.h>
 #include <setupapi.h>
 #include <stdio.h>
 #include <hidsdi.h>
@@ -131,7 +130,7 @@ void DoAdditionalUsbThings(HANDLE hDev) {
     HIDP_CAPS capabilities;
     NTSTATUS capsResult = HidP_GetCaps(preparsedData, &capabilities);
     if (capsResult == 0x0011000000)
-        fmt::print("compared...");
+        printf("compared...");
 
     HidD_FreePreparsedData(preparsedData);
 }
@@ -259,7 +258,7 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
 
         CloseHandle(hDev);
 
-        for (int i = 0; i < known_keyboards.size(); i++) {
+        for (size_t i = 0; i < known_keyboards.size(); i++) {
             KeyboardInfo known_keyboard = known_keyboards[i];
             if (deviceAttributes.VendorID == known_keyboard.vid && deviceAttributes.ProductID == known_keyboard.pid) {
 

@@ -68,12 +68,6 @@ add_test(NAME AllTestsInMain COMMAND KeyboardTest)
 # Define the BUILD_DLL macro for the library build
 target_compile_definitions(blink PRIVATE BUILD_DLL)
 
-# fmt dependency
-find_package(fmt CONFIG REQUIRED)
-target_link_libraries(main PRIVATE fmt::fmt)
-target_link_libraries(blink PRIVATE fmt::fmt)
-target_link_libraries(KeyboardTest PRIVATE fmt::fmt)
-
 # Google Benchmark
 find_package(benchmark CONFIG REQUIRED)
 add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp")

@@ -5,7 +5,6 @@
 #include <unordered_map>
 
 #include <windows.h>
-#include <fmt/core.h>
 
 #include "choose_keyboard.h"
 #include "choose_activity.h"

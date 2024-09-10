@@ -17,7 +17,8 @@ KeyboardInfo ChooseKeyboard() {
 
     std::cout << "Keyboards Available:" << std::endl;
     int i;
-    for (i = 0; i < available_keebs.size(); i++) {
+    int n_available_keebs = available_keebs.size();
+    for (i = 0; i < n_available_keebs; i++) {
         KeyboardInfo keeb = available_keebs[i];
         std::cout << i + 1 << ". " << keeb.display_name
             << " [" << std::hex << keeb.vid << ":" << keeb.pid << "]"
