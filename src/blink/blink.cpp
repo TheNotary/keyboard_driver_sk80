@@ -75,6 +75,11 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keybo
 }
 
 extern "C" {
+
+    void PrintMessagesInBufferA(const unsigned char* buffer, size_t message_count, size_t message_length) {
+        PrintMessagesInBuffer(buffer, message_count, message_length);
+    }
+
     void HelloDll() {
         printf("Hello from the DLL!\n");
     }

@@ -28,15 +28,10 @@ namespace sk80::internal {
             throw("SK80 does not support keyIds greater than " + sk80::max_key_id);
         }
 
-        // assume 0x0f, 15, which is   4 * 15 + 1 = index:61
-        // Also consider 0x10, 16, which is message_index:2
-
-        UINT8 n_keys_in_first_packet = 15;
+        UINT8 n_keys_in_first_packet = 16;
         UINT8 width_of_key = 4;
-        UINT8 message_index = (active_key - 1) / n_keys_in_first_packet;        // when active_key = 1, 0 % 15 is zero, so 0 * 4
-        UINT8 offset_to_message = ((active_key - 1) % 15) * width_of_key + 1;   // when active_key = 16,  15 % 15 is zero, so 0 * width_of_key = 0
-        if (message_index == 0)
-            offset_to_message += 4;  // we'll count the first packet as zero indexed and everything will work out, but this register massaging is because they did their math in creative ways
+        UINT8 message_index = active_key / n_keys_in_first_packet;
+        UINT8 offset_to_message = (active_key % 16) * width_of_key + 1;
 
         // This allows for C++17 destructuring via the auto keyword
         return { static_cast<UINT8>(message_index), static_cast<UINT8>(offset_to_message) };
@@ -53,8 +48,8 @@ namespace sk80 {
 
     void SK80::SetBytesInValuePackets(unsigned char* messages_ptr, KeyValue key_value)
     {
-        // Cast the flat buffer to a 3x65 array
-        unsigned char (*messages)[sk80::MESSAGE_LENGTH] = reinterpret_cast<unsigned char (*)[sk80::MESSAGE_LENGTH]>(messages_ptr);
+        // A 9x65 array cast from the flat buffer
+        unsigned char (&messages)[sk80::BULK_LED_VALUE_MESSAGES_COUNT][sk80::MESSAGE_LENGTH] = *reinterpret_cast<unsigned char (*)[sk80::BULK_LED_VALUE_MESSAGES_COUNT][sk80::MESSAGE_LENGTH]>(messages_ptr);
 
         std::memcpy(messages, sk80::BULK_LED_VALUE_MESSAGES, sk80::BULK_LED_VALUE_MESSAGES_COUNT * sk80::MESSAGE_LENGTH);
         
@@ -98,7 +93,7 @@ namespace sk80 {
         SendBufferToDevice(this->device_handle, messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
         
         //PrintMessagesInBuffer(*sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
-        SendBufferToDevice(this->device_handle, *sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        SendBufferToDeviceAndGetResp(this->device_handle, *sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     }
 
     void SK80::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {

@@ -44,7 +44,7 @@ namespace KeyboardSK80
         int offset = 1;
 
         unsigned char messages[9][65];
-        char active_key_ids[] = { 1, 13, 19, 20, 21 };
+        char active_key_ids[] = { 1, 13, 19, 20, 21, 37 };
 
         Keyboard keyboard_manager(kSK80);
         keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
@@ -90,6 +90,41 @@ namespace KeyboardSK80
         EXPECT_EQ(messages[1][offset + 1 + 5 * 4], onCode);
         EXPECT_EQ(messages[1][offset + 2 + 5 * 4], onCode);
         EXPECT_EQ(messages[1][offset + 3 + 5 * 4], onCode);
+
+        // `=` key, this should be on page 3
+        i = 5;
+        EXPECT_EQ(messages[2][offset + 0 + 5 * 4], active_key_ids[i]);
+        EXPECT_EQ(messages[2][offset + 1 + 5 * 4], onCode);
+        EXPECT_EQ(messages[2][offset + 2 + 5 * 4], onCode);
+        EXPECT_EQ(messages[2][offset + 3 + 5 * 4], onCode);
+    }
+
+    TEST(KeyboardSK80, SetBytesInPacket_KeyId121Works) {
+        unsigned char onCode = 0xff;
+        unsigned char offCode = 0x00;
+        int offset = 1;
+
+        unsigned char messages[9][65];
+        char active_key_ids[] = { 121 };
+
+        Keyboard keyboard_manager(kSK80);
+        keyboard_manager.SetActiveKeyIds(active_key_ids, sizeof(active_key_ids));
+
+        SK80* sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
+
+
+        sk_80->SetBytesInValuePackets(*messages, kOn);
+
+        int i;
+
+        // Escape key
+        i = 0;
+        offset = 1 + 9 * 4;
+        EXPECT_EQ(messages[7][offset + 0], active_key_ids[i]);
+        EXPECT_EQ(messages[7][offset + 1], onCode);
+        EXPECT_EQ(messages[7][offset + 2], onCode);
+        EXPECT_EQ(messages[7][offset + 3], onCode);
+
     }
 
     TEST(KeyboardSK80, ItHasTheCorrectConstsAvailable) {
@@ -101,16 +136,16 @@ namespace KeyboardSK80
         EXPECT_EQ(abstr->BULK_LED_VALUE_MESSAGES_COUNT, 9);
         EXPECT_EQ(sk_80.MESSAGE_LENGTH, 65);
         EXPECT_EQ(abstr->MESSAGE_LENGTH, 65);
-        EXPECT_EQ(sk_80.keyname_keyid_mappings["tab"], 3);
-        EXPECT_EQ(abstr->keyname_keyid_mappings["tab"], 3);
+        EXPECT_EQ(sk_80.keyname_keyid_mappings["tab"], 37);
+        EXPECT_EQ(abstr->keyname_keyid_mappings["tab"], 37);
         EXPECT_EQ(sk_80.target_device_path[0], '\\');
         EXPECT_EQ(abstr->target_device_path[0], '\\');
         EXPECT_EQ(sk_80.device_info.vid, 0x05ac);
         EXPECT_EQ(abstr->device_info.vid, 0x05ac);
         EXPECT_EQ(sk_80.device_info.pid, 0x024f);
         EXPECT_EQ(abstr->device_info.pid, 0x024f);
-        EXPECT_EQ(sk_80.max_key_id, 79);
-        EXPECT_EQ(abstr->max_key_id, 79);
+        EXPECT_EQ(sk_80.max_key_id, 121);
+        EXPECT_EQ(abstr->max_key_id, 121);
     }
 
 }

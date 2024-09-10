@@ -73,7 +73,7 @@ void CallPrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size
         return;
     }
 
-    char funcName[] = "PrintMessagesInBuffer";
+    char funcName[] = "PrintMessagesInBufferA";
     typedef void (*Func)(unsigned char* buffer, size_t message_count, size_t message_length);
 
     Func dll_func = GetFunction<Func>(&hModule, funcName);

@@ -16,7 +16,10 @@ add_executable(main "src/demo/main.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/demo/activities/push_to_light.cpp" "src/demo/activities/push_to_light.h"
 	"src/demo/activities/cycle_keyids.cpp" "src/demo/activities/cycle_keyids.h"
-	"include/main/misc.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h" "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
+	"include/main/misc.h" "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" 
+	"src/demo/choose_activity.cpp" "src/demo/choose_activity.h" 
+	"src/demo/util.cpp" "src/demo/util.h" 
+	"src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
 target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/src/demo")
 
 

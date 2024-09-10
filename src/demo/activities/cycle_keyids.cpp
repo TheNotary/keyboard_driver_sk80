@@ -1,6 +1,10 @@
-#include <windows.h>
+#include "cycle_keyids.h"
+
 #include <iostream>
 #include <vector>
+
+#include <windows.h>
+
 #include "blink_loader.h"
 
 using std::cout;
@@ -73,7 +77,7 @@ int CycleKeyIds(KeyboardInfo keyboard) {
         }
 
         if (GetAsyncKeyState(VK_SPACE) & 0x8000) {  // print packet buffer
-            CallPrintMessagesInBuffer(messages_sent, 3, 65);
+            CallPrintMessagesInBuffer(messages_sent, keyboard.BULK_LED_VALUE_MESSAGES_COUNT, keyboard.MESSAGE_LENGTH);
 
             Sleep(200);
         }
