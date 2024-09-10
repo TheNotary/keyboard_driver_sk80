@@ -40,13 +40,14 @@ bool Keyboard::ConnectToDevice() {
 //   - Close the open handle to the keyboard device
 //   - Clean up the keyboard_spec object from the heap
 void Keyboard::Dispose() {
-    CloseHandle(this->device_handle);
+    if (this->device_handle)
+        CloseHandle(this->device_handle);
     delete this->keyboard_spec;
 }
 
 // Returns true if the Keyboard's device_handle was retrieved successfully
 bool Keyboard::Found() {
-    return this->device_handle != 0;
+    return !this->device_handle;
 }
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {

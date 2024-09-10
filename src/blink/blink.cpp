@@ -28,7 +28,6 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, Ke
         kbd.TurnOffActiveKeys();
     }
 
-    kbd.Dispose();
     return 0;
 }
 
@@ -49,7 +48,6 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* mes
         kbd.TurnOffActiveKeys();
     }
 
-    kbd.Dispose();
     return 0;
 }
 
@@ -70,7 +68,6 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keybo
         kbd.TurnOffActiveKeys();
     }
 
-    kbd.Dispose();
     return 0;
 }
 
@@ -104,7 +101,6 @@ extern "C" {
         kbd.TurnOnActiveKeys();
 
         //kbd.Blink(4, 50);
-        kbd.Dispose();
         return 0;
     }
 

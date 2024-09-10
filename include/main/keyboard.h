@@ -21,6 +21,10 @@ public:
      // Name GetNameObject(const std::string& name) const; // interesting syntax, right?
      Keyboard(KeyboardModel keyboard_model);
 
+     ~Keyboard() {
+         Dispose();  // Automatically clean up resources
+     }
+
      // convenience
      void TurnOnActiveKeys();
      void TurnOffActiveKeys();
