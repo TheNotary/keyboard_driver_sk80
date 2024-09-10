@@ -82,10 +82,6 @@ extern "C" {
         blink::PrintMessagesInBuffer(buffer, message_count, message_length);
     }
 
-    void HelloDll() {
-        printf("Hello from the DLL!\n");
-    }
-
     int BlinkKeys(char* keyIds, int nKeys) {
         blink::PrintBlinkKeysArguments(keyIds, nKeys);
 

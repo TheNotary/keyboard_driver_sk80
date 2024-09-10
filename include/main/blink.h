@@ -21,7 +21,6 @@ using KeyboardInfo = blink::KeyboardInfo;
 
 extern "C" {
 	DLL_EXPORT void PrintMessagesInBufferA(const unsigned char* buffer, size_t message_count, size_t message_length);
-	DLL_EXPORT void HelloDll();
 	DLL_EXPORT int BlinkKeys(char* keyIds, int nKeys);
 	DLL_EXPORT int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char* messages_sent, KeyboardInfo keyboard);
 	DLL_EXPORT int TurnOnKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard);

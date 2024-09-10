@@ -23,50 +23,6 @@ FuncType GetFunction(HMODULE* hModule, const char* funcName) {
     return func;
 }
 
-int test_dll(char* keyIds, int nKeys) {
-    //
-    // Load the DLL with the functions of interest
-    //
-
-    HMODULE hModule = LoadLibrary(TEXT("blink.dll"));
-    if (!hModule) {
-        std::cerr << "Failed to load DLL" << std::endl;
-        return 1;
-    }
-
-
-    //
-    // Get Functions from DLL
-    //
-
-    HelloDllFunc helloDll = GetFunction<HelloDllFunc>(&hModule, "HelloDll");
-    if (!helloDll) {
-        FreeLibrary(hModule);
-        return 1;
-    }
-
-    BlinkKeysFunc BlinkKeys = GetFunction<BlinkKeysFunc>(&hModule, "BlinkKeys");
-    if (!BlinkKeys) {
-        FreeLibrary(hModule);
-        return 1;
-    }
-
-
-    //
-    // Invoke functions
-    //
-
-    helloDll();
-
-    if (BlinkKeys(keyIds, nKeys) != 0) {
-        std::cout << "Problem blinking keys" << std::endl;
-    }
-
-    FreeLibrary(hModule);
-
-    return 0;
-}
-
 
 void CallPrintMessagesInBuffer(unsigned char* buffer, size_t message_count, size_t message_length) {
     HMODULE hModule = LoadLibrary(TEXT("blink.dll"));

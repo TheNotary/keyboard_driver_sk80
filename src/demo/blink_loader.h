@@ -5,7 +5,6 @@
 
 namespace demo {
 
-int test_dll(char* keyIds, int nKeys);
 int CallDllTurnOnKeyNames(const std::vector<std::string>& key_names, blink::KeyboardInfo keyboard);
 int CallDllTurnOffKeyNames(const std::vector<std::string>& key_names, blink::KeyboardInfo keyboard);
 int CallTurnOnKeyIds(char* key_ids, UINT8 n_keys);

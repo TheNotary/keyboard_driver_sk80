@@ -14,7 +14,6 @@ namespace blink {
 Keyboard::Keyboard(KeyboardModel keyboard_model)
 {
     this->SetupKeyboardModel(keyboard_model);
-    // this->ConnectToDevice();
 }
 
 void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
@@ -38,7 +37,7 @@ bool Keyboard::ConnectToDevice() {
     return true;
 }
 
-// Call this to
+// This method is automatically called when the class goes out of scope.  It will...
 //   - Close the open handle to the keyboard device
 //   - Clean up the keyboard_spec object from the heap
 void Keyboard::Dispose() {
@@ -59,7 +58,6 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     }
 
     for (UINT8 i = 0; i < key_names.size(); ++i) {
-        // std::cout << "Index: " << i << ", Value: " << key_names[i] << std::endl;
         std::string key_name = key_names[i];
         char key_id = this->keyboard_spec->keyname_keyid_mappings[key_name];
         if (key_id == 0) {
