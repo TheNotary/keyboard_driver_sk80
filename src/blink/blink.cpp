@@ -36,7 +36,7 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, Ke
     return 0;
 }
 
-int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* messages_sent, KeyboardInfo keyboard) {
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keyboard, unsigned char* messages_sent = nullptr) {
     Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.ConnectToDevice()) {
@@ -47,7 +47,10 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* mes
     kbd.SetActiveKeyIds(key_ids, n_keys);
 
     if (onOrOff == blink::kOn) {
-        kbd.TurnOnActiveKeys(messages_sent);
+        if (messages_sent)
+            kbd.TurnOnActiveKeys(messages_sent);
+        else
+            kbd.TurnOnActiveKeys();
     }
     else {
         kbd.TurnOffActiveKeys();
@@ -56,25 +59,6 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* mes
     return 0;
 }
 
-int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, KeyboardInfo keyboard) {
-    Keyboard kbd(keyboard.keyboard_model);
-
-    if (!kbd.ConnectToDevice()) {
-        printf("Could not find keyboard\n");
-        return 1;
-    }
-
-    kbd.SetActiveKeyIds(key_ids, n_keys);
-
-    if (onOrOff == blink::kOn) {
-        kbd.TurnOnActiveKeys();
-    }
-    else {
-        kbd.TurnOffActiveKeys();
-    }
-
-    return 0;
-}
 
 extern "C" {
 
@@ -106,7 +90,7 @@ extern "C" {
     }
 
     int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char* messages_sent, KeyboardInfo keyboard) {
-        return TurnKeyIds(key_ids, n_keys, blink::kOn, messages_sent, keyboard);
+        return TurnKeyIds(key_ids, n_keys, blink::kOn, keyboard, messages_sent);
     }
 
     int TurnOnKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard) {
