@@ -12,6 +12,8 @@ struct KeyboardInfo {
     short pid;
     char display_name[25];
     UINT8 max_key_id;
+    UINT8 MESSAGE_LENGTH;
+    UINT8 BULK_LED_VALUE_MESSAGES_COUNT;
 
     bool operator==(const KeyboardInfo& other) const {
         return (keyboard_model == other.keyboard_model &&

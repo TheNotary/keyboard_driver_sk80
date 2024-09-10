@@ -19,8 +19,11 @@
 
 
 void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_length) {
-    for (size_t j = 0; j < message_length; j++) {
-        if (j % 8 == 0)
+    printf("\n");
+    // Print the wacky first byte out of order because it helps expose the true nature of our messages
+    printf("0x%02x", buffer[i * message_length + 0]);
+    for (size_t j = 1; j < message_length; j++) {
+        if ((j-1) % 8 == 0)
             printf("\n");
         printf("0x%02x ", buffer[i * message_length + j]);
     }

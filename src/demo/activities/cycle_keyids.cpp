@@ -12,7 +12,7 @@ namespace demo {
 
 void PrintKeyId(char key_id) {
     cout << "\r" << std::string(12, ' ');
-    cout << "\r" << "KeyId: " << (int)key_id;
+    cout << "\r" << "KeyId: " << std::dec << (int)key_id;
 }
 
 char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
@@ -44,8 +44,10 @@ int CycleKeyIds(KeyboardInfo keyboard) {
         << endl << endl;
 
     //std::vector<std::string> key_names = { "f11" };
-    unsigned char messages_sent[3][65] = { 0 };
-    messages_sent[0][0] = { 2 }; // debugging, delete me
+
+    unsigned char* messages_sent = new unsigned char [keyboard.BULK_LED_VALUE_MESSAGES_COUNT * keyboard.MESSAGE_LENGTH];
+
+    //unsigned char messages_sent[3][keyboard.MESSAGE_LENGTH] = { 0 };
     char key_ids[] = { 0x01 };
 
     PrintKeyId(key_ids[0]);
@@ -71,7 +73,7 @@ int CycleKeyIds(KeyboardInfo keyboard) {
         }
 
         if (GetAsyncKeyState(VK_SPACE) & 0x8000) {  // print packet buffer
-            CallPrintMessagesInBuffer(*messages_sent, 3, 65);
+            CallPrintMessagesInBuffer(messages_sent, 3, 65);
 
             Sleep(200);
         }
@@ -82,6 +84,8 @@ int CycleKeyIds(KeyboardInfo keyboard) {
 
         Sleep(10);
     }
+
+    delete[] messages_sent;
 	return 0;
 }
 

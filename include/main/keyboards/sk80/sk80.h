@@ -2,7 +2,6 @@
 #include <array>
 
 #include "misc.h"
-#include "keyboard.h"
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/sk80/constants_sk80.h"
 #include "keyboards/sk80/messages_sk80.h"
@@ -20,7 +19,7 @@ public:
 
     SK80(Keyboard* keyboard_manager)
         : AbstractKeyboard(sk80::MESSAGE_LENGTH, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::target_device_path,
-            DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, keyboard_manager)
+        DeviceInfo{ sk80::VID, sk80::PID }, sk80::keyname_keyid_mappings, sk80::max_key_id, keyboard_manager)
     {}
     
     void SetBytesInValuePackets(unsigned char* messages, KeyValue key_value);
@@ -42,4 +41,3 @@ namespace sk80::internal {
 TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key);
 
 }
-

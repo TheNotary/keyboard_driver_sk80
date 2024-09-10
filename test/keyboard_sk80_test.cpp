@@ -109,6 +109,8 @@ namespace KeyboardSK80
         EXPECT_EQ(abstr->device_info.vid, 0x05ac);
         EXPECT_EQ(sk_80.device_info.pid, 0x024f);
         EXPECT_EQ(abstr->device_info.pid, 0x024f);
+        EXPECT_EQ(sk_80.max_key_id, 79);
+        EXPECT_EQ(abstr->max_key_id, 79);
     }
 
 }

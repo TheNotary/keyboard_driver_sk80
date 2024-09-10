@@ -18,7 +18,7 @@
 extern "C" {
 	DLL_EXPORT void HelloDll();
 	DLL_EXPORT int BlinkKeys(char* keyIds, int nKeys);
-	DLL_EXPORT int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages_sent[3][65], KeyboardInfo keyboard);
+	DLL_EXPORT int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char* messages_sent, KeyboardInfo keyboard);
 	DLL_EXPORT int TurnOnKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard);
 	DLL_EXPORT int TurnOffKeyIds(char* key_ids, UINT8 n_keys, KeyboardInfo keyboard);
 	DLL_EXPORT int TurnOnKeyNames(const std::vector<std::string>& key_names, KeyboardInfo keyboard);

@@ -7,9 +7,11 @@ namespace rk84 {
 
 const short VID = 0x258a;
 const short PID = 0x00c0;
+const UINT8 max_key_id = 96;
 const UINT8 MESSAGE_LENGTH = 65;
 const UINT8 BULK_LED_VALUE_MESSAGES_COUNT = 3;
-const UINT8 max_key_id = 96;
+
+
 const KeyValueBytesPair on_off_mappings = {
 	{ kOn, 0x07 },
 	{ kOff, 0x00 }

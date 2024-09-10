@@ -70,6 +70,8 @@ namespace KeyboardRK84
         EXPECT_EQ(abstr->target_device_path[0], '\\');
         EXPECT_EQ(rk_84.device_info.vid, 0x258a);
         EXPECT_EQ(abstr->device_info.vid, 0x258a);
+        EXPECT_EQ(rk_84.max_key_id, 96);
+        EXPECT_EQ(abstr->max_key_id, 96);
     }
 
 }

@@ -32,7 +32,7 @@ int TurnKeyNames(const std::vector<std::string>& key_names, KeyValue onOrOff, Ke
     return 0;
 }
 
-int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char messages_sent[3][65], KeyboardInfo keyboard) {
+int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char* messages_sent, KeyboardInfo keyboard) {
     Keyboard kbd(keyboard.keyboard_model);
 
     if (!kbd.ConnectToDevice()) {
@@ -43,7 +43,7 @@ int TurnKeyIds(char* key_ids, UINT8 n_keys, KeyValue onOrOff, unsigned char mess
     kbd.SetActiveKeyIds(key_ids, n_keys);
 
     if (onOrOff == kOn) {
-        kbd.TurnOnActiveKeys(*messages_sent);
+        kbd.TurnOnActiveKeys(messages_sent);
     }
     else {
         kbd.TurnOffActiveKeys();
@@ -103,7 +103,7 @@ extern "C" {
         return 0;
     }
 
-    int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char messages_sent[3][65], KeyboardInfo keyboard) {
+    int TurnOnKeyIdsD(char* key_ids, UINT8 n_keys, unsigned char* messages_sent, KeyboardInfo keyboard) {
         return TurnKeyIds(key_ids, n_keys, kOn, messages_sent, keyboard);
     }
 

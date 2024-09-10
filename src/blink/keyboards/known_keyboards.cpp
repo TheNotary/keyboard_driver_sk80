@@ -12,13 +12,17 @@ std::vector<KeyboardInfo> known_keyboards = {
         0x258a,
         0x00c0,
         "RK84",
-        rk84::max_key_id
+        rk84::max_key_id,
+        rk84::MESSAGE_LENGTH,
+        rk84::BULK_LED_VALUE_MESSAGES_COUNT
     },
     {
         KeyboardModel::kSK80,
         0x05ac,
         0x024f,
         "SK80",
-        sk80::max_key_id
+        sk80::max_key_id,
+        sk80::MESSAGE_LENGTH,
+        sk80::BULK_LED_VALUE_MESSAGES_COUNT
     },
 };
