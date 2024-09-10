@@ -18,7 +18,7 @@ set PATH=%VCPKG_ROOT%;%PATH%
 
 vcpkg install
 
-# As a shortcut, run test.bat
+# As a shortcut, run setup.bat
 cmake --preset release-config
 cmake --build --preset release-build --target clean
 cmake --build --preset release-build
