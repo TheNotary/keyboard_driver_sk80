@@ -1,4 +1,4 @@
-name: hosted-ninja-vcpkg_submod-autocache
+name: windows
 on:
   push:
     pull_request:
