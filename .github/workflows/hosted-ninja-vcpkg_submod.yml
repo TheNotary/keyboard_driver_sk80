@@ -58,6 +58,9 @@ jobs:
       # Lint #
       ########
 
+      - name: Configure CMake
+        run: cmake -B ${{ env.build }} -DCMAKE_BUILD_TYPE=${{ env.config }}
+
       - name: Run MSVC Code Analysis
         uses: microsoft/msvc-code-analysis-action@v0.1.1
         # Provide a unique ID to access the sarif output path
