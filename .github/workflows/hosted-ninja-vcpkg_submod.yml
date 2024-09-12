@@ -12,8 +12,8 @@ on:
 
 env:
   # Path to the CMake build directory.
-  build: '${{ github.workspace }}'
-  config: 'Release'
+  build: '${{ github.workspace }}/builds/release-config'
+  config: 'release-config'
 
 jobs:
   build:
