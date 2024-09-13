@@ -69,5 +69,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            builds/release-config/Release/*.exe
-            builds/release-config/Release/*.dll
+            builds/release-config/Release/main.exe
+            builds/release-config/Release/blink.dll
