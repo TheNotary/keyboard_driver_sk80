@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "../include/main/keyboard.h"
 #include <keyboards/sk80/sk80.h>
 
@@ -21,52 +22,52 @@ namespace KeyboardSK80
             sk_80 = dynamic_cast<SK80*>(keyboard_manager.keyboard_spec);
         }
 
-        void SetUpWithKeyIds(const char* active_key_ids, size_t key_ids_count) {
+        void SetUpWithKeyIds(const char* active_key_ids, UINT8 key_ids_count) {
             keyboard_manager.SetActiveKeyIds(active_key_ids, key_ids_count);
         }
     };
 
-     TEST_F(KeyboardSK80Test, SetBytesInPacket_SK80WillStopAtNullKeyIds) {
-         char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
-         SetUpWithKeyIds(active_key_ids, std::size(active_key_ids));
+    TEST_F(KeyboardSK80Test, SetBytesInPacket_SK80WillStopAtNullKeyIds) {
+        char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
+        SetUpWithKeyIds(active_key_ids, sizeof(active_key_ids));
 
-         sk_80->SetBytesInValuePackets(*messages, kOn);
+        sk_80->SetBytesInValuePackets(*messages, kOn);
 
-         int header_offset = 1;
-         int i, key_offset;
+        int header_offset = 1;
+        int i, key_offset;
 
-         // escape key should be on
-         i = 0;
-         key_offset = 4;  // key_id * 4 for the first page...
-         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
+        // escape key should be on
+        i = 0;
+        key_offset = 4;  // key_id * 4 for the first page...
+        EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
 
-         // f1 key should be on
-         i = 1;
-         key_offset = 8; 
-         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
+        // f1 key should be on
+        i = 1;
+        key_offset = 8; 
+        EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 1], onCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 2], onCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 3], onCode);
 
-         // The null key should always be off
-         i = 2;
-         key_offset = 0;
-         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
+        // The null key should always be off
+        i = 2;
+        key_offset = 0;
+        EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
 
-         // f2 key should be off.  Even though f2, 0x03 is set in active_key_ids, active_key_ids was null terminated at index 2
-         i = 3;
-         key_offset = 12;
-         EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
-         EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
-     }
+        // f2 key should be off.  Even though f2, 0x03 is set in active_key_ids, active_key_ids was null terminated at index 2
+        i = 3;
+        key_offset = 12;
+        EXPECT_EQ(messages[0][header_offset + key_offset + 0], active_key_ids[i]);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 1], offCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 2], offCode);
+        EXPECT_EQ(messages[0][header_offset + key_offset + 3], offCode);
+    }
 
     TEST_F(KeyboardSK80Test, SetBytesInPacket_PutsVariousKeysInExpectedSpots) {
         char active_key_ids[] = { 1, 13, 19, 20, 21, 37 };

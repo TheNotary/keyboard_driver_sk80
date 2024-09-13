@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "../include/main/keyboard.h"
 #include <keyboards/rk84/rk84.h>
 
@@ -21,14 +22,14 @@ namespace KeyboardRK84
             rk_84 = dynamic_cast<RK84*>(keyboard_manager.keyboard_spec);
         }
 
-        void SetUpWithKeyIds(const char* active_key_ids, size_t key_ids_count) {
+        void SetUpWithKeyIds(const char* active_key_ids, UINT8 key_ids_count) {
             keyboard_manager.SetActiveKeyIds(active_key_ids, key_ids_count);
         }
     };
 
     TEST_F(KeyboardRK84Test, SetBytesInPacket_RK84WillStopAtNullKeyIds) {
         char active_key_ids[] = { 0x01, 0x02, 0x00, 0x03 };
-        SetUpWithKeyIds(active_key_ids, std::size(active_key_ids));
+        SetUpWithKeyIds(active_key_ids, sizeof(active_key_ids));
 
         rk_84->SetBytesInValuePackets(*messages, kOn);
 

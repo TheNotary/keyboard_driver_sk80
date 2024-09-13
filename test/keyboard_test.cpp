@@ -70,6 +70,7 @@ namespace KeyboardTest
         EXPECT_TRUE(was_reasonable);
         
         // Only do this if an KEYBOARD_ATTACHED is set to 1
+        #pragma warning(disable: 4996) // disables a lint complaint, tests can call getenv without it being a risk in deployment
         const char* keyboardAttachedEnv = std::getenv("KEYBOARD_ATTACHED");
         if (keyboardAttachedEnv != nullptr && std::string(keyboardAttachedEnv) == "1")
             EXPECT_EQ(list.size(), 1);

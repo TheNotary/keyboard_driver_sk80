@@ -95,9 +95,15 @@ void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
     this->SetBytesInValuePackets(messages, key_value);
     //PrintMessagesInBuffer(messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     SendBufferToDevice(this->device_handle, messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
-        
+    
     //PrintMessagesInBuffer(*sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     SendBufferToDeviceAndGetResp(this->device_handle, *sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+
+    // This fixes it if I run it the first time, but the second time it fails.... does it allow light to go off if it's different????  grrr... complicated...
+    // Send that weird follow up packet that makes sure the keyboard is in custom LED lighting mode or something
+    SendBufferToDeviceAndGetResp(this->device_handle, *sk80::FOLLOWUP_HEADER_MESSAGES, 2, sk80::MESSAGE_LENGTH);
+    SendBufferToDevice(this->device_handle, *sk80::FOLLOWUP_PAYLOAD_MESSAGE, 1, sk80::MESSAGE_LENGTH);
+    SendBufferToDeviceAndGetResp(this->device_handle, *sk80::FOLLOWUP_FOOTER_MESSAGES, 2, sk80::MESSAGE_LENGTH);
 }
 
 void SK80::SetKeyRGB(char key_id, unsigned char r, unsigned char g, unsigned char b) {
