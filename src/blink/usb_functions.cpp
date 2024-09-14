@@ -129,7 +129,15 @@ void DoAdditionalUsbThings(HANDLE hDev) {
     HidD_FreePreparsedData(preparsedData);
 }
 
-HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
+/*
+* This functions can be passed a lambda allowing really clean re-use of the C++ logic!
+* Return false from the caller's lambda to halt the enumeration and clean up the USB 
+* stuff without closing the last handle.
+* 
+* Return true from the lambda to close the handle and continue enumerating until all devices have been enumerated.
+**/ 
+template <typename DeviceHandler>
+void EnumerateDevices(DeviceHandler handleDevice) {
     GUID hidGuid;
     HidD_GetHidGuid(&hidGuid);
 
@@ -137,7 +145,7 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
         DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
     if (deviceInfoList == INVALID_HANDLE_VALUE)
-        return 0;
+        return;
 
     const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
     DWORD size = DEVICE_DETAILS_SIZE;
@@ -153,126 +161,86 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
     HIDD_ATTRIBUTES deviceAttributes;
     deviceAttributes.Size = sizeof(deviceAttributes);
 
-    // This is the handle to the USB device that is used for communicating with it
-
     for (int i = 0; ; ++i) {
         HANDLE hDev = INVALID_HANDLE_VALUE;
 
-        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i, &deviceInfo))
+        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i, &deviceInfo)) {
             if (GetLastError() == ERROR_NO_MORE_ITEMS)
                 break;
             else
                 continue;
+        }
 
         if (!SetupDiGetDeviceInterfaceDetail(deviceInfoList, &deviceInfo,
-                                             deviceDetails, size, &size, &device_info_data)
-        )
+            deviceDetails, size, &size, &device_info_data)) {
             continue;
+        }
 
         hDev = open_device(deviceDetails->DevicePath);
         if (hDev == INVALID_HANDLE_VALUE) {
-            // printf("Failed creating file");
             continue;
         }
 
-        // DoAdditionalUsbThings(hDev);
-        
         if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
-            printf("Failed calling HidD_GetAttributes");
+            CloseHandle(hDev);
             continue;
         }
 
-        //PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
+        // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
-        if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
+        bool yield_result = handleDevice(hDev, deviceDetails, deviceAttributes, deviceInfo, device_info_data);
 
-            if (strstr(deviceDetails->DevicePath, target_device_path)) {
-                //PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
-                
-                SetupDiDestroyDeviceInfoList(deviceInfoList);
-                return hDev;
-            }
+        if (!yield_result) {
+            break;
         }
         CloseHandle(hDev);
     }
 
     SetupDiDestroyDeviceInfoList(deviceInfoList);
-    return 0;
 }
 
-// TODO: DRY this function up against SearchForDevice?
+HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
+    HANDLE resultHandle = 0;
+
+    EnumerateDevices([&](HANDLE hDev, SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails,
+        HIDD_ATTRIBUTES& deviceAttributes,
+        SP_DEVICE_INTERFACE_DATA& deviceInfo, SP_DEVINFO_DATA& device_info_data) -> bool {
+            if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
+                if (strstr(deviceDetails->DevicePath, target_device_path)) {
+                    resultHandle = hDev;
+                    return false;
+                }
+            }
+            return true;
+        }
+    );
+
+    return resultHandle;
+}
+
 /*
  * Returns a list of keyboards that are attached to the system and are known to the program per known_keyboards.h
  */
 std::vector<KeyboardInfo> ListAvailableKeyboards() {
     std::vector<KeyboardInfo> available_keyboards;
 
-    GUID hidGuid;
-    HidD_GetHidGuid(&hidGuid);
-
-    HDEVINFO deviceInfoList;
-    deviceInfoList = SetupDiGetClassDevs(&hidGuid, NULL, NULL,
-        DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
-
-    if (deviceInfoList == INVALID_HANDLE_VALUE)
-        return available_keyboards;
-
-    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
-    DWORD size = DEVICE_DETAILS_SIZE;
-    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
-    deviceDetails->cbSize = sizeof(*deviceDetails);
-
-    SP_DEVICE_INTERFACE_DATA deviceInfo;
-    deviceInfo.cbSize = sizeof(deviceInfo);
-
-    SP_DEVINFO_DATA device_info_data;
-    device_info_data.cbSize = sizeof(device_info_data);
-
-    HIDD_ATTRIBUTES deviceAttributes;
-    deviceAttributes.Size = sizeof(deviceAttributes);
-
-    for (int i = 0; ; ++i) {
-        HANDLE hDev = INVALID_HANDLE_VALUE;
-
-        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i, &deviceInfo))
-            if (GetLastError() == ERROR_NO_MORE_ITEMS)
-                break;
-            else
-                continue;
-
-        if (!SetupDiGetDeviceInterfaceDetail(deviceInfoList, &deviceInfo,
-            deviceDetails, size, &size, &device_info_data))
-            continue;
-
-        hDev = open_device(deviceDetails->DevicePath);
-        if (hDev == INVALID_HANDLE_VALUE) {
-            // printf("Failed creating file");
-            continue;
-        }
-
-        if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
-            printf("Failed calling HidD_GetAttributes");
-            continue;
-        }
-
-        // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
-        
-        CloseHandle(hDev);
-
-        for (size_t i = 0; i < known_keyboards.size(); i++) {
-            KeyboardInfo known_keyboard = known_keyboards[i];
-            if (deviceAttributes.VendorID == known_keyboard.vid && deviceAttributes.ProductID == known_keyboard.pid) {
-
-                // If we already have this keyboard listed in the available_keyboards vector, skip
-                if ( std::find(available_keyboards.begin(), available_keyboards.end(), known_keyboard) != available_keyboards.end() )
-                    continue;
-
-                available_keyboards.push_back(known_keyboard);
-                continue;
+    EnumerateDevices([&](HANDLE hDev, SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails,
+        HIDD_ATTRIBUTES& deviceAttributes,
+        SP_DEVICE_INTERFACE_DATA& deviceInfo, SP_DEVINFO_DATA& device_info_data) -> bool {
+            for (size_t i = 0; i < known_keyboards.size(); i++) {
+                KeyboardInfo known_keyboard = known_keyboards[i];
+                if (deviceAttributes.VendorID == known_keyboard.vid && deviceAttributes.ProductID == known_keyboard.pid) {
+                    // If we haven't already added this keyboard to available_keyboards, do so
+                     if (std::find(available_keyboards.begin(), available_keyboards.end(), known_keyboard) == available_keyboards.end()) {
+                         available_keyboards.push_back(known_keyboard);
+                         return true;
+                     }
+                }
             }
+            return true;
         }
-    }
-    SetupDiDestroyDeviceInfoList(deviceInfoList);
+    );
+
     return available_keyboards;
 }
 
