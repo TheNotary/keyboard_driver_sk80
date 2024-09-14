@@ -6,7 +6,6 @@
 namespace blink {
 
 
-void PrintWideString(const char* buffer, int bufferLen);
 void PrintMessagesInBuffer(const unsigned char* buffer, size_t message_count, size_t message_length);
 
 // Private...

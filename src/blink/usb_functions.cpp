@@ -1,6 +1,7 @@
 #include "usb_functions.h"
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <algorithm>
 
@@ -41,14 +42,6 @@ void PrintMessagesInBuffer(
     }
 }
 
-static void PrintWideString(const char* buffer, int bufferLen) {
-    for (int i = 0; i < bufferLen; i += 2) {
-        if (buffer[i] == 0)
-            break;
-        printf("%c", buffer[i]);
-    }
-}
-
 HANDLE open_device(LPCSTR device_path) {
     LPCSTR lpFileName = device_path;
     DWORD dwDesiredAccess = 0xc0000000;
@@ -73,56 +66,55 @@ void PrintDeviceDetails(HANDLE hDev,
     SP_DEVINFO_DATA device_info_data,
     HIDD_ATTRIBUTES deviceAttributes
 ) {
+    // Save std::cout settings so we can mutate them as needed in this function
+    std::ios_base::fmtflags f(std::cout.flags()); 
+
     char productString[256];
     ZeroMemory(productString, sizeof(productString));
 
     if (!HidD_GetProductString(hDev, productString, sizeof(productString))) {
-        printf("Failed calling HidD_GetProductString");
+        std::cerr << "Failed calling HidD_GetProductString\n";
         return;
     }
 
     char mfcString[256];
     ZeroMemory(mfcString, sizeof(mfcString));
     if (!HidD_GetManufacturerString(hDev, mfcString, sizeof(mfcString))) {
-        printf("Failed calling HidD_GetManufacturerString");
+        std::cerr << "Failed calling HidD_GetManufacturerString\n";
         return;
     }
 
-    char vendorId[16];
-    char productId[16];
-    char devicePath[1024];
-    sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
+    std::cout
+        << "PRINTING DETAILS FOR " << deviceDetails->DevicePath << std::endl;
 
-    sprintf_s(vendorId, "%04X", (unsigned)deviceAttributes.VendorID);
-    sprintf_s(productId, "%04X", (unsigned)deviceAttributes.ProductID);
+    std::wcout
+        << "productString: " << (wchar_t*)productString << std::endl
 
-    printf("\nPRINTING DETAILS FOR %s\n", devicePath);
+        // This will say SONiX in unicode for our device
+        << "mfcString: " << (wchar_t*)mfcString << std::endl;
 
-    printf("productString: ");
-    PrintWideString(productString, sizeof(productString));
-    printf("\n");
+    std::cout << std::hex << std::setfill('0')
 
-    // This will say SONiX in unicode for our device
-    printf("mfcString: ");
-    PrintWideString(mfcString, sizeof(mfcString));
-    printf("\n");
+            << "ID: "
+                << std::setw(4) << deviceAttributes.VendorID
+                << ":" 
+                << std::setw(4) << deviceAttributes.ProductID << std::endl
 
-    fprintf(stdout, "Opening device %s\n", devicePath);
-
-    printf(vendorId);
-    printf(":");
-    printf(productId);
-    printf("\n");
-
-    printf("DevInst: %04x\n", device_info_data.DevInst);
-    printf("DevInst: %x\n", device_info_data.Reserved);
+            << "DevInst: 0x" 
+                << std::setw(4) << device_info_data.DevInst << std::endl
+        
+            << "Reserved: 0x" 
+                << std::setw(8) << device_info_data.Reserved << std::endl;
 
     GUID guid = device_info_data.ClassGuid;
 
-    printf("ClassGuid: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n",
+    printf("ClassGuid: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n\n",
         guid.Data1, guid.Data2, guid.Data3,
         guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
         guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+
+    // Reset the std::cout flags (so hexadicimal for instance isn't the representation for ints in subsequent cout invocations)
+    std::cout.flags(f);
 }
 
 void DoAdditionalUsbThings(HANDLE hDev) {
@@ -139,37 +131,42 @@ void DoAdditionalUsbThings(HANDLE hDev) {
 
 HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
     GUID hidGuid;
-    HDEVINFO deviceInfoList;
-    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
-    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
-    deviceDetails->cbSize = sizeof(*deviceDetails);
-
     HidD_GetHidGuid(&hidGuid);
-    deviceInfoList = SetupDiGetClassDevs(&hidGuid, NULL, NULL,
+
+    HDEVINFO deviceInfoList = SetupDiGetClassDevs(&hidGuid, NULL, NULL,
         DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
     if (deviceInfoList == INVALID_HANDLE_VALUE)
         return 0;
 
+    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
+    DWORD size = DEVICE_DETAILS_SIZE;
+    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
+    deviceDetails->cbSize = sizeof(*deviceDetails);
+
+    SP_DEVICE_INTERFACE_DATA deviceInfo;
+    deviceInfo.cbSize = sizeof(deviceInfo);
+
+    SP_DEVINFO_DATA device_info_data;
+    device_info_data.cbSize = sizeof(device_info_data);
+
+    HIDD_ATTRIBUTES deviceAttributes;
+    deviceAttributes.Size = sizeof(deviceAttributes);
+
+    // This is the handle to the USB device that is used for communicating with it
+
     for (int i = 0; ; ++i) {
-        SP_DEVICE_INTERFACE_DATA deviceInfo;
-        SP_DEVINFO_DATA device_info_data;
-        HIDD_ATTRIBUTES deviceAttributes;
-        DWORD size = DEVICE_DETAILS_SIZE;
         HANDLE hDev = INVALID_HANDLE_VALUE;
 
-        deviceInfo.cbSize = sizeof(deviceInfo);
-        device_info_data.cbSize = sizeof(device_info_data);
-
-        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i,
-            &deviceInfo))
+        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i, &deviceInfo))
             if (GetLastError() == ERROR_NO_MORE_ITEMS)
                 break;
             else
                 continue;
 
         if (!SetupDiGetDeviceInterfaceDetail(deviceInfoList, &deviceInfo,
-            deviceDetails, size, &size, &device_info_data))
+                                             deviceDetails, size, &size, &device_info_data)
+        )
             continue;
 
         hDev = open_device(deviceDetails->DevicePath);
@@ -179,24 +176,21 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
         }
 
         // DoAdditionalUsbThings(hDev);
-
-        deviceAttributes.Size = sizeof(deviceAttributes);
+        
         if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
             printf("Failed calling HidD_GetAttributes");
             continue;
         }
 
-        // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
+        //PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
         if (deviceAttributes.VendorID == vid && deviceAttributes.ProductID == pid) {
-            // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
 
-            char devicePath[1024];
-            sprintf_s(devicePath, "%s", deviceDetails->DevicePath);
-
-            if (strstr(devicePath, target_device_path)) {
+            if (strstr(deviceDetails->DevicePath, target_device_path)) {
+                //PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
+                
                 SetupDiDestroyDeviceInfoList(deviceInfoList);
-                return hDev; // We apparently can return the first one, though it seems the one with mi_03 is the lucky one to latch onto?  or does it matter?
+                return hDev;
             }
         }
         CloseHandle(hDev);
@@ -206,6 +200,7 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path) {
     return 0;
 }
 
+// TODO: DRY this function up against SearchForDevice?
 /*
  * Returns a list of keyboards that are attached to the system and are known to the program per known_keyboards.h
  */
@@ -213,30 +208,33 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
     std::vector<KeyboardInfo> available_keyboards;
 
     GUID hidGuid;
-    HDEVINFO deviceInfoList;
-    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
-    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
-    deviceDetails->cbSize = sizeof(*deviceDetails);
-
     HidD_GetHidGuid(&hidGuid);
+
+    HDEVINFO deviceInfoList;
     deviceInfoList = SetupDiGetClassDevs(&hidGuid, NULL, NULL,
         DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
     if (deviceInfoList == INVALID_HANDLE_VALUE)
         return available_keyboards;
 
+    const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
+    DWORD size = DEVICE_DETAILS_SIZE;
+    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
+    deviceDetails->cbSize = sizeof(*deviceDetails);
+
+    SP_DEVICE_INTERFACE_DATA deviceInfo;
+    deviceInfo.cbSize = sizeof(deviceInfo);
+
+    SP_DEVINFO_DATA device_info_data;
+    device_info_data.cbSize = sizeof(device_info_data);
+
+    HIDD_ATTRIBUTES deviceAttributes;
+    deviceAttributes.Size = sizeof(deviceAttributes);
+
     for (int i = 0; ; ++i) {
-        SP_DEVICE_INTERFACE_DATA deviceInfo;
-        SP_DEVINFO_DATA device_info_data;
-        HIDD_ATTRIBUTES deviceAttributes;
-        DWORD size = DEVICE_DETAILS_SIZE;
         HANDLE hDev = INVALID_HANDLE_VALUE;
 
-        deviceInfo.cbSize = sizeof(deviceInfo);
-        device_info_data.cbSize = sizeof(device_info_data);
-
-        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i,
-            &deviceInfo))
+        if (!SetupDiEnumDeviceInterfaces(deviceInfoList, 0, &hidGuid, i, &deviceInfo))
             if (GetLastError() == ERROR_NO_MORE_ITEMS)
                 break;
             else
@@ -252,12 +250,13 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
             continue;
         }
 
-        deviceAttributes.Size = sizeof(deviceAttributes);
         if (!HidD_GetAttributes(hDev, &deviceAttributes)) {
             printf("Failed calling HidD_GetAttributes");
             continue;
         }
 
+        // PrintDeviceDetails(hDev, deviceDetails, deviceInfo, device_info_data, deviceAttributes);
+        
         CloseHandle(hDev);
 
         for (size_t i = 0; i < known_keyboards.size(); i++) {
