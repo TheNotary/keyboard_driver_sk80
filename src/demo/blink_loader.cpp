@@ -33,7 +33,11 @@ static void* g_lib_handle = nullptr;
 
 static void* LoadSharedLib() {
     if (!g_lib_handle) {
-        g_lib_handle = dlopen("libblink.so", RTLD_LAZY);
+        // Try alongside the executable first, then fall back to LD_LIBRARY_PATH
+        g_lib_handle = dlopen("./libblink.so", RTLD_LAZY);
+        if (!g_lib_handle) {
+            g_lib_handle = dlopen("libblink.so", RTLD_LAZY);
+        }
         if (!g_lib_handle) {
             std::cerr << "Failed to load shared library: " << dlerror() << std::endl;
         }
