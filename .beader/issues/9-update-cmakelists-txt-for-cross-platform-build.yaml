@@ -1,0 +1,36 @@
+---
+id: 9
+title: Update CMakeLists.txt for cross-platform build
+type: task
+status: closed
+priority: 1
+parent: 2
+blocked_by:
+- 6
+- 7
+- 10
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:01:15.289090016Z
+updated_at: 2026-07-07T00:10:55.781719435Z
+closed_at: 2026-07-07T00:10:55.781718885Z
+---
+
+Update CMakeLists.txt to handle platform selection:
+
+1. Replace `add_compile_options("/utf-8")` with a conditional: only on MSVC
+2. Add platform-conditional source selection:
+   ```
+   if(WIN32)
+     set(USB_SOURCES src/blink/usb_functions_win.cpp)
+   else()
+     set(USB_SOURCES src/blink/usb_functions_linux.cpp)
+     find_package(hidapi CONFIG REQUIRED)
+   endif()
+   ```
+3. Replace hardcoded "src/blink/usb_functions.cpp" in all targets with ${USB_SOURCES}
+4. Link `hidapi::hidapi` to blink and KeyboardTest targets on Linux
+5. Remove x86-only architecture constraint from presets (or add Linux presets)
+
+Files:
+- CMakeLists.txt

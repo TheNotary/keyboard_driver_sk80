@@ -1,0 +1,25 @@
+---
+id: 12
+title: Create setup.sh for Linux builds
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 11
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:01:35.669698117Z
+updated_at: 2026-07-07T00:13:14.483735149Z
+closed_at: 2026-07-07T00:13:14.483734508Z
+---
+
+Create `setup.sh` — Linux equivalent of `setup.bat`:
+
+- Bootstrap vcpkg if not present
+- `vcpkg install`
+- `cmake --preset linux-debug`
+- `cmake --build --preset linux-debug-build`
+
+Files:
+- setup.sh (NEW)

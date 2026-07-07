@@ -1,0 +1,22 @@
+---
+id: 6
+title: Rename usb_functions.cpp to usb_functions_win.cpp
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 5
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:00:39.854507271Z
+updated_at: 2026-07-07T00:09:30.729474642Z
+closed_at: 2026-07-07T00:09:30.729473817Z
+---
+
+Rename `src/blink/usb_functions.cpp` → `src/blink/usb_functions_win.cpp`.
+
+Preserves all existing Windows code with no behavior change on Windows. This is a prerequisite for adding the Linux implementation file.
+
+Files:
+- src/blink/usb_functions_win.cpp (renamed from usb_functions.cpp)

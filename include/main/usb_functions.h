@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <windows.h>
+#include "platform.h"
 #include "misc.h"
 
 namespace blink {
@@ -19,7 +19,7 @@ void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_
  * @param target_device_path A c-string representing the device path that should be interfaced with
  * @return HANDLE
  */
-HANDLE SearchForDevice(short vid, short pid, const char* target_device_path);
+DeviceHandle SearchForDevice(short vid, short pid, const char* target_device_path);
 
 /**
  * Sends a buffer to a USB device.  This function will only issue a SetReport message for each packet sent.
@@ -31,7 +31,7 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path);
  * @return HANDLE
  */
 void SendBufferToDevice(
-    HANDLE deviceHandle, const unsigned char* messages_ptr,
+    DeviceHandle deviceHandle, const unsigned char* messages_ptr,
     size_t messageCount, size_t messageLength
 );
 
@@ -45,7 +45,7 @@ void SendBufferToDevice(
  * @return HANDLE
  */
 void SendBufferToDeviceAndGetResp(
-    HANDLE deviceHandle, const unsigned char* messages,
+    DeviceHandle deviceHandle, const unsigned char* messages,
     size_t messageCount, size_t messageLength
 );
 

@@ -17,7 +17,12 @@ const blink::KeyValueBytesPair on_off_mappings = {
 	{ blink::kOn, 0x07 },
 	{ blink::kOff, 0x00 }
 };
+#ifdef _WIN32
 const char target_device_path[] = "\\\\?\\hid#vid_258a&pid_00c0&mi_01&col05#9&3b698677&0&0004#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+#else
+// On Linux, hidapi matches by VID/PID; no path filter needed
+const char target_device_path[] = "";
+#endif
 
 
 }

@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <stdexcept>
 
-#include <windows.h>
+#include "platform.h"
 
 #include "print.h"
 #include "keyboard.h"

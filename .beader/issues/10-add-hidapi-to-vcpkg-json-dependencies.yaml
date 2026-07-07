@@ -1,0 +1,20 @@
+---
+id: 10
+title: Add hidapi to vcpkg.json dependencies
+type: task
+status: closed
+priority: 2
+parent: 2
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:01:22.127627112Z
+updated_at: 2026-07-07T00:04:21.710212105Z
+closed_at: 2026-07-07T00:04:21.710211280Z
+---
+
+Add "hidapi" to the dependencies list in vcpkg.json.
+
+vcpkg has hidapi for both platforms; on Windows it's a no-op if we don't use it there. The hidraw backend (default on Linux) is needed for feature reports.
+
+Files:
+- vcpkg.json

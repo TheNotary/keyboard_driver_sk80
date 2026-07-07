@@ -3,6 +3,15 @@
 #include <iostream>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <hidapi/hidapi.h>
+static inline void Sleep(int ms) { usleep(ms * 1000); }
+static inline void CloseHandle(void* handle) { if (handle) hid_close(static_cast<hid_device*>(handle)); }
+#endif
+
 #include "messages.h"
 #include "usb_functions.h"
 #include "keyboards/abstract_keyboard.h"

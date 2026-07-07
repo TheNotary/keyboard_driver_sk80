@@ -1,0 +1,23 @@
+---
+id: 3
+title: Create platform.h compatibility header
+type: task
+status: closed
+priority: 1
+parent: 2
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:00:13.202779044Z
+updated_at: 2026-07-07T00:04:14.656669667Z
+closed_at: 2026-07-07T00:04:14.656669117Z
+---
+
+Create `include/main/platform.h` — a compatibility header defining:
+- `typedef uint8_t UINT8` (or alias) for Windows compat
+- `typedef unsigned char UCHAR`
+- `typedef void* DeviceHandle` (replaces `HANDLE` in interfaces)
+- On Windows: `#include <windows.h>` and typedef `DeviceHandle = HANDLE`
+- On Linux: `#include <cstdint>` and typedef `DeviceHandle = void*` (hidapi device pointer)
+- Platform detection via `#ifdef _WIN32` / `#ifdef __linux__`
+
+Files: include/main/platform.h (NEW)

@@ -8,7 +8,17 @@ file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options("/utf-8")
+if(MSVC)
+    add_compile_options("/utf-8")
+endif()
+
+if(WIN32)
+    set(USB_SOURCES "src/blink/usb_functions_win.cpp")
+else()
+    set(USB_SOURCES "src/blink/usb_functions_linux.cpp")
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(HIDAPI REQUIRED hidapi-hidraw)
+endif()
 
 # Main is kind of a demo app meant for showcasing the project and testing blink.dll
 # It's nice keeping main completely isolated from the source files involved with blink and vice versa
@@ -28,7 +38,7 @@ add_library(blink SHARED
 	"src/blink/blink.cpp" "include/main/blink.h"
 	"src/blink/print.cpp" "include/main/print.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
-	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
+	${USB_SOURCES} "include/main/usb_functions.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
 	"include/main/keyboards/abstract_keyboard.h"
     "include/main/keyboards/sk80/sk80.h"
@@ -46,7 +56,7 @@ add_executable(KeyboardTest
 	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp" "test/keyboard_sk80_test.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
-	"src/blink/usb_functions.cpp" "include/main/usb_functions.h"
+	${USB_SOURCES} "include/main/usb_functions.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
     "include/main/keyboards/sk80/sk80.h"
 	"include/main/keyboards/sk80/constants_sk80.h" "include/main/keyboards/sk80/messages_sk80.h" "include/main/keyboards/sk80/key_mappings_sk80.h"
@@ -61,6 +71,16 @@ add_executable(KeyboardTest
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+
+if(NOT WIN32)
+    target_include_directories(blink PRIVATE ${HIDAPI_INCLUDE_DIRS})
+    target_link_libraries(blink PRIVATE ${HIDAPI_LIBRARIES})
+    target_include_directories(KeyboardTest PRIVATE ${HIDAPI_INCLUDE_DIRS})
+    target_link_libraries(KeyboardTest PRIVATE ${HIDAPI_LIBRARIES})
+    target_link_libraries(main PRIVATE dl)
+    target_link_libraries(KeyboardTest PRIVATE dl)
+endif()
+
 enable_testing()
 
 add_test(NAME AllTestsInMain COMMAND KeyboardTest)

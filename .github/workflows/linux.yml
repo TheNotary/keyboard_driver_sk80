@@ -1,0 +1,33 @@
+name: linux
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y ninja-build libhidapi-dev pkg-config
+
+    - name: Bootstrap vcpkg
+      run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+    - name: Configure
+      run: |
+        export VCPKG_ROOT=$(pwd)/vcpkg
+        cmake --preset linux-debug
+
+    - name: Build
+      run: cmake --build --preset linux-debug-build
+
+    - name: Test
+      run: ctest --preset test-linux-debug --output-on-failure

@@ -1,6 +1,7 @@
 #include "keyboards/rk84/rk84.h"
 
 #include <array>
+#include <cstring>
 
 #include "keyboards/rk84/constants_rk84.h"
 #include "misc.h"

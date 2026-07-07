@@ -2,8 +2,7 @@
 #include <iostream>
 #include <memory>
 
-#include <basetsd.h>
-#include <windows.h>
+#include "platform.h"
 
 #include "misc.h"
 
@@ -63,7 +62,7 @@ public:
     const UINT8 max_key_id;
     const char* target_device_path;
     const DeviceInfo device_info;
-    HANDLE device_handle = nullptr;
+    DeviceHandle device_handle = nullptr;
     std::unordered_map<std::string, char> keyname_keyid_mappings;
 
 private:

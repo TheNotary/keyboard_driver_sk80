@@ -2,7 +2,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <windows.h>
+#include "platform.h"
 #include <memory>
 
 #include "misc.h"
@@ -69,7 +69,7 @@ public:
      AbstractKeyboard* keyboard_spec;
 
 private:
-     HANDLE device_handle;
+     DeviceHandle device_handle = nullptr;
      short vid; //  = 0x05ac
      short pid; //  = 0x024f
      char active_key_ids[256] = { 0 };

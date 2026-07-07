@@ -1,6 +1,11 @@
 #include "test_single_key.h"
 
-#include <Windows.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+static inline void Sleep(int ms) { usleep(ms * 1000); }
+#endif
 #include <iostream>
 
 #include "misc.h"

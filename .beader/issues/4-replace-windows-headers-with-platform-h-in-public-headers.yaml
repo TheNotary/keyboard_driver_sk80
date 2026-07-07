@@ -1,0 +1,28 @@
+---
+id: 4
+title: Replace Windows headers with platform.h in public headers
+type: task
+status: closed
+priority: 1
+parent: 2
+blocked_by:
+- 3
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:00:22.673198288Z
+updated_at: 2026-07-07T00:05:30.106435295Z
+closed_at: 2026-07-07T00:05:30.106434745Z
+---
+
+Update public headers to use platform.h instead of Windows-specific includes:
+
+1. Update `include/main/misc.h` — replace `#include <basetsd.h>` with `#include "platform.h"`. All UINT8 usages now come from platform.h.
+2. Update `include/main/usb_functions.h` — replace `#include <windows.h>` with `#include "platform.h"`. Change HANDLE return/parameter types to DeviceHandle.
+3. Update `include/main/keyboard.h` — remove `#include <windows.h>`, include "platform.h" instead.
+4. Update `include/main/keyboards/abstract_keyboard.h` — remove `#include <basetsd.h>` and `#include <windows.h>`, include "platform.h". Change `HANDLE device_handle` to `DeviceHandle device_handle`.
+
+Files:
+- include/main/misc.h
+- include/main/usb_functions.h
+- include/main/keyboard.h
+- include/main/keyboards/abstract_keyboard.h

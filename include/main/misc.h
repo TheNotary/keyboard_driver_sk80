@@ -1,5 +1,6 @@
 #pragma once
-#include <basetsd.h>
+#include "platform.h"
+#include <cstring>
 #include <unordered_map>
 #include <string>
 
