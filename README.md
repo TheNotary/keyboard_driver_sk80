@@ -19,6 +19,7 @@ setup.bat
 #### Building on Linux
 
 ```
+sudo pacman -S base-devel cmake ninja hidapi pkgconf
 ./setup.sh
 ```
 
@@ -30,3 +31,4 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
 For more notes about vcpkg, CMake, and building see [here](docs/env_setup_and_building.md).
+
