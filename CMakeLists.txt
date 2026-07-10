@@ -17,7 +17,7 @@ if(WIN32)
 else()
     set(USB_SOURCES "src/blink/usb_functions_linux.cpp")
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(HIDAPI REQUIRED hidapi-hidraw)
+    pkg_check_modules(HIDAPI REQUIRED hidapi-libusb)
 endif()
 
 # Main is kind of a demo app meant for showcasing the project and testing blink.dll

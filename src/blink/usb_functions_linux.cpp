@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <unistd.h>
 
 #include <hidapi/hidapi.h>
@@ -44,15 +45,15 @@ DeviceHandle SearchForDevice(short vid, short pid, const char* target_device_pat
     cur_dev = devs;
 
     while (cur_dev) {
-        // On Linux, target_device_path contains an interface number string like "mi_03"
-        // or a partial path. Try matching against the hidapi path.
+        // On Linux, target_device_path contains the target interface number as a string
         if (target_device_path && strlen(target_device_path) > 0) {
-            if (strstr(cur_dev->path, target_device_path) != nullptr) {
+            int target_iface = atoi(target_device_path);
+            if (cur_dev->interface_number == target_iface) {
                 device = hid_open_path(cur_dev->path);
                 break;
             }
         } else {
-            // No specific path filter — open first match
+            // No specific interface filter — open first match
             device = hid_open_path(cur_dev->path);
             break;
         }
@@ -91,6 +92,10 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
 // Send a single feature report to the device
 static int SendPayloadBytesToDevice(DeviceHandle deviceHandle, const unsigned char* payload, size_t payloadLength)
 {
+    if (!deviceHandle) {
+        std::cerr << "SendPayloadBytesToDevice: null device handle" << std::endl;
+        return 1;
+    }
     hid_device* dev = static_cast<hid_device*>(deviceHandle);
     
     int result = hid_send_feature_report(dev, payload, payloadLength);
@@ -106,22 +111,22 @@ static int SendPayloadBytesToDevice(DeviceHandle deviceHandle, const unsigned ch
     return 0;
 }
 
-// Read and discard a feature report response from the device
+// Read and discard a feature report response from the device.
 static int SwallowDeviceGetReport(DeviceHandle deviceHandle)
 {
+    if (!deviceHandle) {
+        std::cerr << "SwallowDeviceGetReport: null device handle" << std::endl;
+        return 1;
+    }
     hid_device* dev = static_cast<hid_device*>(deviceHandle);
-    
+
     unsigned char buffer[65];
     memset(buffer, 0, sizeof(buffer));
     buffer[0] = 0x00; // Report ID
 
     int result = hid_get_feature_report(dev, buffer, sizeof(buffer));
     if (result < 0) {
-        std::cerr << "Failed on hid_get_feature_report: " << std::endl;
-        const wchar_t* err = hid_error(dev);
-        if (err) {
-            std::wcerr << err << std::endl;
-        }
+        std::cerr << "Failed on hid_get_feature_report" << std::endl;
         return 1;
     }
     return 0;

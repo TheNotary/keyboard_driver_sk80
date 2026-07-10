@@ -43,7 +43,7 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
 bool Keyboard::ConnectToDevice() {
     this->device_handle = SearchForDevice(this->vid, this->pid, this->keyboard_spec->target_device_path);
     this->keyboard_spec->device_handle = this->device_handle;
-    return true;
+    return this->device_handle != nullptr;
 }
 
 // This method is automatically called when the class goes out of scope.  It will...
@@ -57,7 +57,7 @@ void Keyboard::Dispose() {
 
 // Returns true if the Keyboard's device_handle was retrieved successfully
 bool Keyboard::Found() {
-    return !this->device_handle;
+    return this->device_handle != nullptr;
 }
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {

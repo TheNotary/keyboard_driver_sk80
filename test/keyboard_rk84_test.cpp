@@ -55,8 +55,8 @@ namespace KeyboardRK84
         EXPECT_EQ(rk_84.target_device_path[0], '\\');
         EXPECT_EQ(abstr->target_device_path[0], '\\');
 #else
-        EXPECT_EQ(rk_84.target_device_path[0], '\0');
-        EXPECT_EQ(abstr->target_device_path[0], '\0');
+        EXPECT_EQ(rk_84.target_device_path[0], '1');
+        EXPECT_EQ(abstr->target_device_path[0], '1');
 #endif
         EXPECT_EQ(rk_84.device_info.vid, 0x258a);
         EXPECT_EQ(abstr->device_info.vid, 0x258a);

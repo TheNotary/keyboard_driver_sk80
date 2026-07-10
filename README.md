@@ -16,19 +16,21 @@ To conduct the build and execute the tests, at the root of the repo, run:
 setup.bat
 ```
 
-#### Building on Linux
+#### Building on Linux (Arch)
 
 ```
 sudo pacman -S base-devel cmake ninja hidapi pkgconf
 ./setup.sh
 ```
 
-On Linux, non-root access to the keyboard requires a udev rule.  Copy the included rules file and reload:
+Non-root access to the keyboard requires a udev rule.  Copy the included rules file, reload, and ensure your user is in the `wheel` group:
 
 ```
 sudo cp 99-keyboard-leds.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+
+You may need to replug the keyboard or log out and back in for the new permissions to take effect.
 
 For more notes about vcpkg, CMake, and building see [here](docs/env_setup_and_building.md).
 
