@@ -7,8 +7,22 @@
 #include "activities/cycle_keyids.h"
 #include "activities/test_single_key.h"
 
+#ifndef _WIN32
+#include <sys/file.h>
+#include <unistd.h>
+#include <fcntl.h>
+#endif
+
 
 int main() {
+#ifndef _WIN32
+    int lock_fd = open("/tmp/keyboard_driver.lock", O_CREAT | O_RDWR, 0600);
+    if (lock_fd < 0 || flock(lock_fd, LOCK_EX | LOCK_NB) != 0) {
+        std::cerr << "Another instance is already running." << std::endl;
+        return 1;
+    }
+#endif
+
     blink::KeyboardInfo keyboard = demo::ChooseKeyboard();
     if (keyboard.display_name[0] == 0x00) {
         std::cout << "Exiting, no valid keyboard selected" << std::endl;

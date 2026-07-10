@@ -100,11 +100,6 @@ static int SendPayloadBytesToDevice(DeviceHandle deviceHandle, const unsigned ch
     
     int result = hid_send_feature_report(dev, payload, payloadLength);
     if (result < 0) {
-        std::cerr << "Failed on SendPayloadBytesToDevice: " << std::endl;
-        const wchar_t* err = hid_error(dev);
-        if (err) {
-            std::wcerr << err << std::endl;
-        }
         return 1;
     }
     usleep(1000); // 1ms delay — critical for device stability (matches Windows Sleep(1))
@@ -125,11 +120,7 @@ static int SwallowDeviceGetReport(DeviceHandle deviceHandle)
     buffer[0] = 0x00; // Report ID
 
     int result = hid_get_feature_report(dev, buffer, sizeof(buffer));
-    if (result < 0) {
-        std::cerr << "Failed on hid_get_feature_report" << std::endl;
-        return 1;
-    }
-    return 0;
+    return (result < 0) ? 1 : 0;
 }
 
 static int SendPayloadBytesToDeviceAndGetResp(DeviceHandle deviceHandle, const unsigned char* message, size_t messageLength)
