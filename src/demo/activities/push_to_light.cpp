@@ -143,10 +143,20 @@ int PushToLight(KeyboardInfo keyboard) {
             }
 
             if (!key_name.empty()) {
-                std::cout << key_name << " pressed!" << std::endl;
+                std::cout << key_name << " toggled!" << std::endl;
                 std::vector<std::string> key_names = { key_name };
                 CallDllTurnOnKeyNames(key_names, keyboard);
                 Sleep(200);
+
+                // Drain any input that arrived during the LED change
+                unsigned char discard;
+                bool had_pending = false;
+                while (read(STDIN_FILENO, &discard, 1) == 1) {
+                    had_pending = true;
+                }
+                if (had_pending) {
+                    std::cout << "LED change was in progress. Press again." << std::endl;
+                }
             }
         }
         Sleep(10);
