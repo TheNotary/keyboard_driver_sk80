@@ -3,12 +3,13 @@
 #include <vector>
 #include <cstdint>
 #include "platform.h"
+#include "usb_io.h"
 
 namespace blink {
 
 class KeyboardLcd {
 public:
-    KeyboardLcd(short vid, short pid, const char* control_interface);
+    KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface);
     ~KeyboardLcd() { Dispose(); }
 
     bool ConnectToDevice();
@@ -17,8 +18,8 @@ public:
     bool Found();
 
 private:
-    DeviceHandle control_handle = nullptr;
-    DeviceHandle data_handle = nullptr;
+    IUsbIO* io_;
+    bool connected_ = false;
     short vid, pid;
     const char* control_interface;
 

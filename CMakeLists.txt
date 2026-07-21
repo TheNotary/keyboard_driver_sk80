@@ -50,7 +50,8 @@ add_library(blink SHARED
 	"include/main/misc.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/sk80/sk80.cpp"
-	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h")
+	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h"
+	"src/blink/usb_io_real.cpp" "include/main/usb_io.h")
 
 # gif_to_sk80 uploads GIF/image files to the SK80 LCD display
 add_executable(gif_to_sk80 "src/gif_to_sk80/main.cpp")
@@ -72,18 +73,24 @@ add_executable(KeyboardTest
 	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
     "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
-    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/blink/keyboards/sk80/sk80.cpp")
+    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/blink/keyboards/sk80/sk80.cpp"
+	"test/gif_to_sk80_test.cpp"
+	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h")
+target_include_directories(KeyboardTest PRIVATE "${CMAKE_SOURCE_DIR}/test")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+target_compile_definitions(KeyboardTest PRIVATE TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # stb for image loading/resizing (used by keyboard_lcd)
 find_path(STB_INCLUDE_DIRS "stb_image.h")
 if(STB_INCLUDE_DIRS)
     target_include_directories(blink PRIVATE ${STB_INCLUDE_DIRS})
+    target_include_directories(KeyboardTest PRIVATE ${STB_INCLUDE_DIRS})
 else()
     find_package(Stb REQUIRED)
     target_include_directories(blink PRIVATE ${Stb_INCLUDE_DIR})
+    target_include_directories(KeyboardTest PRIVATE ${Stb_INCLUDE_DIR})
 endif()
 
 if(NOT WIN32)

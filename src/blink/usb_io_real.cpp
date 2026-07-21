@@ -1,0 +1,59 @@
+#include "usb_io.h"
+#include "usb_functions.h"
+
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+
+#ifndef _WIN32
+#include <hidapi/hidapi.h>
+static inline void CloseHidHandle(void* handle) { if (handle) hid_close(static_cast<hid_device*>(handle)); }
+#endif
+
+namespace blink {
+
+bool RealUsbIO::Open(short vid, short pid, const char* control_interface) {
+    control_handle_ = SearchForDevice(vid, pid, control_interface);
+    if (!control_handle_) {
+        std::cerr << "Failed to open control interface" << std::endl;
+        return false;
+    }
+
+    int control_iface_num = atoi(control_interface);
+    data_handle_ = SearchForLcdDataDevice(vid, pid, control_iface_num);
+    if (!data_handle_) {
+        std::cerr << "Failed to open LCD data interface" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+int RealUsbIO::SendFeatureReport(const unsigned char* data, size_t length) {
+    return blink::SendFeatureReport(control_handle_, data, length);
+}
+
+int RealUsbIO::GetFeatureReport(unsigned char* buffer, size_t length) {
+    return blink::GetFeatureReport(control_handle_, buffer, length);
+}
+
+int RealUsbIO::WriteData(const unsigned char* data, size_t length) {
+    return blink::WriteDataToDevice(data_handle_, data, length);
+}
+
+int RealUsbIO::ReadData(unsigned char* buffer, size_t length, int timeout_ms) {
+    return blink::ReadFromDevice(data_handle_, buffer, length, timeout_ms);
+}
+
+void RealUsbIO::Close() {
+    if (control_handle_) {
+        CloseHidHandle(control_handle_);
+        control_handle_ = nullptr;
+    }
+    if (data_handle_) {
+        CloseHidHandle(data_handle_);
+        data_handle_ = nullptr;
+    }
+}
+
+} // namespace blink

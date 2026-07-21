@@ -4,7 +4,6 @@
 #include <stb_image_resize.h>
 
 #include "keyboard_lcd.h"
-#include "usb_functions.h"
 
 #include <iostream>
 #include <fstream>
@@ -14,45 +13,30 @@
 
 #ifndef _WIN32
 #include <unistd.h>
-#include <hidapi/hidapi.h>
-static inline void CloseHandle(void* handle) { if (handle) hid_close(static_cast<hid_device*>(handle)); }
 #endif
 
 namespace blink {
 
-KeyboardLcd::KeyboardLcd(short vid, short pid, const char* control_interface)
-    : vid(vid), pid(pid), control_interface(control_interface) {}
+KeyboardLcd::KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface)
+    : io_(io), vid(vid), pid(pid), control_interface(control_interface) {}
 
 bool KeyboardLcd::ConnectToDevice() {
-    control_handle = SearchForDevice(vid, pid, control_interface);
-    if (!control_handle) {
-        std::cerr << "Failed to open control interface" << std::endl;
+    if (!io_->Open(vid, pid, control_interface)) {
         return false;
     }
-
-    int control_iface_num = atoi(control_interface);
-    data_handle = SearchForLcdDataDevice(vid, pid, control_iface_num);
-    if (!data_handle) {
-        std::cerr << "Failed to open LCD data interface" << std::endl;
-        return false;
-    }
-
+    connected_ = true;
     return true;
 }
 
 void KeyboardLcd::Dispose() {
-    if (control_handle) {
-        CloseHandle(control_handle);
-        control_handle = nullptr;
-    }
-    if (data_handle) {
-        CloseHandle(data_handle);
-        data_handle = nullptr;
+    if (connected_) {
+        io_->Close();
+        connected_ = false;
     }
 }
 
 bool KeyboardLcd::Found() {
-    return control_handle != nullptr && data_handle != nullptr;
+    return connected_;
 }
 
 bool KeyboardLcd::SendStart() {
@@ -61,7 +45,7 @@ bool KeyboardLcd::SendStart() {
     cmd[1] = 0x04;
     cmd[2] = 0x18;
 
-    int result = SendFeatureReport(control_handle, cmd, sizeof(cmd));
+    int result = io_->SendFeatureReport(cmd, sizeof(cmd));
     if (result != 0) {
         std::cerr << "Failed to send START command" << std::endl;
         return false;
@@ -69,7 +53,7 @@ bool KeyboardLcd::SendStart() {
 
     unsigned char resp[65] = {};
     resp[0] = 0x00;
-    int bytes_read = GetFeatureReport(control_handle, resp, sizeof(resp));
+    int bytes_read = io_->GetFeatureReport(resp, sizeof(resp));
     if (bytes_read > 0) {
         printf("  Handshake: ");
         for (int i = 1; i <= 8 && i < bytes_read; i++)
@@ -88,7 +72,7 @@ bool KeyboardLcd::SendImageConfig(uint8_t n_frames, uint16_t n_pages) {
     cmd[9] = n_pages & 0xFF;
     cmd[10] = (n_pages >> 8) & 0xFF;
 
-    int result = SendFeatureReport(control_handle, cmd, sizeof(cmd));
+    int result = io_->SendFeatureReport(cmd, sizeof(cmd));
     if (result != 0) {
         std::cerr << "Failed to send IMAGE_CFG command" << std::endl;
         return false;
@@ -96,7 +80,7 @@ bool KeyboardLcd::SendImageConfig(uint8_t n_frames, uint16_t n_pages) {
 
     unsigned char resp[65] = {};
     resp[0] = 0x00;
-    int bytes_read = GetFeatureReport(control_handle, resp, sizeof(resp));
+    int bytes_read = io_->GetFeatureReport(resp, sizeof(resp));
     if (bytes_read > 0) {
         printf("  Handshake: ");
         for (int i = 1; i <= 8 && i < bytes_read; i++)
@@ -122,7 +106,7 @@ bool KeyboardLcd::SendDataPages(const uint8_t* data, size_t total_size) {
             memset(page_buf + 1 + copy_len, 0xFF, PAGE_SIZE - copy_len);
         }
 
-        int result = WriteDataToDevice(data_handle, page_buf, sizeof(page_buf));
+        int result = io_->WriteData(page_buf, sizeof(page_buf));
         if (result < 0) {
             std::cerr << "Failed to write data page " << i << std::endl;
             return false;
@@ -133,7 +117,7 @@ bool KeyboardLcd::SendDataPages(const uint8_t* data, size_t total_size) {
 #endif
 
         unsigned char ack[64] = {};
-        ReadFromDevice(data_handle, ack, sizeof(ack), 300);
+        io_->ReadData(ack, sizeof(ack), 300);
 
         if ((i + 1) % 20 == 0 || i == n_pages - 1) {
             printf("  %zu/%zu ACK=%02X %02X %02X %02X\n",
@@ -149,7 +133,7 @@ bool KeyboardLcd::SendSave() {
     cmd[1] = 0x04;
     cmd[2] = 0x02;
 
-    int result = SendFeatureReport(control_handle, cmd, sizeof(cmd));
+    int result = io_->SendFeatureReport(cmd, sizeof(cmd));
     if (result != 0) {
         std::cerr << "Failed to send SAVE command" << std::endl;
         return false;
@@ -157,7 +141,7 @@ bool KeyboardLcd::SendSave() {
 
     unsigned char resp[65] = {};
     resp[0] = 0x00;
-    int bytes_read = GetFeatureReport(control_handle, resp, sizeof(resp));
+    int bytes_read = io_->GetFeatureReport(resp, sizeof(resp));
     if (bytes_read > 0) {
         printf("  Handshake: ");
         for (int i = 1; i <= 8 && i < bytes_read; i++)

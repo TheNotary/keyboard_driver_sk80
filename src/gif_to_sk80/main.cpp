@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "keyboard_lcd.h"
+#include "usb_io.h"
 #include "keyboards/sk80/constants_sk80.h"
 
 int main(int argc, char* argv[]) {
@@ -21,7 +22,8 @@ int main(int argc, char* argv[]) {
     }
     file.close();
 
-    blink::KeyboardLcd lcd(sk80::VID, sk80::PID, sk80::target_device_path);
+    blink::RealUsbIO usb_io;
+    blink::KeyboardLcd lcd(&usb_io, sk80::VID, sk80::PID, sk80::target_device_path);
 
     std::cout << "Opening devices..." << std::endl;
     if (!lcd.ConnectToDevice()) {
