@@ -55,9 +55,12 @@ def find_control_hidraw():
             fcntl.ioctl(fd, HIDIOCSFEATURE, bytes(cmd))
             os.close(fd)
             return dev
-        except:
-            try: os.close(fd)
-            except: pass
+        except OSError as exc:
+            print(f"  Control probe failed for {dev}: {exc}")
+            try:
+                os.close(fd)
+            except OSError:
+                pass
     return None
 
 def send_feature(fd, data_64):
@@ -141,6 +144,16 @@ def main():
     data_hidraw = find_hidraw(usage_page_lo=0x68)  # 0xFF68
     print(f"  Control: {ctrl}")
     print(f"  Data:    {data_hidraw}")
+
+    if ctrl is None:
+        raise RuntimeError(
+            "Could not find a hidraw control interface that accepts "
+            "HIDIOCSFEATURE. See control probe errors above."
+        )
+    if data_hidraw is None:
+        raise RuntimeError(
+            "Could not find the hidraw data interface with usage page 0xFF68."
+        )
     
     ctrl_fd = os.open(ctrl, os.O_RDWR)
     data_fd = os.open(data_hidraw, os.O_RDWR)
