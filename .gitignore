@@ -2,3 +2,4 @@ build/
 builds/
 vcpkg_installed/
 .vs/
+my-output*
