@@ -17,11 +17,11 @@
 
 namespace blink {
 
-KeyboardLcd::KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface)
-    : io_(io), vid(vid), pid(pid), control_interface(control_interface) {}
+KeyboardLcd::KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface, const char* data_interface)
+    : io_(io), vid(vid), pid(pid), control_interface(control_interface), data_interface(data_interface) {}
 
 bool KeyboardLcd::ConnectToDevice() {
-    if (!io_->Open(vid, pid, control_interface)) {
+    if (!io_->Open(vid, pid, control_interface, data_interface)) {
         return false;
     }
     connected_ = true;

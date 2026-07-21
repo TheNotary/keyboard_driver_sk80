@@ -15,7 +15,7 @@ struct OpEntry {
 
 class RecordingUsbIO : public IUsbIO {
 public:
-    bool Open(short vid, short pid, const char* control_interface) override {
+    bool Open(short vid, short pid, const char* control_interface, const char* data_interface) override {
         return true;
     }
 

@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     file.close();
 
     blink::RealUsbIO usb_io;
-    blink::KeyboardLcd lcd(&usb_io, sk80::VID, sk80::PID, sk80::target_device_path);
+    blink::KeyboardLcd lcd(&usb_io, sk80::VID, sk80::PID, sk80::target_device_path, sk80::lcd_data_device_path);
 
     std::cout << "Opening devices..." << std::endl;
     if (!lcd.ConnectToDevice()) {

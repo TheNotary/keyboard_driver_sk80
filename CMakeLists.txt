@@ -75,7 +75,8 @@ add_executable(KeyboardTest
     "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
     "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/blink/keyboards/sk80/sk80.cpp"
 	"test/gif_to_sk80_test.cpp"
-	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h")
+	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h"
+	"src/blink/usb_io_real.cpp")
 target_include_directories(KeyboardTest PRIVATE "${CMAKE_SOURCE_DIR}/test")
 
 find_package(GTest CONFIG REQUIRED)

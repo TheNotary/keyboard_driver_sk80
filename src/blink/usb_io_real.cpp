@@ -12,15 +12,14 @@ static inline void CloseHidHandle(void* handle) { if (handle) hid_close(static_c
 
 namespace blink {
 
-bool RealUsbIO::Open(short vid, short pid, const char* control_interface) {
+bool RealUsbIO::Open(short vid, short pid, const char* control_interface, const char* data_interface) {
     control_handle_ = SearchForDevice(vid, pid, control_interface);
     if (!control_handle_) {
         std::cerr << "Failed to open control interface" << std::endl;
         return false;
     }
 
-    int control_iface_num = atoi(control_interface);
-    data_handle_ = SearchForLcdDataDevice(vid, pid, control_iface_num);
+    data_handle_ = SearchForDevice(vid, pid, data_interface);
     if (!data_handle_) {
         std::cerr << "Failed to open LCD data interface" << std::endl;
         return false;

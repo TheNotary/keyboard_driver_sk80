@@ -9,7 +9,7 @@ namespace blink {
 
 class KeyboardLcd {
 public:
-    KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface);
+    KeyboardLcd(IUsbIO* io, short vid, short pid, const char* control_interface, const char* data_interface);
     ~KeyboardLcd() { Dispose(); }
 
     bool ConnectToDevice();
@@ -22,6 +22,7 @@ private:
     bool connected_ = false;
     short vid, pid;
     const char* control_interface;
+    const char* data_interface;
 
     static constexpr int W = 160;
     static constexpr int H = 96;

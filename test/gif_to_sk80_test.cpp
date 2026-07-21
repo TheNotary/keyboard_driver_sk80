@@ -63,7 +63,7 @@ protected:
         ref_ops = ParseTimesFile(SourcePath("my-output.times"));
 
         // Run C++ upload with recording IO
-        blink::KeyboardLcd lcd(&recorder, sk80::VID, sk80::PID, sk80::target_device_path);
+        blink::KeyboardLcd lcd(&recorder, sk80::VID, sk80::PID, sk80::target_device_path, sk80::lcd_data_device_path);
         lcd.ConnectToDevice();
         bool ok = lcd.UploadImage(SourcePath("samples/29.gif"));
         ASSERT_TRUE(ok) << "UploadImage failed";
@@ -152,4 +152,41 @@ TEST_F(GifToSK80Test, PageHeaderAndStructureMatch) {
         EXPECT_EQ(cpp_bin[i], ref_bin[i])
             << "Padding byte at offset " << i << " mismatch";
     }
+}
+
+// Hardware test: validates real device discovery succeeds when keyboard is connected.
+// Skipped unless KEYBOARD_ATTACHED=1 is set in environment.
+TEST(GifToSK80HardwareTest, DeviceDiscoveryFindsControlAndDataInterfaces) {
+    const char* env = std::getenv("KEYBOARD_ATTACHED");
+    if (!env || std::string(env) != "1") {
+        GTEST_SKIP() << "Skipped: set KEYBOARD_ATTACHED=1 to run hardware tests";
+    }
+
+    blink::RealUsbIO usb_io;
+    bool opened = usb_io.Open(sk80::VID, sk80::PID,
+                              sk80::target_device_path,
+                              sk80::lcd_data_device_path);
+    ASSERT_TRUE(opened) << "Failed to open control (interface "
+        << sk80::target_device_path << ") and data (interface "
+        << sk80::lcd_data_device_path << ") devices";
+
+    // Send START command and verify we get a valid handshake back
+    unsigned char cmd[65] = {};
+    cmd[0] = 0x00; // Report ID
+    cmd[1] = 0x04;
+    cmd[2] = 0x18;
+
+    int send_result = usb_io.SendFeatureReport(cmd, sizeof(cmd));
+    EXPECT_EQ(send_result, 0) << "SendFeatureReport(START) failed";
+
+    unsigned char resp[65] = {};
+    resp[0] = 0x00;
+    int bytes_read = usb_io.GetFeatureReport(resp, sizeof(resp));
+    EXPECT_GT(bytes_read, 0) << "GetFeatureReport returned no data";
+
+    // The handshake echoes back the command bytes (04 18)
+    EXPECT_EQ(resp[1], 0x04) << "Handshake byte 1 should be 0x04";
+    EXPECT_EQ(resp[2], 0x18) << "Handshake byte 2 should be 0x18";
+
+    usb_io.Close();
 }

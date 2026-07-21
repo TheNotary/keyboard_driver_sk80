@@ -21,6 +21,8 @@ const char target_device_path[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&
 #else
 // On Linux with hidapi-libusb, filter by interface number (matches mi_03 on Windows)
 const char target_device_path[] = "3";
+// LCD data interface — usage page 0xFF68 for raw write/read of image pages
+const char lcd_data_device_path[] = "2";
 #endif
 
 // LCD display constants

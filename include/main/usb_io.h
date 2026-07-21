@@ -9,7 +9,7 @@ class IUsbIO {
 public:
     virtual ~IUsbIO() = default;
 
-    virtual bool Open(short vid, short pid, const char* control_interface) = 0;
+    virtual bool Open(short vid, short pid, const char* control_interface, const char* data_interface) = 0;
     virtual int SendFeatureReport(const unsigned char* data, size_t length) = 0;
     virtual int GetFeatureReport(unsigned char* buffer, size_t length) = 0;
     virtual int WriteData(const unsigned char* data, size_t length) = 0;
@@ -21,7 +21,7 @@ class RealUsbIO : public IUsbIO {
 public:
     ~RealUsbIO() override { Close(); }
 
-    bool Open(short vid, short pid, const char* control_interface) override;
+    bool Open(short vid, short pid, const char* control_interface, const char* data_interface) override;
     int SendFeatureReport(const unsigned char* data, size_t length) override;
     int GetFeatureReport(unsigned char* buffer, size_t length) override;
     int WriteData(const unsigned char* data, size_t length) override;
