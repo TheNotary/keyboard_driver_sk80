@@ -56,6 +56,58 @@ void SendBufferToDeviceAndGetResp(
  * @return std::vector<KeyboardInfo> A list of available, currently connected keyboards
  */
 std::vector<KeyboardInfo> ListAvailableKeyboards();
+
+/**
+ * Searches for an LCD data HID interface by enumerating all devices matching vid/pid
+ * and skipping the control interface.
+ *
+ * @param vid The Vendor ID of the device
+ * @param pid The Product ID of the device
+ * @param control_interface_number The interface number to skip (the control interface)
+ * @return DeviceHandle to the LCD data interface or nullptr
+ */
+DeviceHandle SearchForLcdDataDevice(short vid, short pid, int control_interface_number);
+
+/**
+ * Sends a feature report to the device (public wrapper).
+ *
+ * @param deviceHandle The handle to the device
+ * @param data The feature report data (first byte is report ID)
+ * @param length The length of the data
+ * @return 0 on success, non-zero on failure
+ */
+int SendFeatureReport(DeviceHandle deviceHandle, const unsigned char* data, size_t length);
+
+/**
+ * Reads a feature report from the device.
+ *
+ * @param deviceHandle The handle to the device
+ * @param buffer Buffer to fill with the response (first byte is report ID)
+ * @param length The size of the buffer
+ * @return Number of bytes read, or -1 on failure
+ */
+int GetFeatureReport(DeviceHandle deviceHandle, unsigned char* buffer, size_t length);
+
+/**
+ * Writes raw data to a device via HID output report.
+ *
+ * @param deviceHandle The handle to the device
+ * @param data The data to write (first byte is report ID)
+ * @param length The length of the data
+ * @return Number of bytes written, or -1 on failure
+ */
+int WriteDataToDevice(DeviceHandle deviceHandle, const unsigned char* data, size_t length);
+
+/**
+ * Reads data from a device via HID input report with a timeout.
+ *
+ * @param deviceHandle The handle to the device
+ * @param buffer Buffer to fill with the received data
+ * @param length The size of the buffer
+ * @param timeout_ms Timeout in milliseconds (-1 for blocking)
+ * @return Number of bytes read, 0 on timeout, or -1 on failure
+ */
+int ReadFromDevice(DeviceHandle deviceHandle, unsigned char* buffer, size_t length, int timeout_ms);
     
 
 }

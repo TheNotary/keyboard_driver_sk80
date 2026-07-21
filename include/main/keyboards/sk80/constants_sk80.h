@@ -23,4 +23,10 @@ const char target_device_path[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&
 const char target_device_path[] = "3";
 #endif
 
+// LCD display constants
+const int LCD_W = 160;
+const int LCD_H = 96;
+const int LCD_PAGE_SIZE = 4096;
+const int LCD_MAX_FRAMES = 141;
+
 }

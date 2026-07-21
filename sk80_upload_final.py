@@ -6,6 +6,8 @@ Uses hidraw for BOTH control commands (HIDIOCSFEATURE) and data writes.
 
 Protocol: 04 18 START -> 04 72 IMAGE_CFG -> DATA pages -> 04 02 SAVE
 Internal res: 160x96 RGB565 LE, 256-byte header, 4096-byte pages
+
+python3 sk80_upload_final.py /home/ubuntu/Downloads/29.gif
 """
 import sys, time, os, fcntl, select
 from PIL import Image

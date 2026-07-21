@@ -160,4 +160,56 @@ void SendBufferToDeviceAndGetResp(
     }
 }
 
+DeviceHandle SearchForLcdDataDevice(short vid, short pid, int control_interface_number) {
+    struct hid_device_info *devs, *cur_dev;
+    hid_device* device = nullptr;
+
+    devs = hid_enumerate(vid, pid);
+    cur_dev = devs;
+
+    while (cur_dev) {
+        if (cur_dev->interface_number != control_interface_number) {
+            device = hid_open_path(cur_dev->path);
+            if (device) {
+                break;
+            }
+        }
+        cur_dev = cur_dev->next;
+    }
+
+    hid_free_enumeration(devs);
+    return static_cast<DeviceHandle>(device);
+}
+
+int SendFeatureReport(DeviceHandle deviceHandle, const unsigned char* data, size_t length) {
+    return SendPayloadBytesToDevice(deviceHandle, data, length);
+}
+
+int GetFeatureReport(DeviceHandle deviceHandle, unsigned char* buffer, size_t length) {
+    if (!deviceHandle) {
+        std::cerr << "GetFeatureReport: null device handle" << std::endl;
+        return -1;
+    }
+    hid_device* dev = static_cast<hid_device*>(deviceHandle);
+    return hid_get_feature_report(dev, buffer, length);
+}
+
+int WriteDataToDevice(DeviceHandle deviceHandle, const unsigned char* data, size_t length) {
+    if (!deviceHandle) {
+        std::cerr << "WriteDataToDevice: null device handle" << std::endl;
+        return -1;
+    }
+    hid_device* dev = static_cast<hid_device*>(deviceHandle);
+    return hid_write(dev, data, length);
+}
+
+int ReadFromDevice(DeviceHandle deviceHandle, unsigned char* buffer, size_t length, int timeout_ms) {
+    if (!deviceHandle) {
+        std::cerr << "ReadFromDevice: null device handle" << std::endl;
+        return -1;
+    }
+    hid_device* dev = static_cast<hid_device*>(deviceHandle);
+    return hid_read_timeout(dev, buffer, length, timeout_ms);
+}
+
 } // namespace blink

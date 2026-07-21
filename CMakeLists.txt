@@ -49,7 +49,12 @@ add_library(blink SHARED
 	"include/main/keyboards/rk84/key_mappings_rk84.h"
 	"include/main/misc.h"
 	"src/blink/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
-	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/sk80/sk80.cpp")
+	"src/blink/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/blink/keyboards/sk80/sk80.cpp"
+	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h")
+
+# gif_to_sk80 uploads GIF/image files to the SK80 LCD display
+add_executable(gif_to_sk80 "src/gif_to_sk80/main.cpp")
+target_link_libraries(gif_to_sk80 PRIVATE blink)
 
 # Add GoogleTest
 add_executable(KeyboardTest
@@ -72,6 +77,15 @@ add_executable(KeyboardTest
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
+# stb for image loading/resizing (used by keyboard_lcd)
+find_path(STB_INCLUDE_DIRS "stb_image.h")
+if(STB_INCLUDE_DIRS)
+    target_include_directories(blink PRIVATE ${STB_INCLUDE_DIRS})
+else()
+    find_package(Stb REQUIRED)
+    target_include_directories(blink PRIVATE ${Stb_INCLUDE_DIR})
+endif()
+
 if(NOT WIN32)
     target_include_directories(blink PRIVATE ${HIDAPI_INCLUDE_DIRS})
     target_link_libraries(blink PRIVATE ${HIDAPI_LIBRARIES})
@@ -79,6 +93,7 @@ if(NOT WIN32)
     target_link_libraries(KeyboardTest PRIVATE ${HIDAPI_LIBRARIES})
     target_link_libraries(main PRIVATE dl)
     target_link_libraries(KeyboardTest PRIVATE dl)
+    target_link_libraries(gif_to_sk80 PRIVATE dl)
 endif()
 
 enable_testing()

@@ -321,5 +321,29 @@ void SendBufferToDeviceAndGetResp(
     }
 }
 
+DeviceHandle SearchForLcdDataDevice(short vid, short pid, int control_interface_number) {
+    std::cerr << "SearchForLcdDataDevice: not implemented on Windows" << std::endl;
+    return nullptr;
+}
+
+int SendFeatureReport(DeviceHandle deviceHandle, const unsigned char* data, size_t length) {
+    return SendPayloadBytesToDevice(deviceHandle, data, length);
+}
+
+int GetFeatureReport(DeviceHandle deviceHandle, unsigned char* buffer, size_t length) {
+    std::cerr << "GetFeatureReport: not implemented on Windows" << std::endl;
+    return -1;
+}
+
+int WriteDataToDevice(DeviceHandle deviceHandle, const unsigned char* data, size_t length) {
+    std::cerr << "WriteDataToDevice: not implemented on Windows" << std::endl;
+    return -1;
+}
+
+int ReadFromDevice(DeviceHandle deviceHandle, unsigned char* buffer, size_t length, int timeout_ms) {
+    std::cerr << "ReadFromDevice: not implemented on Windows" << std::endl;
+    return -1;
+}
+
 
 }
