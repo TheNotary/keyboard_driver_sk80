@@ -123,8 +123,6 @@ void DoAdditionalUsbThings(HANDLE hDev) {
 
     HIDP_CAPS capabilities;
     NTSTATUS capsResult = HidP_GetCaps(preparsedData, &capabilities);
-    if (capsResult == 0x0011000000)
-        printf("compared...");
 
     HidD_FreePreparsedData(preparsedData);
 }
@@ -149,7 +147,11 @@ void EnumerateDevices(DeviceHandler handleDevice) {
 
     const size_t DEVICE_DETAILS_SIZE = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA) + MAX_PATH;
     DWORD size = DEVICE_DETAILS_SIZE;
-    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails = (SP_DEVICE_INTERFACE_DETAIL_DATA*)alloca(DEVICE_DETAILS_SIZE);
+    // Heap-allocated rather than alloca'd: MSVC only declares alloca via
+    // <malloc.h>, and growing the stack by a runtime size here is a hazard.
+    std::vector<unsigned char> deviceDetailsStorage(DEVICE_DETAILS_SIZE);
+    SP_DEVICE_INTERFACE_DETAIL_DATA* deviceDetails =
+        reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA*>(deviceDetailsStorage.data());
     deviceDetails->cbSize = sizeof(*deviceDetails);
 
     SP_DEVICE_INTERFACE_DATA deviceInfo;
@@ -247,7 +249,7 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
 static int SendPayloadBytesToDevice(HANDLE deviceHandle, const UCHAR* payload, size_t payloadLength)
 {
     // Set the feature report
-    if (!HidD_SetFeature(deviceHandle, (PVOID)payload, payloadLength))
+    if (!HidD_SetFeature(deviceHandle, (PVOID)payload, static_cast<ULONG>(payloadLength)))
     {
         std::cerr << "Failed on SendPayloadBytesToDevice: " << GetLastError() << std::endl;
         CloseHandle(deviceHandle);

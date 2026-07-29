@@ -1,6 +1,8 @@
 #include "keyboard.h"
 
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #ifdef _WIN32
@@ -28,8 +30,7 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
     this->keyboard_spec = kf.CreateKeyboardSpec(keyboard_model, this);
 
     if (this->keyboard_spec == nullptr) {
-        printf("this keyboard_spec not implemented yet");
-        throw("keyboard_spec not implemented yet");
+        throw std::logic_error("keyboard_spec not implemented yet");
     }
 
     AbstractKeyboard::DeviceInfo device_info = this->keyboard_spec->GetDeviceInfo();
@@ -60,19 +61,16 @@ bool Keyboard::Found() {
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
     if (key_names.size() >= 255) {
-        std::cout << "Error: list of key_names to set was too great" << std::endl;
-        throw std::invalid_argument("key_names had too many entries.");
+        throw std::invalid_argument("key_names had too many entries: " +
+                                    std::to_string(key_names.size()));
     }
 
     for (UINT8 i = 0; i < key_names.size(); ++i) {
         std::string key_name = key_names[i];
         char key_id = this->keyboard_spec->keyname_keyid_mappings[key_name];
         if (key_id == 0) {
-            std::cout << "Error: could not lookup up key "
-                << "[ " << key_name << " ]"
-                << " from keyname_keyid_mappings." << std::endl;
             throw std::invalid_argument(
-                "Error: could not lookup up key from keyname_keyid_mappings");
+                "Could not look up key [ " + key_name + " ] from keyname_keyid_mappings");
         }
         this->SetActiveKeyId(i, key_id);
     }
@@ -103,9 +101,9 @@ char Keyboard::GetActiveKeyId(int index) {
 
 void Keyboard::SetActiveKeyId(int index, char key_id) {
     if (index >= 255) {
-        std::cerr << "Error SetActiveKeyId: Cannot set a key at index greater than 255.  "
-            << "index: " << index << ", key_id: " << key_id << std::endl;
-        throw std::invalid_argument("SetActiveKeyId called with index > 255");
+        throw std::invalid_argument(
+            "SetActiveKeyId cannot set a key at an index greater than 255, index: " +
+            std::to_string(index));
     }
     this->active_key_ids[index] = key_id;
 }

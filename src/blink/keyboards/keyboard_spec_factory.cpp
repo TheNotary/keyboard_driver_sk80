@@ -1,5 +1,8 @@
 #include "keyboards/keyboard_spec_factory.h"
 
+#include <stdexcept>
+#include <string>
+
 #include "misc.h"
 #include "keyboards/abstract_keyboard.h"
 #include "keyboards/rk84/rk84.h"
@@ -16,8 +19,8 @@ AbstractKeyboard* KeyboardSpecFactory::CreateKeyboardSpec(KeyboardModel keyboard
         return new sk80::SK80(keyboard_manager);
     }
 
-    throw("Device not registered");
-    return nullptr;
+    throw std::invalid_argument("Device not registered: keyboard_model " +
+                                std::to_string(static_cast<int>(keyboard_model)));
 }
 
 

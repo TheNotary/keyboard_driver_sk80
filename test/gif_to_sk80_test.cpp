@@ -44,7 +44,7 @@ static std::vector<blink::OpEntry> ParseTimesFile(const std::string& path) {
 static std::vector<uint8_t> LoadBinaryFile(const std::string& path) {
     std::ifstream f(path, std::ios::binary | std::ios::ate);
     EXPECT_TRUE(f.is_open()) << "Could not open: " << path;
-    size_t sz = f.tellg();
+    size_t sz = static_cast<size_t>(f.tellg());
     f.seekg(0);
     std::vector<uint8_t> data(sz);
     f.read(reinterpret_cast<char*>(data.data()), sz);

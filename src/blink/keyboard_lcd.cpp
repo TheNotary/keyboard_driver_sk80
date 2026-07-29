@@ -7,13 +7,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <cctype>
+#include <chrono>
 #include <cstring>
 #include <cstdlib>
 #include <algorithm>
-
-#ifndef _WIN32
-#include <unistd.h>
-#endif
+#include <thread>
 
 namespace blink {
 
@@ -112,9 +111,8 @@ bool KeyboardLcd::SendDataPages(const uint8_t* data, size_t total_size) {
             return false;
         }
 
-#ifndef _WIN32
-        usleep(5000); // 5ms between pages
-#endif
+        // Pacing between pages is required for device stability.
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
         unsigned char ack[64] = {};
         io_->ReadData(ack, sizeof(ack), 300);
@@ -167,7 +165,8 @@ std::vector<uint8_t> KeyboardLcd::LoadAndConvertImage(const std::string& path, i
     bool is_gif = false;
     {
         std::string lower_path = path;
-        std::transform(lower_path.begin(), lower_path.end(), lower_path.begin(), ::tolower);
+        std::transform(lower_path.begin(), lower_path.end(), lower_path.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
         is_gif = (lower_path.size() >= 4 && lower_path.substr(lower_path.size() - 4) == ".gif");
     }
 
@@ -183,7 +182,7 @@ std::vector<uint8_t> KeyboardLcd::LoadAndConvertImage(const std::string& path, i
             n_frames = 0;
             return {};
         }
-        size_t file_size = file.tellg();
+        size_t file_size = static_cast<size_t>(file.tellg());
         file.seekg(0);
         std::vector<uint8_t> file_data(file_size);
         file.read(reinterpret_cast<char*>(file_data.data()), file_size);
@@ -309,9 +308,7 @@ bool KeyboardLcd::UploadImage(const std::string& image_path) {
 
     // Wait 3 seconds before saving
     std::cout << "  Waiting 3s..." << std::endl;
-#ifndef _WIN32
-    sleep(3);
-#endif
+    std::this_thread::sleep_for(std::chrono::seconds(3));
 
     // Step 4: SAVE
     std::cout << "[4/4] SAVE..." << std::endl;

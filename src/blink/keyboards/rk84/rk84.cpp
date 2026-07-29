@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstring>
+#include <stdexcept>
+#include <string>
 
 #include "keyboards/rk84/constants_rk84.h"
 #include "misc.h"
@@ -14,7 +16,8 @@ using namespace blink; // this is ok because our intent is to isolate the keyboa
 
 TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key) {
     if (active_key > ::rk84::max_key_id) {
-        throw("RK84 does not support keyIds greater than " + ::rk84::max_key_id);
+        throw std::out_of_range("RK84 does not support keyIds greater than " +
+                               std::to_string(::rk84::max_key_id));
     }
 
     // TODO: Define this on the class just for fun, doesn't need to be on Abstract class too but maybe
@@ -77,8 +80,7 @@ void RK84::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
 
 void RK84::SetKeysRGB(unsigned char r, unsigned char g, unsigned char b)
 {
-    std::cerr << "Not supported" << std::endl;
-    throw("Not supported");
+    throw std::logic_error("RK84::SetKeysRGB is not supported");
 }
 
 }

@@ -1,4 +1,6 @@
 #include <array>
+#include <stdexcept>
+#include <string>
 
 #include "misc.h"
 #include "keyboard.h"
@@ -26,7 +28,8 @@ using namespace blink;
 
 TwoUINT8s GetMessageIndexAndKeycodeOffsetForKeyId(UINT8 active_key) {
     if (active_key > sk80::max_key_id) {
-        throw("SK80 does not support keyIds greater than " + sk80::max_key_id);
+        throw std::out_of_range("SK80 does not support keyIds greater than " +
+                               std::to_string(sk80::max_key_id));
     }
 
     UINT8 n_keys_in_first_packet = 16;
