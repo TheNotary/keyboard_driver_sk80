@@ -118,7 +118,10 @@ jobs:
           BLINK_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          extra=()
+          # Passed on the command line rather than read from the environment by
+          # the preset: an unset variable would otherwise expand to an empty
+          # cache entry and vcpkg would reject it as an invalid triplet.
+          extra=("-DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}")
           if [ -n "${BLINK_VERSION}" ]; then
             extra+=("-DBLINK_VERSION=${BLINK_VERSION}")
           fi
