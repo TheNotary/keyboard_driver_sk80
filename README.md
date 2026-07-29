@@ -5,8 +5,6 @@
 
 > Warning: One keeb was lost during the development of this driver.  XVX S-K80 and company (Womier seems to be an alternate name) does not ship with a very robust firmware and has open vulnerabilities that allow any non-root program on your computer to permenently destroy the device.  If your computer emmits the wrong packets to the keyboard, it could actually brick the device.  While this repo should be safe for S-K80's produced between 2023 and 2024, knowing the firmware issues associated with this product, I recommend using this repo (and their official drivers for that matter) only if you're willing to accept the risk of losing the device.
 
-> NOTE (2026-07-29): Checkout tag v1.0.0 for a less useful but stable code-base.  I'm adding some CI pipelines that need to hit the main branch to switch on GH Actions and I'm too lazy to discover and apply a workaround =/
-
 This project builds a userspace driver (`blink.dll` on Windows, `libblink.so` on Linux) that can control the LEDs on an XVX S-K80 mechanical keyboard.  It happens to also support the RK84 by Royal Kludge.
 
 
