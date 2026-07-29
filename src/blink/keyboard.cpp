@@ -48,10 +48,19 @@ bool Keyboard::ConnectToDevice() {
 // This method is automatically called when the class goes out of scope.  It will...
 //   - Close the open handle to the keyboard device
 //   - Clean up the keyboard_spec object from the heap
+//
+// Idempotent: every resource is cleared as it is released, so calling this
+// explicitly and then letting the destructor run is safe.
 void Keyboard::Dispose() {
-    if (this->device_handle)
+    if (this->device_handle) {
         CloseDeviceHandle(this->device_handle);
-    delete this->keyboard_spec;
+        this->device_handle = nullptr;
+    }
+    if (this->keyboard_spec) {
+        this->keyboard_spec->device_handle = nullptr;
+        delete this->keyboard_spec;
+        this->keyboard_spec = nullptr;
+    }
 }
 
 // Returns true if the Keyboard's device_handle was retrieved successfully
@@ -60,7 +69,7 @@ bool Keyboard::Found() {
 }
 
 void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
-    if (key_names.size() >= 255) {
+    if (key_names.size() >= kMaxActiveKeys) {
         throw std::invalid_argument("key_names had too many entries: " +
                                     std::to_string(key_names.size()));
     }
@@ -78,10 +87,14 @@ void Keyboard::SetActiveKeys(const std::vector<std::string>& key_names) {
 }
 
 void Keyboard::SetActiveKeyIds(const char* key_ids, UINT8 n_keys) {
-    if (n_keys >= 255) {
-        std::cerr << "Error SetActiveKeyIds: Tried to set over 255 keys!  "
-            << "n_keys: " << n_keys << std::endl;
-        return;
+    if (key_ids == nullptr && n_keys > 0) {
+        throw std::invalid_argument("SetActiveKeyIds was given a null key_ids array");
+    }
+    // One slot is reserved for the trailing null terminator written below.
+    if (n_keys >= kMaxActiveKeys) {
+        throw std::out_of_range(
+            "SetActiveKeyIds cannot set more than " + std::to_string(kMaxActiveKeys - 1) +
+            " keys, n_keys: " + std::to_string(n_keys));
     }
     for (int i = 0; i < n_keys; i++) {
         this->SetActiveKeyId(i, key_ids[i]);
@@ -91,30 +104,31 @@ void Keyboard::SetActiveKeyIds(const char* key_ids, UINT8 n_keys) {
 }
 
 char Keyboard::GetActiveKeyId(int index) {
-    if (index >= 255) {
-        std::cerr << "Error GetActiveKeyId: index was greater than the max size "
-            << "index: " << index << std::endl;
-        return 0;
+    if (index < 0 || index >= kMaxActiveKeys) {
+        throw std::out_of_range(
+            "GetActiveKeyId index is outside the active key range, index: " +
+            std::to_string(index));
     }
     return this->active_key_ids[index];
 }
 
 void Keyboard::SetActiveKeyId(int index, char key_id) {
-    if (index >= 255) {
-        throw std::invalid_argument(
-            "SetActiveKeyId cannot set a key at an index greater than 255, index: " +
+    if (index < 0 || index >= kMaxActiveKeys) {
+        throw std::out_of_range(
+            "SetActiveKeyId index is outside the active key range, index: " +
             std::to_string(index));
     }
     this->active_key_ids[index] = key_id;
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value) {
-    unsigned char* messages = new unsigned char[
-        this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT * 
-        this->keyboard_spec->MESSAGE_LENGTH];
+    // A vector rather than new[]/delete[] so the scratch buffer is released even
+    // if the send throws.
+    std::vector<unsigned char> messages(
+        static_cast<size_t>(this->keyboard_spec->BULK_LED_VALUE_MESSAGES_COUNT) *
+        static_cast<size_t>(this->keyboard_spec->MESSAGE_LENGTH));
 
-    this->SetKeysOnOff(key_value, messages);
-    delete[] messages;
+    this->SetKeysOnOff(key_value, messages.data());
 }
 
 void Keyboard::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {

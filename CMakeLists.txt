@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 # Overridable so the release pipeline can stamp the git tag onto the build
 # without anyone having to edit this file before tagging.
-set(BLINK_VERSION "0.1.0" CACHE STRING "Version stamped onto the blink library")
+set(BLINK_VERSION "0.2.0" CACHE STRING "Version stamped onto the blink library")
 
 project(blink VERSION ${BLINK_VERSION} LANGUAGES CXX)
 
@@ -15,6 +15,10 @@ option(BLINK_BUILD_DEMO "Build the interactive demo application" ON)
 # Package managers build one linkage at a time; release archives ship both.
 option(BLINK_BUILD_SHARED "Build the shared library" ON)
 option(BLINK_BUILD_STATIC "Build the static library" ON)
+# The C ABI in blink.h is the supported interface. The internal C++ headers are
+# installed as well by default, because gif_to_sk80 and other static consumers
+# still drive the classes directly; turn this off for an FFI-only package.
+option(BLINK_INSTALL_CXX_HEADERS "Install the internal C++ headers alongside the C API" ON)
 
 if(NOT BLINK_BUILD_SHARED AND NOT BLINK_BUILD_STATIC)
     message(FATAL_ERROR "At least one of BLINK_BUILD_SHARED / BLINK_BUILD_STATIC must be ON")
@@ -84,6 +88,9 @@ add_executable(main "src/demo/main.cpp"
 	"src/demo/util.cpp" "src/demo/util.h"
 	"src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
 target_include_directories(main PRIVATE "${BLINK_INCLUDE_DIR}" "${BLINK_DEMO_DIR}")
+# The demo resolves every entry point through dlopen/LoadLibrary rather than
+# linking, so blink.h must not decorate the declarations with dllimport.
+target_compile_definitions(main PRIVATE BLINK_STATIC)
 if(NOT WIN32)
     target_link_libraries(main PRIVATE dl)
 endif()
@@ -94,7 +101,7 @@ endif()
 # The same translation units are compiled into a shared library (for the
 # dlopen/LoadLibrary consumers this project ships) and a static archive.
 set(BLINK_SOURCES
-	"src/blink/blink.cpp" "include/main/blink.h"
+	"src/blink/blink_capi.cpp" "include/main/blink.h"
 	"src/blink/print.cpp" "include/main/print.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
 	${USB_SOURCES} "include/main/usb_functions.h"
@@ -153,6 +160,10 @@ foreach(blink_target IN LISTS BLINK_LIBRARY_TARGETS)
         POSITION_INDEPENDENT_CODE ON
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON)
+    # Reported by blink_version_string() so a foreign caller can check what it
+    # actually loaded.
+    target_compile_definitions(${blink_target} PRIVATE
+        BLINK_VERSION_STRING="${PROJECT_VERSION}")
 endforeach()
 
 if(NOT WIN32)
@@ -196,9 +207,18 @@ if(BLINK_BUILD_STATIC)
     install(TARGETS gif_to_sk80 RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif()
 
-install(DIRECTORY "${BLINK_INCLUDE_DIR}/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/blink"
-    FILES_MATCHING PATTERN "*.h")
+# The public C ABI. This is the only header a foreign-language consumer needs,
+# and the only one guaranteed to match the exported symbols.
+install(FILES "${BLINK_INCLUDE_DIR}/blink.h"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/blink")
+
+if(BLINK_INSTALL_CXX_HEADERS)
+    # The internal C++ headers. Usable only against the static archive: the
+    # classes they declare are hidden in the shared library.
+    install(DIRECTORY "${BLINK_INCLUDE_DIR}/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/blink"
+        FILES_MATCHING PATTERN "*.h")
+endif()
 
 install(EXPORT blinkTargets
     FILE blinkTargets.cmake
@@ -231,7 +251,9 @@ enable_testing()
 add_executable(KeyboardTest
 	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp" "test/keyboard_sk80_test.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
+	"src/blink/blink_capi.cpp" "include/main/blink.h"
 	"src/blink/keyboard.cpp" "include/main/keyboard.h"
+	"src/blink/print.cpp" "include/main/print.h"
 	${USB_SOURCES} "include/main/usb_functions.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
     "include/main/keyboards/sk80/sk80.h"
@@ -255,7 +277,10 @@ target_include_directories(KeyboardTest PRIVATE
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-target_compile_definitions(KeyboardTest PRIVATE TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(KeyboardTest PRIVATE
+    TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    BLINK_STATIC
+    BLINK_VERSION_STRING="${PROJECT_VERSION}")
 
 if(NOT WIN32)
     target_link_libraries(KeyboardTest PRIVATE ${BLINK_HIDAPI_TARGET} dl)

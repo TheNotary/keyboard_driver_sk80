@@ -1,6 +1,6 @@
 {
   "name": "blink",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keyboard LED and LCD control library for SK80 and RK84 RGB mechanical keyboards",
   "homepage": "https://github.com/TheNotary/keyboard_driver_sk80",
   "license": "MIT",

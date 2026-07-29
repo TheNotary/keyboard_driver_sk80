@@ -135,8 +135,30 @@ jobs:
       - name: Install
         run: cmake --install build/ci --prefix "${WS}/stage"
 
+      # blink.h promises that the shared library exports a pure C ABI. Nothing
+      # in the compiler enforces that: a stray missing visibility attribute, or
+      # a dependency linked without --exclude-libs, silently widens the surface.
+      - name: Verify only the C ABI is exported
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          so="$(ls "${WS}"/build/ci/libblink.so.*.*.*)"
+          exported="$(nm -D --defined-only "${so}" | awk '$2 == "T" {print $3}')"
+          echo "${exported}"
+          if [ -z "${exported}" ]; then
+            echo "::error::libblink.so exports nothing"
+            exit 1
+          fi
+          if unexpected="$(printf '%s\n' "${exported}" | grep -v '^blink_')"; then
+            echo "::error::non-blink_ symbols are exported:"
+            printf '%s\n' "${unexpected}"
+            exit 1
+          fi
+
       # The real proof that the exported package is usable: configure a separate
-      # project that knows nothing but `find_package(blink CONFIG)`.
+      # project that knows nothing but `find_package(blink CONFIG)`. It builds
+      # both a C++ and a C99 consumer, the latter being what proves the header
+      # is callable from outside C++.
       - name: Verify the package is consumable downstream
         run: |
           set -euo pipefail
