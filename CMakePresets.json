@@ -94,6 +94,23 @@
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI (Release)",
+      "description": "Release build used by every leg of the multi-arch pipeline. The triplet comes from VCPKG_TARGET_TRIPLET so one preset covers all four targets.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/ci",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}",
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_MANIFEST_NO_DEFAULT_FEATURES": "ON",
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "BLINK_BUILD_TESTS": "ON",
+        "BLINK_BUILD_DEMO": "ON",
+        "BLINK_BUILD_BENCHMARKS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -118,6 +135,10 @@
     {
       "name": "linux-release-build",
       "configurePreset": "linux-release"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci"
     }
     ],
     "testPresets": [
@@ -147,6 +168,13 @@
         {
             "name": "test-linux-debug",
             "configurePreset": "linux-debug"
+        },
+        {
+            "name": "ci",
+            "configurePreset": "ci",
+            "output": {
+                "outputOnFailure": true
+            }
         }
     ]
 }

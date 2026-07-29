@@ -1,7 +1,29 @@
 {
+  "name": "blink",
+  "version": "0.1.0",
   "dependencies": [
-    "gtest",
-    "benchmark",
+    {
+      "name": "hidapi",
+      "platform": "!windows"
+    },
     "stb"
-  ]
+  ],
+  "default-features": [
+    "benchmarks",
+    "tests"
+  ],
+  "features": {
+    "benchmarks": {
+      "description": "Build the KeyboardBenchmark suite",
+      "dependencies": [
+        "benchmark"
+      ]
+    },
+    "tests": {
+      "description": "Build the KeyboardTest suite",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
 }

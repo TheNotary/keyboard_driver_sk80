@@ -1,0 +1,60 @@
+####################################################################################
+# Continuous integration: build, test and package every supported target.
+#
+# Runs automatically on pull requests and on merges to main, and is also
+# reusable so release.yaml can gate a release on the same suite instead of
+# maintaining a second copy of the matrix.
+####################################################################################
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to stamp onto the library. Empty keeps the CMakeLists.txt default."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# Keep this group distinct from the one release.yaml uses for itself; a caller
+# and its callee sharing a concurrency group would deadlock.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Matrix rows carry only the per-target facts. Everything else -- archive
+  # format, executable suffix, dependency installation -- is derived inside
+  # build.yaml.
+  #
+  # The arm64 rows use GitHub's native ARM runners, which are free for public
+  # repositories; a private repo needs larger runners for these two legs.
+  build:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Built on the oldest supported image so the shared library keeps a
+          # low glibc requirement for downstream consumers.
+          - { target: x86_64-linux-gnu, os: ubuntu-22.04, triplet: x64-linux, msvc_arch: "" }
+          - { target: aarch64-linux-gnu, os: ubuntu-24.04-arm, triplet: arm64-linux, msvc_arch: "" }
+          - { target: x86_64-windows-msvc, os: windows-latest, triplet: x64-windows, msvc_arch: amd64 }
+          - { target: aarch64-windows-msvc, os: windows-11-arm, triplet: arm64-windows, msvc_arch: arm64 }
+    uses: ./.github/workflows/build.yaml
+    with:
+      target: ${{ matrix.target }}
+      os: ${{ matrix.os }}
+      triplet: ${{ matrix.triplet }}
+      msvc_arch: ${{ matrix.msvc_arch }}
+      # Empty outside of workflow_call, which leaves the CMakeLists.txt default.
+      version: ${{ inputs.version }}

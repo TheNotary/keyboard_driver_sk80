@@ -1,0 +1,129 @@
+####################################################################################
+# Multi-arch release pipeline.
+#
+# This workflow is an orchestrator. The build matrix lives in ci.yaml, which in
+# turn fans out to build.yaml, so a release ships exactly what every pull
+# request already builds and tests -- no second, drifting copy of the matrix.
+#
+# Publishes, for each of the four targets:
+#   * an archive of the CMake install tree (headers, shared + static libraries,
+#     blinkConfig.cmake) that a consumer can point CMAKE_PREFIX_PATH at
+#   * a SHA256SUMS covering all of them
+#   * a rendered vcpkg overlay port pinned to the tag being released
+####################################################################################
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  # Lets you smoke-test the build + packaging path without cutting a tag.
+  # The `release` job self-skips unless the ref is a version tag.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          # The tag is the source of truth, so nobody has to bump CMakeLists.txt
+          # before tagging. Untagged dispatch runs fall back to the manifest.
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="$(sed -n 's/^set(BLINK_VERSION "\([^"]*\)".*/\1/p' CMakeLists.txt)"
+          fi
+          if [ -z "${version}" ]; then
+            echo "::error::Could not resolve a version to release."
+            exit 1
+          fi
+          printf 'version=%s\n' "${version}" >> "$GITHUB_OUTPUT"
+          echo "Releasing version ${version}"
+
+  build:
+    name: CI
+    needs: [prepare]
+    uses: ./.github/workflows/ci.yaml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+
+  release:
+    name: Release
+    needs: [prepare, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Collect checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          cat ./*.sha256 | sort -k 2 > SHA256SUMS
+          rm -f ./*.sha256
+          cat SHA256SUMS
+
+      # Pins the overlay port to the tag being published, so consumers can run
+      # `vcpkg install blink --overlay-ports=<extracted>` with no edits.
+      - name: Render vcpkg overlay port
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # vcpkg_from_github fetches this exact URL, so hashing it here gives
+          # the SHA512 the portfile has to declare.
+          tarball="https://github.com/${GITHUB_REPOSITORY}/archive/${GITHUB_REF_NAME}.tar.gz"
+          sha512="$(curl -fsSL "${tarball}" | sha512sum | cut -d' ' -f1)"
+
+          mkdir -p port/blink
+          sed -e "s|\"version\": \"[^\"]*\"|\"version\": \"${VERSION}\"|" \
+              ports/blink/vcpkg.json > port/blink/vcpkg.json
+          sed -e "s|@REPO@|${GITHUB_REPOSITORY}|g" \
+              -e "s|@REF@|${GITHUB_REF_NAME}|g" \
+              -e "s|@SHA512@|${sha512}|g" \
+              ports/blink/portfile.cmake > port/blink/portfile.cmake
+
+          if grep -q '@REPO@\|@REF@\|@SHA512@' port/blink/portfile.cmake; then
+            echo "::error::The rendered overlay port still contains placeholders."
+            exit 1
+          fi
+
+          tar czf dist/blink-vcpkg-port.tar.gz -C port blink
+          (cd dist && sha256sum blink-vcpkg-port.tar.gz >> SHA256SUMS)
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*

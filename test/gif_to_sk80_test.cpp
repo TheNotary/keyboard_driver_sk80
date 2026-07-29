@@ -59,8 +59,8 @@ protected:
 
     void SetUp() override {
         // Load reference files from Python dry-run
-        ref_bin = LoadBinaryFile(SourcePath("my-output.bin"));
-        ref_ops = ParseTimesFile(SourcePath("my-output.times"));
+        ref_bin = LoadBinaryFile(SourcePath("test/fixtures/my-output.bin"));
+        ref_ops = ParseTimesFile(SourcePath("test/fixtures/my-output.times"));
 
         // Run C++ upload with recording IO
         blink::KeyboardLcd lcd(&recorder, sk80::VID, sk80::PID, sk80::target_device_path, sk80::lcd_data_device_path);

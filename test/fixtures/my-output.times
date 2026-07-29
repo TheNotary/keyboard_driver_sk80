@@ -1,0 +1,198 @@
+# control=/dev/hidraw1  HIDIOCSFEATURE/HIDIOCGFEATURE (VID=05AC PID=024F)
+# data=/dev/hidraw3     usage_page=0xFF68 raw write/read (VID=05AC PID=024F)
+#
+# format: <interface> <operation> <label> <size_bytes>
+#         sleep <duration_ms>ms
+control send_feature START 65
+sleep 10ms
+control get_feature START 65
+control send_feature IMAGE_CFG 65
+sleep 10ms
+control get_feature IMAGE_CFG 65
+data write page[0] 4097
+sleep 5ms
+data read_ack page[0] 64
+data write page[1] 4097
+sleep 5ms
+data read_ack page[1] 64
+data write page[2] 4097
+sleep 5ms
+data read_ack page[2] 64
+data write page[3] 4097
+sleep 5ms
+data read_ack page[3] 64
+data write page[4] 4097
+sleep 5ms
+data read_ack page[4] 64
+data write page[5] 4097
+sleep 5ms
+data read_ack page[5] 64
+data write page[6] 4097
+sleep 5ms
+data read_ack page[6] 64
+data write page[7] 4097
+sleep 5ms
+data read_ack page[7] 64
+data write page[8] 4097
+sleep 5ms
+data read_ack page[8] 64
+data write page[9] 4097
+sleep 5ms
+data read_ack page[9] 64
+data write page[10] 4097
+sleep 5ms
+data read_ack page[10] 64
+data write page[11] 4097
+sleep 5ms
+data read_ack page[11] 64
+data write page[12] 4097
+sleep 5ms
+data read_ack page[12] 64
+data write page[13] 4097
+sleep 5ms
+data read_ack page[13] 64
+data write page[14] 4097
+sleep 5ms
+data read_ack page[14] 64
+data write page[15] 4097
+sleep 5ms
+data read_ack page[15] 64
+data write page[16] 4097
+sleep 5ms
+data read_ack page[16] 64
+data write page[17] 4097
+sleep 5ms
+data read_ack page[17] 64
+data write page[18] 4097
+sleep 5ms
+data read_ack page[18] 64
+data write page[19] 4097
+sleep 5ms
+data read_ack page[19] 64
+data write page[20] 4097
+sleep 5ms
+data read_ack page[20] 64
+data write page[21] 4097
+sleep 5ms
+data read_ack page[21] 64
+data write page[22] 4097
+sleep 5ms
+data read_ack page[22] 64
+data write page[23] 4097
+sleep 5ms
+data read_ack page[23] 64
+data write page[24] 4097
+sleep 5ms
+data read_ack page[24] 64
+data write page[25] 4097
+sleep 5ms
+data read_ack page[25] 64
+data write page[26] 4097
+sleep 5ms
+data read_ack page[26] 64
+data write page[27] 4097
+sleep 5ms
+data read_ack page[27] 64
+data write page[28] 4097
+sleep 5ms
+data read_ack page[28] 64
+data write page[29] 4097
+sleep 5ms
+data read_ack page[29] 64
+data write page[30] 4097
+sleep 5ms
+data read_ack page[30] 64
+data write page[31] 4097
+sleep 5ms
+data read_ack page[31] 64
+data write page[32] 4097
+sleep 5ms
+data read_ack page[32] 64
+data write page[33] 4097
+sleep 5ms
+data read_ack page[33] 64
+data write page[34] 4097
+sleep 5ms
+data read_ack page[34] 64
+data write page[35] 4097
+sleep 5ms
+data read_ack page[35] 64
+data write page[36] 4097
+sleep 5ms
+data read_ack page[36] 64
+data write page[37] 4097
+sleep 5ms
+data read_ack page[37] 64
+data write page[38] 4097
+sleep 5ms
+data read_ack page[38] 64
+data write page[39] 4097
+sleep 5ms
+data read_ack page[39] 64
+data write page[40] 4097
+sleep 5ms
+data read_ack page[40] 64
+data write page[41] 4097
+sleep 5ms
+data read_ack page[41] 64
+data write page[42] 4097
+sleep 5ms
+data read_ack page[42] 64
+data write page[43] 4097
+sleep 5ms
+data read_ack page[43] 64
+data write page[44] 4097
+sleep 5ms
+data read_ack page[44] 64
+data write page[45] 4097
+sleep 5ms
+data read_ack page[45] 64
+data write page[46] 4097
+sleep 5ms
+data read_ack page[46] 64
+data write page[47] 4097
+sleep 5ms
+data read_ack page[47] 64
+data write page[48] 4097
+sleep 5ms
+data read_ack page[48] 64
+data write page[49] 4097
+sleep 5ms
+data read_ack page[49] 64
+data write page[50] 4097
+sleep 5ms
+data read_ack page[50] 64
+data write page[51] 4097
+sleep 5ms
+data read_ack page[51] 64
+data write page[52] 4097
+sleep 5ms
+data read_ack page[52] 64
+data write page[53] 4097
+sleep 5ms
+data read_ack page[53] 64
+data write page[54] 4097
+sleep 5ms
+data read_ack page[54] 64
+data write page[55] 4097
+sleep 5ms
+data read_ack page[55] 64
+data write page[56] 4097
+sleep 5ms
+data read_ack page[56] 64
+data write page[57] 4097
+sleep 5ms
+data read_ack page[57] 64
+data write page[58] 4097
+sleep 5ms
+data read_ack page[58] 64
+data write page[59] 4097
+sleep 5ms
+data read_ack page[59] 64
+data write page[60] 4097
+sleep 5ms
+data read_ack page[60] 64
+sleep 3000ms
+control send_feature SAVE 65
+sleep 10ms
+control get_feature SAVE 65

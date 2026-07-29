@@ -1,0 +1,23 @@
+{
+  "name": "blink",
+  "version": "0.1.0",
+  "description": "Keyboard LED and LCD control library for SK80 and RK84 RGB mechanical keyboards",
+  "homepage": "https://github.com/TheNotary/keyboard_driver_sk80",
+  "license": "MIT",
+  "supports": "!osx",
+  "dependencies": [
+    {
+      "name": "hidapi",
+      "platform": "!windows"
+    },
+    "stb",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

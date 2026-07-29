@@ -1,12 +1,18 @@
 #ifndef BLINK_H
 #define BLINK_H
 
-#ifdef _WIN32
+// BLINK_STATIC is set by the blink::blink_static target's usage requirements;
+// consumers of the static archive must not see __declspec(dllimport).
+#if defined(_WIN32) && !defined(BLINK_STATIC)
 #ifdef BUILD_DLL
 #define DLL_EXPORT __declspec(dllexport)
 #else
 #define DLL_EXPORT __declspec(dllimport)
 #endif
+#elif defined(__GNUC__) || defined(__clang__)
+// The library is built with -fvisibility=hidden, so the public API has to opt
+// back in explicitly.
+#define DLL_EXPORT __attribute__((visibility("default")))
 #else
 #define DLL_EXPORT
 #endif

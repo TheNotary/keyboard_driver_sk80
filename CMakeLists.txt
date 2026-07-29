@@ -1,27 +1,73 @@
-cmake_minimum_required(VERSION 3.10)
-project(main)
+cmake_minimum_required(VERSION 3.16)
 
-include_directories("${CMAKE_SOURCE_DIR}/include/main")
+# Overridable so the release pipeline can stamp the git tag onto the build
+# without anyone having to edit this file before tagging.
+set(BLINK_VERSION "0.1.0" CACHE STRING "Version stamped onto the blink library")
 
-# Find all .cpp files in the src/ directory, this isn't a best practice because it makes cmake not know what to build when things are changed supposedly?
-file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
+project(blink VERSION ${BLINK_VERSION} LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+option(BLINK_BUILD_TESTS "Build the KeyboardTest suite" ON)
+option(BLINK_BUILD_BENCHMARKS "Build the KeyboardBenchmark suite" ON)
+option(BLINK_BUILD_DEMO "Build the interactive demo application" ON)
+# Package managers build one linkage at a time; release archives ship both.
+option(BLINK_BUILD_SHARED "Build the shared library" ON)
+option(BLINK_BUILD_STATIC "Build the static library" ON)
+
+if(NOT BLINK_BUILD_SHARED AND NOT BLINK_BUILD_STATIC)
+    message(FATAL_ERROR "At least one of BLINK_BUILD_SHARED / BLINK_BUILD_STATIC must be ON")
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
     add_compile_options("/utf-8")
 endif()
 
+set(BLINK_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/main")
+set(BLINK_DEMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/demo")
+
+# ---------------------------------------------------------------------------
+# Platform USB backend
+# ---------------------------------------------------------------------------
 if(WIN32)
+    # Windows talks to the device through the native SetupAPI/hidsdi stack.
     set(USB_SOURCES "src/blink/usb_functions_win.cpp")
+    set(BLINK_HIDAPI_PROVIDER "none")
 else()
     set(USB_SOURCES "src/blink/usb_functions_linux.cpp")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(HIDAPI REQUIRED hidapi-libusb)
+    # vcpkg installs a CMake package config; prefer it so every CI leg resolves
+    # hidapi identically regardless of what the host distro happens to ship.
+    find_package(hidapi CONFIG QUIET)
+    if(hidapi_FOUND)
+        set(BLINK_HIDAPI_PROVIDER "config")
+        if(TARGET hidapi::libusb)
+            set(BLINK_HIDAPI_TARGET hidapi::libusb)
+        else()
+            set(BLINK_HIDAPI_TARGET hidapi::hidapi)
+        endif()
+    else()
+        # Fallback for distro builds against libhidapi-dev.
+        set(BLINK_HIDAPI_PROVIDER "pkgconfig")
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(HIDAPI REQUIRED IMPORTED_TARGET hidapi-libusb)
+        set(BLINK_HIDAPI_TARGET PkgConfig::HIDAPI)
+    endif()
+endif()
+
+# stb is header-only and is consumed only from blink's own translation units.
+find_path(STB_INCLUDE_DIRS "stb_image.h")
+if(NOT STB_INCLUDE_DIRS)
+    find_package(Stb REQUIRED)
+    set(STB_INCLUDE_DIRS "${Stb_INCLUDE_DIR}")
 endif()
 
 # Main is kind of a demo app meant for showcasing the project and testing blink.dll
 # It's nice keeping main completely isolated from the source files involved with blink and vice versa
+if(BLINK_BUILD_DEMO)
 add_executable(main "src/demo/main.cpp"
 	"src/demo/blink_loader.cpp" "src/demo/blink_loader.h"
 	"src/demo/activities/push_to_light.cpp" "src/demo/activities/push_to_light.h"
@@ -30,11 +76,17 @@ add_executable(main "src/demo/main.cpp"
 	"src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
 	"src/demo/util.cpp" "src/demo/util.h"
 	"src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h")
-target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/src/demo")
+target_include_directories(main PRIVATE "${BLINK_INCLUDE_DIR}" "${BLINK_DEMO_DIR}")
+if(NOT WIN32)
+    target_link_libraries(main PRIVATE dl)
+endif()
+endif()
 
 
-# blink.dll is what other programs will call out to in order to perform USB work
-add_library(blink SHARED
+# blink is what other programs link against in order to perform USB work.
+# The same translation units are compiled into a shared library (for the
+# dlopen/LoadLibrary consumers this project ships) and a static archive.
+set(BLINK_SOURCES
 	"src/blink/blink.cpp" "include/main/blink.h"
 	"src/blink/print.cpp" "include/main/print.h"
 	"src/blink/messages.cpp" "include/main/messages.h"
@@ -53,9 +105,120 @@ add_library(blink SHARED
 	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h"
 	"src/blink/usb_io_real.cpp" "include/main/usb_io.h")
 
-# gif_to_sk80 uploads GIF/image files to the SK80 LCD display
-add_executable(gif_to_sk80 "src/gif_to_sk80/main.cpp")
-target_link_libraries(gif_to_sk80 PRIVATE blink)
+set(BLINK_LIBRARY_TARGETS "")
+
+if(BLINK_BUILD_SHARED)
+    add_library(blink SHARED ${BLINK_SOURCES})
+    list(APPEND BLINK_LIBRARY_TARGETS blink)
+    set_target_properties(blink PROPERTIES
+        VERSION "${PROJECT_VERSION}"
+        SOVERSION "${PROJECT_VERSION_MAJOR}")
+    # Only the shared build exports symbols.
+    target_compile_definitions(blink PRIVATE BUILD_DLL)
+endif()
+
+if(BLINK_BUILD_STATIC)
+    add_library(blink_static STATIC ${BLINK_SOURCES})
+    list(APPEND BLINK_LIBRARY_TARGETS blink_static)
+    # libblink.so and libblink.a coexist happily, but on MSVC blink.lib is
+    # already taken by the shared target's import library.
+    if(MSVC AND BLINK_BUILD_SHARED)
+        set_target_properties(blink_static PROPERTIES OUTPUT_NAME "blink_static")
+    else()
+        set_target_properties(blink_static PROPERTIES OUTPUT_NAME "blink")
+    endif()
+    # Consumers of the static archive must see plain declarations rather than
+    # __declspec(dllimport).
+    target_compile_definitions(blink_static PUBLIC BLINK_STATIC)
+endif()
+
+foreach(blink_target IN LISTS BLINK_LIBRARY_TARGETS)
+    target_include_directories(${blink_target}
+        PUBLIC
+            "$<BUILD_INTERFACE:${BLINK_INCLUDE_DIR}>"
+            # Both entries so that consumers may spell the include either
+            # `#include <blink/blink.h>` or `#include <blink.h>`.
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blink>"
+        PRIVATE
+            "${STB_INCLUDE_DIRS}")
+    set_target_properties(${blink_target} PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON)
+endforeach()
+
+if(NOT WIN32)
+    # The shared library fully encapsulates hidapi; the static archive cannot,
+    # so it propagates the dependency to whoever links it.
+    if(BLINK_BUILD_SHARED)
+        target_link_libraries(blink PRIVATE ${BLINK_HIDAPI_TARGET})
+        # vcpkg hands us static hidapi/libusb archives, whose objects carry
+        # default visibility. Without this, libblink.so would re-export the
+        # whole libusb ABI and could interpose on a consumer's own copy of it
+        # at runtime.
+        target_link_options(blink PRIVATE "LINKER:--exclude-libs,ALL")
+    endif()
+    if(BLINK_BUILD_STATIC)
+        target_link_libraries(blink_static PUBLIC ${BLINK_HIDAPI_TARGET})
+    endif()
+endif()
+
+# gif_to_sk80 uploads GIF/image files to the SK80 LCD display.
+# It drives the internal C++ classes (KeyboardLcd, RealUsbIO) rather than the
+# extern "C" API, and those are deliberately not exported from the shared
+# library, so it links the static archive and ships self-contained.
+if(BLINK_BUILD_STATIC)
+    add_executable(gif_to_sk80 "src/gif_to_sk80/main.cpp")
+    target_link_libraries(gif_to_sk80 PRIVATE blink_static)
+    if(NOT WIN32)
+        target_link_libraries(gif_to_sk80 PRIVATE dl)
+    endif()
+endif()
+
+# ---------------------------------------------------------------------------
+# Install / export so downstream projects can `find_package(blink CONFIG)`
+# ---------------------------------------------------------------------------
+install(TARGETS ${BLINK_LIBRARY_TARGETS}
+    EXPORT blinkTargets
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+
+if(BLINK_BUILD_STATIC)
+    install(TARGETS gif_to_sk80 RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif()
+
+install(DIRECTORY "${BLINK_INCLUDE_DIR}/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/blink"
+    FILES_MATCHING PATTERN "*.h")
+
+install(EXPORT blinkTargets
+    FILE blinkTargets.cmake
+    NAMESPACE blink::
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/blink")
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/blinkConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/blinkConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/blink")
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/blinkConfigVersion.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/blinkConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/blinkConfigVersion.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/blink")
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+if(BLINK_BUILD_TESTS)
+enable_testing()
 
 # Add GoogleTest
 add_executable(KeyboardTest
@@ -77,42 +240,30 @@ add_executable(KeyboardTest
 	"test/gif_to_sk80_test.cpp"
 	"src/blink/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h"
 	"src/blink/usb_io_real.cpp")
-target_include_directories(KeyboardTest PRIVATE "${CMAKE_SOURCE_DIR}/test")
+target_include_directories(KeyboardTest PRIVATE
+    "${BLINK_INCLUDE_DIR}"
+    "${BLINK_DEMO_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test"
+    "${STB_INCLUDE_DIRS}")
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-target_compile_definitions(KeyboardTest PRIVATE TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-
-# stb for image loading/resizing (used by keyboard_lcd)
-find_path(STB_INCLUDE_DIRS "stb_image.h")
-if(STB_INCLUDE_DIRS)
-    target_include_directories(blink PRIVATE ${STB_INCLUDE_DIRS})
-    target_include_directories(KeyboardTest PRIVATE ${STB_INCLUDE_DIRS})
-else()
-    find_package(Stb REQUIRED)
-    target_include_directories(blink PRIVATE ${Stb_INCLUDE_DIR})
-    target_include_directories(KeyboardTest PRIVATE ${Stb_INCLUDE_DIR})
-endif()
+target_compile_definitions(KeyboardTest PRIVATE TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(NOT WIN32)
-    target_include_directories(blink PRIVATE ${HIDAPI_INCLUDE_DIRS})
-    target_link_libraries(blink PRIVATE ${HIDAPI_LIBRARIES})
-    target_include_directories(KeyboardTest PRIVATE ${HIDAPI_INCLUDE_DIRS})
-    target_link_libraries(KeyboardTest PRIVATE ${HIDAPI_LIBRARIES})
-    target_link_libraries(main PRIVATE dl)
-    target_link_libraries(KeyboardTest PRIVATE dl)
-    target_link_libraries(gif_to_sk80 PRIVATE dl)
+    target_link_libraries(KeyboardTest PRIVATE ${BLINK_HIDAPI_TARGET} dl)
 endif()
 
-enable_testing()
-
 add_test(NAME AllTestsInMain COMMAND KeyboardTest)
+endif()
 
-# Define the BUILD_DLL macro for the library build
-target_compile_definitions(blink PRIVATE BUILD_DLL)
-
-# Google Benchmark
+# ---------------------------------------------------------------------------
+# Benchmarks
+# ---------------------------------------------------------------------------
+if(BLINK_BUILD_BENCHMARKS)
 find_package(benchmark CONFIG REQUIRED)
 add_executable(KeyboardBenchmark "benchmark/rk84_benchmark.cpp")
+target_include_directories(KeyboardBenchmark PRIVATE "${BLINK_INCLUDE_DIR}")
 target_link_libraries(KeyboardBenchmark PRIVATE benchmark::benchmark benchmark::benchmark_main)
+endif()
 

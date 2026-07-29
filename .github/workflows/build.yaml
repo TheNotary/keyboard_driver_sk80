@@ -1,0 +1,182 @@
+####################################################################################
+# Single-target build, test and packaging (reusable).
+#
+# Builds the blink library for exactly one platform/architecture, proves the
+# installed package is consumable by a downstream project, and uploads it as an
+# archive plus a sha256 sidecar.
+#
+# ci.yaml fans this workflow out over the target matrix; nothing here is aware
+# of the matrix as a whole.
+####################################################################################
+name: Build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: "Target identifier, used for the artifact and archive names"
+        type: string
+        required: true
+      os:
+        description: "GitHub Actions runner image to build on"
+        type: string
+        required: true
+      triplet:
+        description: "vcpkg triplet to resolve dependencies for"
+        type: string
+        required: true
+      msvc_arch:
+        description: "Architecture passed to msvc-dev-cmd; empty on non-Windows runners"
+        type: string
+        default: ""
+      version:
+        description: "Version to stamp onto the library. Empty keeps the CMakeLists.txt default."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# A caller's `defaults` do not propagate into a reusable workflow, so it has to
+# declare its own.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ inputs.target }}
+    runs-on: ${{ inputs.os }}
+    env:
+      VCPKG_TARGET_TRIPLET: ${{ inputs.triplet }}
+      # gtest, hidapi and libusb are all compiled from source and dominate the
+      # wall clock, so keep vcpkg's built packages in the Actions cache.
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # vcpkg's x-gha binary cache provider reads these two, but they are only
+      # exposed to JavaScript actions, never to `run:` steps.
+      - name: Export GitHub Actions cache credentials
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # $PWD under Git Bash is an MSYS path (/d/a/...) that CMake cannot resolve,
+      # so every absolute path below goes through $WS instead.
+      - name: Resolve workspace path
+        run: |
+          set -euo pipefail
+          if [ "${RUNNER_OS}" = "Windows" ]; then
+            echo "WS=$(pwd -W)" >> "$GITHUB_ENV"
+          else
+            echo "WS=${PWD}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          # libudev and libusb are the system pieces vcpkg's hidapi port builds against.
+          sudo apt-get install -y pkg-config libudev-dev libusb-1.0-0-dev autoconf automake libtool
+
+      # vcpkg ships prebuilt helper tools for x64 only, so on arm64 it has to
+      # fall back to whatever the runner image already provides.
+      - name: Force vcpkg to use system binaries on arm64 Linux
+        if: runner.os == 'Linux' && runner.arch == 'ARM64'
+        run: echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> "$GITHUB_ENV"
+
+      # The `ci` preset generates for Ninja, which expects the MSVC environment
+      # to already be on PATH rather than discovering it itself.
+      - name: Set up MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ inputs.msvc_arch }}
+
+      - name: Bootstrap vcpkg
+        run: |
+          set -euo pipefail
+          if [ "${RUNNER_OS}" = "Windows" ]; then
+            ./vcpkg/bootstrap-vcpkg.bat -disableMetrics
+          else
+            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          fi
+          echo "VCPKG_ROOT=${WS}/vcpkg" >> "$GITHUB_ENV"
+
+      - name: Configure
+        env:
+          BLINK_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ -n "${BLINK_VERSION}" ]; then
+            extra+=("-DBLINK_VERSION=${BLINK_VERSION}")
+          fi
+          cmake --preset ci "${extra[@]}"
+
+      - name: Build
+        run: cmake --build --preset ci
+
+      # Hardware-dependent cases self-skip unless KEYBOARD_ATTACHED=1, so this
+      # is safe on a runner with no keyboard plugged in.
+      - name: Test
+        run: ctest --preset ci
+
+      - name: Install
+        run: cmake --install build/ci --prefix "${WS}/stage"
+
+      # The real proof that the exported package is usable: configure a separate
+      # project that knows nothing but `find_package(blink CONFIG)`.
+      - name: Verify the package is consumable downstream
+        run: |
+          set -euo pipefail
+          cmake -S test/consumer -B build/consumer -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${WS}/stage;${WS}/build/ci/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
+          cmake --build build/consumer
+          ctest --test-dir build/consumer --output-on-failure
+
+      - name: Package
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          # Archives contain the install tree at their root (include/, lib/,
+          # bin/, share/blink/), so consumers can point CMAKE_PREFIX_PATH at the
+          # extracted directory and nothing else.
+          if [ "${RUNNER_OS}" = "Windows" ]; then
+            archive="blink-${TARGET}.zip"
+            (cd stage && cmake -E tar cf "../dist/${archive}" --format=zip .)
+          else
+            archive="blink-${TARGET}.tar.gz"
+            (cd stage && cmake -E tar czf "../dist/${archive}" .)
+          fi
+
+          cd dist
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$archive" > "${archive}.sha256"
+          else
+            shasum -a 256 "$archive" > "${archive}.sha256"
+          fi
+          cat "${archive}.sha256"
+
+      # Artifacts are scoped to the run, so release.yaml can collect every
+      # matrix leg with a single merge-multiple download.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blink-${{ inputs.target }}
+          path: dist/*
+          if-no-files-found: error
