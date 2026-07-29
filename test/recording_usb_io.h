@@ -8,7 +8,9 @@
 namespace blink {
 
 struct OpEntry {
-    std::string interface;  // "control" or "data"
+    // NOTE: don't name this member `interface` — the Windows SDK defines it as a
+    // macro (`#define interface struct` in combaseapi.h), which breaks MSVC builds.
+    std::string iface;      // "control" or "data"
     std::string operation;  // "send_feature", "get_feature", "write", "read_ack"
     size_t size;
 };

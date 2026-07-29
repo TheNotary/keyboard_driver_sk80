@@ -79,7 +79,7 @@ TEST_F(GifToSK80Test, OperationSequenceMatchesPythonDryRun) {
         << " Python=" << ref_ops.size();
 
     for (size_t i = 0; i < ref_ops.size(); i++) {
-        EXPECT_EQ(cpp_ops[i].interface, ref_ops[i].interface)
+        EXPECT_EQ(cpp_ops[i].iface, ref_ops[i].iface)
             << "Op " << i << ": interface mismatch";
         EXPECT_EQ(cpp_ops[i].operation, ref_ops[i].operation)
             << "Op " << i << ": operation mismatch";
