@@ -27,6 +27,13 @@ if(MSVC)
     add_compile_options("/utf-8")
 endif()
 
+if(WIN32)
+    # platform.h defines this before its own <windows.h> include, but a
+    # translation unit that reaches <windows.h> through a third-party header
+    # first would still get the min/max macros and break std::min/std::max.
+    add_compile_definitions(NOMINMAX)
+endif()
+
 set(BLINK_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/main")
 set(BLINK_DEMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/demo")
 

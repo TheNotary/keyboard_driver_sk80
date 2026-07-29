@@ -321,6 +321,11 @@ void SendBufferToDeviceAndGetResp(
     }
 }
 
+void CloseDeviceHandle(DeviceHandle deviceHandle) {
+    if (deviceHandle)
+        ::CloseHandle(static_cast<HANDLE>(deviceHandle));
+}
+
 DeviceHandle SearchForLcdDataDevice(short vid, short pid, int control_interface_number) {
     std::cerr << "SearchForLcdDataDevice: not implemented on Windows" << std::endl;
     return nullptr;

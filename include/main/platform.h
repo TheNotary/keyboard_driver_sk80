@@ -1,6 +1,14 @@
 #pragma once
 
 #ifdef _WIN32
+  // <windows.h> defines min/max as function-like macros unless NOMINMAX is set,
+  // which breaks every std::min / std::max call in a translation unit that
+  // reaches this header. Keep these before the include, and mirror them as
+  // compile definitions in CMakeLists.txt for units that include <windows.h>
+  // through some other header first.
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
   #include <windows.h>
 #else
   #include <cstdint>

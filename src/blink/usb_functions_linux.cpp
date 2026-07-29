@@ -64,6 +64,11 @@ DeviceHandle SearchForDevice(short vid, short pid, const char* target_device_pat
     return static_cast<DeviceHandle>(device);
 }
 
+void CloseDeviceHandle(DeviceHandle deviceHandle) {
+    if (deviceHandle)
+        hid_close(static_cast<hid_device*>(deviceHandle));
+}
+
 std::vector<KeyboardInfo> ListAvailableKeyboards() {
     std::vector<KeyboardInfo> available_keyboards;
 

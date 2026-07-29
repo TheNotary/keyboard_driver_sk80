@@ -5,11 +5,6 @@
 #include <cstring>
 #include <cstdlib>
 
-#ifndef _WIN32
-#include <hidapi/hidapi.h>
-static inline void CloseHidHandle(void* handle) { if (handle) hid_close(static_cast<hid_device*>(handle)); }
-#endif
-
 namespace blink {
 
 bool RealUsbIO::Open(short vid, short pid, const char* control_interface, const char* data_interface) {
@@ -46,11 +41,11 @@ int RealUsbIO::ReadData(unsigned char* buffer, size_t length, int timeout_ms) {
 
 void RealUsbIO::Close() {
     if (control_handle_) {
-        CloseHidHandle(control_handle_);
+        blink::CloseDeviceHandle(control_handle_);
         control_handle_ = nullptr;
     }
     if (data_handle_) {
-        CloseHidHandle(data_handle_);
+        blink::CloseDeviceHandle(data_handle_);
         data_handle_ = nullptr;
     }
 }

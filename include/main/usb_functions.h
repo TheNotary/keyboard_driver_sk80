@@ -22,6 +22,14 @@ void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_
 DeviceHandle SearchForDevice(short vid, short pid, const char* target_device_path);
 
 /**
+ * Closes a device handle obtained from SearchForDevice or SearchForLcdDataDevice.
+ * Passing nullptr is a no-op.
+ *
+ * @param deviceHandle The handle to close
+ */
+void CloseDeviceHandle(DeviceHandle deviceHandle);
+
+/**
  * Sends a buffer to a USB device.  This function will only issue a SetReport message for each packet sent.
  *
  * @param deviceHandle The handle to the device to send the messages to

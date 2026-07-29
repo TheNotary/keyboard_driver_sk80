@@ -7,9 +7,7 @@
 #include <windows.h>
 #else
 #include <unistd.h>
-#include <hidapi/hidapi.h>
 static inline void Sleep(int ms) { usleep(ms * 1000); }
-static inline void CloseHandle(void* handle) { if (handle) hid_close(static_cast<hid_device*>(handle)); }
 #endif
 
 #include "messages.h"
@@ -51,7 +49,7 @@ bool Keyboard::ConnectToDevice() {
 //   - Clean up the keyboard_spec object from the heap
 void Keyboard::Dispose() {
     if (this->device_handle)
-        CloseHandle(this->device_handle);
+        CloseDeviceHandle(this->device_handle);
     delete this->keyboard_spec;
 }
 
