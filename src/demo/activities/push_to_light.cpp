@@ -145,7 +145,9 @@ int PushToLight(KeyboardInfo keyboard) {
             if (!key_name.empty()) {
                 std::cout << key_name << " toggled!" << std::endl;
                 std::vector<std::string> key_names = { key_name };
-                CallDllTurnOnKeyNames(key_names, keyboard);
+                if (CallDllTurnOnKeyNames(key_names, keyboard) != 0) {
+                    std::cerr << "  LED update failed: " << LastLoaderError() << std::endl;
+                }
                 Sleep(200);
 
                 // Drain any input that arrived during the LED change

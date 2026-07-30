@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+#include <cwchar>
 #include <unistd.h>
 
 #include <hidapi/hidapi.h>
@@ -94,6 +95,23 @@ std::vector<KeyboardInfo> ListAvailableKeyboards() {
     return available_keyboards;
 }
 
+// Renders hidapi's wide error string on the narrow stream. Mixing std::cerr and
+// std::wcerr on the same underlying FILE has undefined orientation, so convert.
+static void ReportHidFailure(const char* what, int result, hid_device* dev) {
+    std::cerr << what << " failed, result: " << result;
+
+    const wchar_t* detail = hid_error(dev);
+    if (detail) {
+        char narrow[256];
+        const size_t written = std::wcstombs(narrow, detail, sizeof(narrow) - 1);
+        if (written != static_cast<size_t>(-1)) {
+            narrow[written] = '\0';
+            std::cerr << " (" << narrow << ")";
+        }
+    }
+    std::cerr << std::endl;
+}
+
 // Send a single feature report to the device
 static int SendPayloadBytesToDevice(DeviceHandle deviceHandle, const unsigned char* payload, size_t payloadLength)
 {
@@ -105,8 +123,10 @@ static int SendPayloadBytesToDevice(DeviceHandle deviceHandle, const unsigned ch
     
     int result = hid_send_feature_report(dev, payload, payloadLength);
     if (result < 0) {
-        // Known hidapi-libusb quirk: may report failure even though data was sent.
-        // LED changes typically still succeed on Linux. Not a critical error.
+        // Reported rather than swallowed: a silent failure here is
+        // indistinguishable from a successful LED update, because every caller
+        // up to the C ABI returns void/OK regardless.
+        ReportHidFailure("hid_send_feature_report", result, dev);
         return 1;
     }
     usleep(1000); // 1ms delay — critical for device stability (matches Windows Sleep(1))
@@ -127,9 +147,10 @@ static int SwallowDeviceGetReport(DeviceHandle deviceHandle)
     buffer[0] = 0x00; // Report ID
 
     int result = hid_get_feature_report(dev, buffer, sizeof(buffer));
-    // std::cout << "Attempted hid_get_feature_report, result: " << result << std::endl;
     if (result < 0) {
-        // Response is discarded anyway; failure here doesn't affect LED changes.
+        // The response itself is discarded, but a failure is still evidence
+        // that the control interface is not answering.
+        ReportHidFailure("hid_get_feature_report", result, dev);
         return 1;
     }
     return 0;
