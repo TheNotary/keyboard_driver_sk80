@@ -154,3 +154,23 @@ deliberately panicking transport, to prove the trampolines contain it.
 | `custom_usb_io` | no | Driving an `Lcd` through a Rust `UsbIo` transport. |
 | `blink_key` | yes | Selecting keys, capturing the packets, blinking. |
 | `upload_lcd_image` | yes | Sending a still or animated GIF to the LCD. |
+
+## Manual Release
+
+cd /home/ubuntu/dev/open_source/keyboard_driver_sk80
+
+# Assuming build/ci is the current keylt build:
+rm -rf /tmp/keylt-prefix
+cmake --install build/ci --prefix /tmp/keylt-prefix
+
+cd rust
+
+# This must be supplied to both package verification and publishing.
+export KEYLT_LIB_DIR=/tmp/keylt-prefix/lib
+export KEYLT_INCLUDE_DIR=/tmp/keylt-prefix/include
+
+cargo package -p keylt-sys
+cargo publish -p keylt-sys
+
+cargo package -p keylt
+cargo publish -p keylt
