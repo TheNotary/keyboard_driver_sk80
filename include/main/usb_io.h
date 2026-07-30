@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "platform.h"
 
-namespace blink {
+namespace keylt {
 
 class IUsbIO {
 public:
@@ -33,4 +33,4 @@ private:
     DeviceHandle data_handle_ = nullptr;
 };
 
-} // namespace blink
+} // namespace keylt

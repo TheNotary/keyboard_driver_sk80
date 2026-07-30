@@ -8,11 +8,11 @@ static inline void Sleep(int ms) { usleep(ms * 1000); }
 #endif
 #include <iostream>
 #include <vector>
-#include "blink_loader.h"
+#include "keylt_loader.h"
 
 
 namespace demo {
-using KeyboardInfo = blink::KeyboardInfo;
+using KeyboardInfo = keylt::KeyboardInfo;
 
 
 int PushToLight(KeyboardInfo keyboard) {

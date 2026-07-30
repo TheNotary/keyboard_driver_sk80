@@ -106,9 +106,9 @@
         "CMAKE_BUILD_TYPE": "Release",
         "VCPKG_MANIFEST_NO_DEFAULT_FEATURES": "ON",
         "VCPKG_MANIFEST_FEATURES": "tests",
-        "BLINK_BUILD_TESTS": "ON",
-        "BLINK_BUILD_DEMO": "ON",
-        "BLINK_BUILD_BENCHMARKS": "OFF"
+        "KEYLT_BUILD_TESTS": "ON",
+        "KEYLT_BUILD_DEMO": "ON",
+        "KEYLT_BUILD_BENCHMARKS": "OFF"
       }
     }
   ],

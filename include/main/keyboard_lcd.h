@@ -5,7 +5,7 @@
 #include "platform.h"
 #include "usb_io.h"
 
-namespace blink {
+namespace keylt {
 
 class KeyboardLcd {
 public:
@@ -38,4 +38,4 @@ private:
     static void RGB888ToRGB565(const uint8_t* rgb, uint8_t* out, int width, int height);
 };
 
-} // namespace blink
+} // namespace keylt

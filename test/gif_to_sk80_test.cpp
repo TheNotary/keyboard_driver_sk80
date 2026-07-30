@@ -20,8 +20,8 @@ static std::string SourcePath(const std::string& relative) {
 
 // Parse my-output.times: skip comment (#) and sleep lines.
 // Returns list of {interface, operation, size}.
-static std::vector<blink::OpEntry> ParseTimesFile(const std::string& path) {
-    std::vector<blink::OpEntry> ops;
+static std::vector<keylt::OpEntry> ParseTimesFile(const std::string& path) {
+    std::vector<keylt::OpEntry> ops;
     std::ifstream f(path);
     EXPECT_TRUE(f.is_open()) << "Could not open: " << path;
 
@@ -53,9 +53,9 @@ static std::vector<uint8_t> LoadBinaryFile(const std::string& path) {
 
 class GifToSK80Test : public ::testing::Test {
 protected:
-    blink::RecordingUsbIO recorder;
+    keylt::RecordingUsbIO recorder;
     std::vector<uint8_t> ref_bin;
-    std::vector<blink::OpEntry> ref_ops;
+    std::vector<keylt::OpEntry> ref_ops;
 
     void SetUp() override {
         // Load reference files from Python dry-run
@@ -63,7 +63,7 @@ protected:
         ref_ops = ParseTimesFile(SourcePath("test/fixtures/my-output.times"));
 
         // Run C++ upload with recording IO
-        blink::KeyboardLcd lcd(&recorder, sk80::VID, sk80::PID, sk80::target_device_path, sk80::lcd_data_device_path);
+        keylt::KeyboardLcd lcd(&recorder, sk80::VID, sk80::PID, sk80::target_device_path, sk80::lcd_data_device_path);
         lcd.ConnectToDevice();
         bool ok = lcd.UploadImage(SourcePath("samples/29.gif"));
         ASSERT_TRUE(ok) << "UploadImage failed";
@@ -162,7 +162,7 @@ TEST(GifToSK80HardwareTest, DeviceDiscoveryFindsControlAndDataInterfaces) {
         GTEST_SKIP() << "Skipped: set KEYBOARD_ATTACHED=1 to run hardware tests";
     }
 
-    blink::RealUsbIO usb_io;
+    keylt::RealUsbIO usb_io;
     bool opened = usb_io.Open(sk80::VID, sk80::PID,
                               sk80::target_device_path,
                               sk80::lcd_data_device_path);

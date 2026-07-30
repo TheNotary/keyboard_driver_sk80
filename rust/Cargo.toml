@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["blink-sys", "blink"]
+members = ["keylt-sys", "keylt"]
 
-# The Rust crates track the version of the C library they bind. `blink-sys`
+# The Rust crates track the version of the C library they bind. `keylt-sys`
 # additionally asserts the ABI major version at run time, which is the value
 # that actually governs compatibility.
 [workspace.package]
@@ -12,7 +12,7 @@ rust-version = "1.77"
 license = "MIT"
 repository = "https://github.com/TheNotary/keyboard_driver_sk80"
 homepage = "https://github.com/TheNotary/keyboard_driver_sk80"
-authors = ["blink contributors"]
+authors = ["keylt contributors"]
 
 [workspace.dependencies]
-blink-sys = { path = "blink-sys", version = "0.2.0" }
+keylt-sys = { path = "keylt-sys", version = "0.2.0" }

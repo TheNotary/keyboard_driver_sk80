@@ -9,7 +9,7 @@
 #include "usb_functions.h"
 #include "keyboards/abstract_keyboard.h"
 
-namespace blink {
+namespace keylt {
 
 
 /**

@@ -23,7 +23,7 @@ int main() {
     }
 #endif
 
-    blink::KeyboardInfo keyboard = demo::ChooseKeyboard();
+    keylt::KeyboardInfo keyboard = demo::ChooseKeyboard();
     if (keyboard.display_name[0] == 0x00) {
         std::cout << "Exiting, no valid keyboard selected" << std::endl;
         return 0;

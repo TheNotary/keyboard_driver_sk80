@@ -1,4 +1,4 @@
-// Minimal downstream consumer of the installed blink package.
+// Minimal downstream consumer of the installed keylt package.
 //
 // This deliberately exercises only entry points that touch no USB hardware: CI
 // runners have no keyboard attached, and the point of this program is to prove
@@ -10,22 +10,22 @@
 
 #include <cstdio>
 
-#include <blink/blink.h>
+#include <keylt/keylt.h>
 
 int main() {
-    if (blink_abi_version() != BLINK_ABI_VERSION) {
+    if (keylt_abi_version() != KEYLT_ABI_VERSION) {
         std::printf("ABI mismatch between header and library\n");
         return 1;
     }
 
     std::size_t known = 0;
-    const blink_status status = blink_list_known_keyboards(nullptr, 0, &known);
-    if (status != BLINK_OK && status != BLINK_ERR_BUFFER_TOO_SMALL) {
-        std::printf("blink_list_known_keyboards failed: %s\n", blink_status_name(status));
+    const keylt_status status = keylt_list_known_keyboards(nullptr, 0, &known);
+    if (status != KEYLT_OK && status != KEYLT_ERR_BUFFER_TOO_SMALL) {
+        std::printf("keylt_list_known_keyboards failed: %s\n", keylt_status_name(status));
         return 1;
     }
 
-    std::printf("blink %s linked and loaded successfully; %u known models\n",
-                blink_version_string(), static_cast<unsigned>(known));
+    std::printf("keylt %s linked and loaded successfully; %u known models\n",
+                keylt_version_string(), static_cast<unsigned>(known));
     return 0;
 }

@@ -5,7 +5,7 @@
 #include "misc.h"
 
 // TODO: move to separate file for test_demo
-#include "../src/demo/blink_loader.h"
+#include "../src/demo/keylt_loader.h"
 
 
 namespace KeyboardTest
@@ -14,7 +14,7 @@ namespace KeyboardTest
     // Mock this or delete it, it's actually listing keyboards...
     // Actually I like this test alot.  If a known keyboard isn't attached, just comment out the last assertion 
     TEST(KeyboardTest, ListAvailableKeyboardsReturnsAListOfBoards) {
-        std::vector<blink::KeyboardInfo> list = demo::ListAvailableKeyboards();
+        std::vector<keylt::KeyboardInfo> list = demo::ListAvailableKeyboards();
 
         bool was_reasonable = false;
 

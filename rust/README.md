@@ -1,30 +1,30 @@
-# Rust bindings for blink
+# Rust bindings for keylt
 
 Two crates, in the usual `-sys` plus wrapper arrangement:
 
 | Crate | What it is |
 | --- | --- |
-| [`blink-sys`](blink-sys) | Raw FFI declarations for the C ABI in `include/main/blink.h`, plus the build script that finds and links the native library. |
-| [`blink`](blink) | The safe wrapper: RAII handles, `Result`s, slices instead of caller-allocated buffers. This is the one to use. |
+| [`keylt-sys`](keylt-sys) | Raw FFI declarations for the C ABI in `include/main/keylt.h`, plus the build script that finds and links the native library. |
+| [`keylt`](keylt) | The safe wrapper: RAII handles, `Result`s, slices instead of caller-allocated buffers. This is the one to use. |
 
 Only the public C ABI is bound. The internal C++ headers that
-`BLINK_INSTALL_CXX_HEADERS` installs are deliberately out of scope.
+`KEYLT_INSTALL_CXX_HEADERS` installs are deliberately out of scope.
 
 ## Quick start
 
 ```rust
-use blink::{KeyState, Keyboard, Model};
+use keylt::{KeyState, Keyboard, Model};
 
 let mut keyboard = Keyboard::open(Model::Sk80)?;
 keyboard.connect()?;
 keyboard.set_active_key_names(&["esc", "f1", "f2"])?;
 keyboard.set_keys(KeyState::On)?;
-# Ok::<(), blink::Error>(())
+# Ok::<(), keylt::Error>(())
 ```
 
 ```console
 $ cargo run --example list_keyboards
-blink 0.2.0 (ABI 1.0.0)
+keylt 0.2.0 (ABI 1.0.0)
 
 Known models:
   RK84     258a:00c0  max key id  96  packets 3x65 bytes
@@ -38,34 +38,34 @@ Attached now:
 
 ## Finding the native library
 
-`blink-sys` tries three things, in order, and takes the first that works.
+`keylt-sys` tries three things, in order, and takes the first that works.
 
 ### 1. An explicit prefix
 
 ```console
 $ cmake --preset ci && cmake --build --preset ci
-$ cmake --install build/ci --prefix /tmp/blink-prefix
+$ cmake --install build/ci --prefix /tmp/keylt-prefix
 
 $ cd rust
-$ BLINK_LIB_DIR=/tmp/blink-prefix/lib \
-  BLINK_INCLUDE_DIR=/tmp/blink-prefix/include \
-  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
+$ KEYLT_LIB_DIR=/tmp/keylt-prefix/lib \
+  KEYLT_INCLUDE_DIR=/tmp/keylt-prefix/include \
+  LD_LIBRARY_PATH=/tmp/keylt-prefix/lib \
   cargo test --no-default-features
 ```
 
-`BLINK_INCLUDE_DIR` must contain `blink/blink.h`. Both variables are required
+`KEYLT_INCLUDE_DIR` must contain `keylt/keylt.h`. Both variables are required
 together; setting one alone is ignored. `LD_LIBRARY_PATH` is what lets the test
 binaries find the shared library once they are built — see
 [Static or shared?](#static-or-shared) below.
 
 ### 2. pkg-config
 
-The CMake project installs `lib/pkgconfig/blink.pc`, which locates its own
+The CMake project installs `lib/pkgconfig/keylt.pc`, which locates its own
 prefix relative to itself and so survives being moved:
 
 ```console
-$ PKG_CONFIG_PATH=/tmp/blink-prefix/lib/pkgconfig \
-  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
+$ PKG_CONFIG_PATH=/tmp/keylt-prefix/lib/pkgconfig \
+  LD_LIBRARY_PATH=/tmp/keylt-prefix/lib \
   cargo test --no-default-features
 ```
 
@@ -88,36 +88,36 @@ so the build does not also drag in gtest and google-benchmark.
 | --- | --- | --- |
 | `vendored` | yes | Build the C library from source with CMake. Implies static linkage. |
 | `static` | no | Link the static archive when using an explicit prefix or pkg-config. |
-| `bindgen` | no | Regenerate the FFI declarations from `blink.h` instead of using the checked-in ones. Needs libclang. |
+| `bindgen` | no | Regenerate the FFI declarations from `keylt.h` instead of using the checked-in ones. Needs libclang. |
 
 ### Static or shared?
 
 Linking the **shared** library is the default when you supply a prefix, and is
-what CI does. It is the more robust choice: `libblink.so` encapsulates hidapi
-behind `--exclude-libs`, so nothing on your side has to know about blink's
+what CI does. It is the more robust choice: `libkeylt.so` encapsulates hidapi
+behind `--exclude-libs`, so nothing on your side has to know about keylt's
 private dependencies. The cost is that the loader has to find the library at run
 time, and a build script cannot inject an rpath into the crates that depend on
 it, so that part is on you:
 
 ```console
-$ LD_LIBRARY_PATH=/tmp/blink-prefix/lib cargo test --no-default-features
+$ LD_LIBRARY_PATH=/tmp/keylt-prefix/lib cargo test --no-default-features
 ```
 
 Linking the **static** archive with `--features static` produces self-contained
-binaries, which is why `vendored` uses it. Be aware that `blink_static` exposes
+binaries, which is why `vendored` uses it. Be aware that `keylt_static` exposes
 hidapi as a *public* usage requirement, so the final link line has to resolve
-hidapi, libusb and libudev as well. `blink-sys` asks pkg-config for those, which
+hidapi, libusb and libudev as well. `keylt-sys` asks pkg-config for those, which
 works wherever a system hidapi is installed with a complete `.pc` file — but not,
 for instance, against a vcpkg-built hidapi, whose `hidapi-libusb.pc` declares no
 private dependencies at all.
 
 ## Bindings
 
-`blink-sys/src/bindings.rs` is written by hand so that the common case needs no
+`keylt-sys/src/bindings.rs` is written by hand so that the common case needs no
 libclang. It is not a stale copy of bindgen output: CI regenerates the
 declarations with `--features bindgen` and runs the whole suite against them, so
-any drift in a signature or a struct layout fails the build. `blink-sys/tests/abi.rs`
-asserts the layout of `blink_keyboard_info` and the size of the `blink_usb_io`
+any drift in a signature or a struct layout fails the build. `keylt-sys/tests/abi.rs`
+asserts the layout of `keylt_keyboard_info` and the size of the `keylt_usb_io`
 vtable against the loaded library either way.
 
 ## Safety notes
@@ -131,7 +131,7 @@ The wrapper enforces the parts of the C contract that Rust can express:
   next call on that thread.
 * Every `UsbIo` callback runs inside `catch_unwind`. Unwinding into C is
   undefined behaviour, and the header forbids it outright.
-* `blink_key_value` is `OFF = 0, ON = 1`, the opposite of the library's internal
+* `keylt_key_value` is `OFF = 0, ON = 1`, the opposite of the library's internal
   enum. `KeyState` maps it explicitly and never casts; `offline.rs` pins that
   down.
 

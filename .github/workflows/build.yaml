@@ -1,7 +1,7 @@
 ####################################################################################
 # Single-target build, test and packaging (reusable).
 #
-# Builds the blink library for exactly one platform/architecture, proves the
+# Builds the keylt library for exactly one platform/architecture, proves the
 # installed package is consumable by a downstream project, and uploads it as an
 # archive plus a sha256 sidecar.
 #
@@ -115,15 +115,15 @@ jobs:
 
       - name: Configure
         env:
-          BLINK_VERSION: ${{ inputs.version }}
+          KEYLT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           # Passed on the command line rather than read from the environment by
           # the preset: an unset variable would otherwise expand to an empty
           # cache entry and vcpkg would reject it as an invalid triplet.
           extra=("-DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}")
-          if [ -n "${BLINK_VERSION}" ]; then
-            extra+=("-DBLINK_VERSION=${BLINK_VERSION}")
+          if [ -n "${KEYLT_VERSION}" ]; then
+            extra+=("-DKEYLT_VERSION=${KEYLT_VERSION}")
           fi
           cmake --preset ci "${extra[@]}"
 
@@ -138,28 +138,28 @@ jobs:
       - name: Install
         run: cmake --install build/ci --prefix "${WS}/stage"
 
-      # blink.h promises that the shared library exports a pure C ABI. Nothing
+      # keylt.h promises that the shared library exports a pure C ABI. Nothing
       # in the compiler enforces that: a stray missing visibility attribute, or
       # a dependency linked without --exclude-libs, silently widens the surface.
       - name: Verify only the C ABI is exported
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
-          so="$(ls "${WS}"/build/ci/libblink.so.*.*.*)"
+          so="$(ls "${WS}"/build/ci/libkeylt.so.*.*.*)"
           exported="$(nm -D --defined-only "${so}" | awk '$2 == "T" {print $3}')"
           echo "${exported}"
           if [ -z "${exported}" ]; then
-            echo "::error::libblink.so exports nothing"
+            echo "::error::libkeylt.so exports nothing"
             exit 1
           fi
-          if unexpected="$(printf '%s\n' "${exported}" | grep -v '^blink_')"; then
-            echo "::error::non-blink_ symbols are exported:"
+          if unexpected="$(printf '%s\n' "${exported}" | grep -v '^keylt_')"; then
+            echo "::error::non-keylt_ symbols are exported:"
             printf '%s\n' "${unexpected}"
             exit 1
           fi
 
       # The real proof that the exported package is usable: configure a separate
-      # project that knows nothing but `find_package(blink CONFIG)`. It builds
+      # project that knows nothing but `find_package(keylt CONFIG)`. It builds
       # both a C++ and a C99 consumer, the latter being what proves the header
       # is callable from outside C++.
       - name: Verify the package is consumable downstream
@@ -185,7 +185,7 @@ jobs:
       # this tests the same artefacts the release archives ship.
       #
       # The shared library is what gets linked, deliberately. It encapsulates
-      # hidapi behind --exclude-libs, so nothing here has to restate blink's
+      # hidapi behind --exclude-libs, so nothing here has to restate keylt's
       # private dependency graph; the static archive exposes hidapi as a public
       # usage requirement, and vcpkg's hidapi-libusb.pc declares no private
       # deps of its own, so a static link would have to guess at libusb and
@@ -194,8 +194,8 @@ jobs:
         if: inputs.target == 'x86_64-linux-gnu' || inputs.target == 'x86_64-windows-msvc'
         working-directory: rust
         env:
-          BLINK_LIB_DIR: ${{ env.WS }}/stage/lib
-          BLINK_INCLUDE_DIR: ${{ env.WS }}/stage/include
+          KEYLT_LIB_DIR: ${{ env.WS }}/stage/lib
+          KEYLT_INCLUDE_DIR: ${{ env.WS }}/stage/include
           CARGO_TERM_COLOR: always
         run: |
           set -euo pipefail
@@ -207,7 +207,7 @@ jobs:
             # and dies with "extra operand". CMake is immune: it resolves the
             # linker to an absolute path at configure time.
             export PATH="$(dirname "$(command -v cl.exe)"):${PATH}"
-            # blink.dll has to be findable when the test binaries run. $WS is a
+            # keylt.dll has to be findable when the test binaries run. $WS is a
             # Windows path (D:/a/...), and its drive-letter colon would be read
             # as a PATH separator, so convert to the POSIX form bash expects.
             export PATH="$(cygpath -u "${WS}/stage/bin"):${PATH}"
@@ -221,16 +221,16 @@ jobs:
           cargo test --workspace --no-default-features
           cargo build --workspace --examples --no-default-features
 
-      # blink-sys ships hand-written declarations so that building it needs no
-      # libclang. This re-derives them from blink.h and runs the same suite
+      # keylt-sys ships hand-written declarations so that building it needs no
+      # libclang. This re-derives them from keylt.h and runs the same suite
       # against the result: a signature or layout that has drifted fails to
-      # compile or trips the assertions in blink-sys/tests/abi.rs.
-      - name: Check the checked-in bindings against blink.h
+      # compile or trips the assertions in keylt-sys/tests/abi.rs.
+      - name: Check the checked-in bindings against keylt.h
         if: inputs.target == 'x86_64-linux-gnu'
         working-directory: rust
         env:
-          BLINK_LIB_DIR: ${{ env.WS }}/stage/lib
-          BLINK_INCLUDE_DIR: ${{ env.WS }}/stage/include
+          KEYLT_LIB_DIR: ${{ env.WS }}/stage/lib
+          KEYLT_INCLUDE_DIR: ${{ env.WS }}/stage/include
         run: |
           set -euo pipefail
           sudo apt-get install -y libclang-dev
@@ -245,13 +245,13 @@ jobs:
           mkdir -p dist
 
           # Archives contain the install tree at their root (include/, lib/,
-          # bin/, share/blink/), so consumers can point CMAKE_PREFIX_PATH at the
+          # bin/, share/keylt/), so consumers can point CMAKE_PREFIX_PATH at the
           # extracted directory and nothing else.
           if [ "${RUNNER_OS}" = "Windows" ]; then
-            archive="blink-${TARGET}.zip"
+            archive="keylt-${TARGET}.zip"
             (cd stage && cmake -E tar cf "../dist/${archive}" --format=zip .)
           else
-            archive="blink-${TARGET}.tar.gz"
+            archive="keylt-${TARGET}.tar.gz"
             (cd stage && cmake -E tar czf "../dist/${archive}" .)
           fi
 
@@ -268,6 +268,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: blink-${{ inputs.target }}
+          name: keylt-${{ inputs.target }}
           path: dist/*
           if-no-files-found: error

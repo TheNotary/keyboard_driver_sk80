@@ -9,12 +9,12 @@ static inline void Sleep(int ms) { usleep(ms * 1000); }
 #include <iostream>
 
 #include "misc.h"
-#include "../blink_loader.h"
+#include "../keylt_loader.h"
 
 
 namespace demo {
 
-	void TestSingleKey(blink::KeyboardInfo keyboard) {
+	void TestSingleKey(keylt::KeyboardInfo keyboard) {
         std::vector<std::string> key_names = { "esc" };
 
         demo::CallDllTurnOnKeyNames(key_names, keyboard);

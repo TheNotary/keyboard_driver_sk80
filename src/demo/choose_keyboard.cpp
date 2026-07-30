@@ -7,19 +7,19 @@
 
 #include "util.h"
 #include "misc.h"
-#include "blink_loader.h"
+#include "keylt_loader.h"
 
 
 namespace demo {
 
-blink::KeyboardInfo ChooseKeyboard() {
-    std::vector<blink::KeyboardInfo> available_keebs = demo::ListAvailableKeyboards();
+keylt::KeyboardInfo ChooseKeyboard() {
+    std::vector<keylt::KeyboardInfo> available_keebs = demo::ListAvailableKeyboards();
 
     std::cout << "Keyboards Available:" << std::endl;
     int i;
     int n_available_keebs = available_keebs.size();
     for (i = 0; i < n_available_keebs; i++) {
-        blink::KeyboardInfo keeb = available_keebs[i];
+        keylt::KeyboardInfo keeb = available_keebs[i];
         std::cout << i + 1 << ". " << keeb.display_name
             << " [" << std::hex << keeb.vid << ":" << keeb.pid << "]"
             << std::endl;

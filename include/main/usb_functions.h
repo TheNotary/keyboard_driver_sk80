@@ -3,7 +3,7 @@
 #include "platform.h"
 #include "misc.h"
 
-namespace blink {
+namespace keylt {
 
 
 void PrintMessagesInBuffer(const unsigned char* buffer, size_t message_count, size_t message_length);

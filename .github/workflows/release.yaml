@@ -7,7 +7,7 @@
 #
 # Publishes, for each of the four targets:
 #   * an archive of the CMake install tree (headers, shared + static libraries,
-#     blinkConfig.cmake) that a consumer can point CMAKE_PREFIX_PATH at
+#     keyltConfig.cmake) that a consumer can point CMAKE_PREFIX_PATH at
 #   * a SHA256SUMS covering all of them
 #   * a rendered vcpkg overlay port pinned to the tag being released
 ####################################################################################
@@ -51,7 +51,7 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             version="${GITHUB_REF_NAME#v}"
           else
-            version="$(sed -n 's/^set(BLINK_VERSION "\([^"]*\)".*/\1/p' CMakeLists.txt)"
+            version="$(sed -n 's/^set(KEYLT_VERSION "\([^"]*\)".*/\1/p' CMakeLists.txt)"
           fi
           if [ -z "${version}" ]; then
             echo "::error::Could not resolve a version to release."
@@ -93,7 +93,7 @@ jobs:
           cat SHA256SUMS
 
       # Pins the overlay port to the tag being published, so consumers can run
-      # `vcpkg install blink --overlay-ports=<extracted>` with no edits.
+      # `vcpkg install keylt --overlay-ports=<extracted>` with no edits.
       - name: Render vcpkg overlay port
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
@@ -105,21 +105,21 @@ jobs:
           tarball="https://github.com/${GITHUB_REPOSITORY}/archive/${GITHUB_REF_NAME}.tar.gz"
           sha512="$(curl -fsSL "${tarball}" | sha512sum | cut -d' ' -f1)"
 
-          mkdir -p port/blink
+          mkdir -p port/keylt
           sed -e "s|\"version\": \"[^\"]*\"|\"version\": \"${VERSION}\"|" \
-              ports/blink/vcpkg.json > port/blink/vcpkg.json
+              ports/keylt/vcpkg.json > port/keylt/vcpkg.json
           sed -e "s|@REPO@|${GITHUB_REPOSITORY}|g" \
               -e "s|@REF@|${GITHUB_REF_NAME}|g" \
               -e "s|@SHA512@|${sha512}|g" \
-              ports/blink/portfile.cmake > port/blink/portfile.cmake
+              ports/keylt/portfile.cmake > port/keylt/portfile.cmake
 
-          if grep -q '@REPO@\|@REF@\|@SHA512@' port/blink/portfile.cmake; then
+          if grep -q '@REPO@\|@REF@\|@SHA512@' port/keylt/portfile.cmake; then
             echo "::error::The rendered overlay port still contains placeholders."
             exit 1
           fi
 
-          tar czf dist/blink-vcpkg-port.tar.gz -C port blink
-          (cd dist && sha256sum blink-vcpkg-port.tar.gz >> SHA256SUMS)
+          tar czf dist/keylt-vcpkg-port.tar.gz -C port keylt
+          (cd dist && sha256sum keylt-vcpkg-port.tar.gz >> SHA256SUMS)
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

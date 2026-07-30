@@ -12,9 +12,9 @@ const UINT8 MESSAGE_LENGTH = 65;
 const UINT8 BULK_LED_VALUE_MESSAGES_COUNT = 9;
 const UINT8 BULK_LED_HEADER_MESSAGES_COUNT = 2;
 const UINT8 BULK_LED_FOOTER_MESSAGES_COUNT = 2;
-const blink::KeyValueBytesPair on_off_mappings = {
-	{ blink::kOn, 0xff },
-	{ blink::kOff, 0x00 }
+const keylt::KeyValueBytesPair on_off_mappings = {
+	{ keylt::kOn, 0xff },
+	{ keylt::kOff, 0x00 }
 };
 // Both branches below must declare the same set of identifiers. A name that
 // exists in only one branch compiles on one platform and fails on the other.

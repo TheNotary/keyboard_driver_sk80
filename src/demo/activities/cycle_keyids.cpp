@@ -20,7 +20,7 @@ static int kbhit_read() {
 }
 #endif
 
-#include "blink_loader.h"
+#include "keylt_loader.h"
 
 using std::cout;
 using std::endl;
@@ -52,7 +52,7 @@ char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
     return result;
 }
 
-int CycleKeyIds(blink::KeyboardInfo keyboard) {
+int CycleKeyIds(keylt::KeyboardInfo keyboard) {
     cout << "CycleKeyIds Debug Mode:" << endl
         << "The key id will be shown on the screen, and the LED for that key will be switched "
         << "on making mapping the keyboard easy.  "

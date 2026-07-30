@@ -1,0 +1,45 @@
+[package]
+name = "keylt-sys"
+description = "Raw FFI bindings to the keylt C ABI for RGB mechanical keyboard LED and LCD control"
+readme = "README.md"
+keywords = ["ffi", "keyboard", "led", "hid", "rgb"]
+categories = ["external-ffi-bindings", "hardware-support"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+
+# Declares that this crate owns the linkage to the native `keylt` library, so
+# Cargo rejects a build graph containing two different versions of it.
+links = "keylt"
+build = "build.rs"
+
+# Only these are consumed by the build; keep the vendored CMake tree out of the
+# published package.
+include = ["src/**/*.rs", "build.rs", "wrapper.h", "README.md"]
+
+[features]
+# Build the C library from the CMake project at the repository root. This is the
+# zero-setup path: it needs no pre-installed keylt, but it does need CMake and
+# the vcpkg checkout bundled with the repository.
+default = ["vendored"]
+vendored = ["dep:cmake"]
+# Link the static archive rather than the shared library. Implied by `vendored`.
+static = []
+# Regenerate the bindings from keylt.h at build time instead of using the
+# checked-in ones. Requires libclang.
+bindgen = ["dep:bindgen"]
+
+[build-dependencies]
+cmake = { version = "0.1", optional = true }
+pkg-config = "0.3"
+bindgen = { version = "0.69", optional = true }
+
+[package.metadata.docs.rs]
+# docs.rs has no keyboard, no vcpkg checkout and no CMake toolchain, so document
+# the checked-in bindings without touching the native build at all.
+no-default-features = true
+rustdoc-args = ["--cfg", "docsrs"]

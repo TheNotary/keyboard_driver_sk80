@@ -2,7 +2,7 @@
 #include "misc.h"
 #include "keyboards/abstract_keyboard.h"
 
-namespace blink {
+namespace keylt {
 
 
 class KeyboardSpecFactory {

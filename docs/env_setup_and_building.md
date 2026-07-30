@@ -9,13 +9,13 @@ hidapi is declared in `vcpkg.json` and is built by vcpkg on Linux, so no distro 
 
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `BLINK_BUILD_SHARED` | `ON` | Build `libblink.so` / `blink.dll` |
-| `BLINK_BUILD_STATIC` | `ON` | Build `libblink.a` / `blink_static.lib` |
-| `BLINK_BUILD_TESTS` | `ON` | Build `KeyboardTest` (requires the `tests` vcpkg feature) |
-| `BLINK_BUILD_BENCHMARKS` | `ON` | Build `KeyboardBenchmark` (requires the `benchmarks` vcpkg feature) |
-| `BLINK_BUILD_DEMO` | `ON` | Build the interactive `main` demo application |
+| `KEYLT_BUILD_SHARED` | `ON` | Build `libkeylt.so` / `keylt.dll` |
+| `KEYLT_BUILD_STATIC` | `ON` | Build `libkeylt.a` / `keylt_static.lib` |
+| `KEYLT_BUILD_TESTS` | `ON` | Build `KeyboardTest` (requires the `tests` vcpkg feature) |
+| `KEYLT_BUILD_BENCHMARKS` | `ON` | Build `KeyboardBenchmark` (requires the `benchmarks` vcpkg feature) |
+| `KEYLT_BUILD_DEMO` | `ON` | Build the interactive `main` demo application |
 
-`BLINK_VERSION` overrides the version stamped onto the library; the release pipeline passes the git tag.
+`KEYLT_VERSION` overrides the version stamped onto the library; the release pipeline passes the git tag.
 
 
 ## Building on Linux
@@ -117,7 +117,7 @@ The arm64 runners are free for public repositories only; a private repo needs la
 
 Every leg uses the `ci` CMake preset.  The preset points `CMAKE_TOOLCHAIN_FILE` at the vcpkg checkout bundled in this repo, so it needs no environment set up at all; CI passes `-DVCPKG_TARGET_TRIPLET` on the command line to cover all four targets, and left unset vcpkg detects the host triplet.  Do not move that into the preset as `$env{VCPKG_TARGET_TRIPLET}` — when the variable is unset it expands to an empty cache entry and vcpkg rejects it as an invalid triplet.
 
-After building and running `ctest`, each leg installs to a staging prefix and then configures `test/consumer` against it — a standalone project that does nothing but `find_package(blink CONFIG REQUIRED)` and link both library targets, from both C++ and C99.  That step is what actually proves the published package is usable, so keep it green.  The x86_64 legs additionally build and test the Rust crates in `rust/` against the same staging prefix, which is what keeps `blink-sys`' checked-in FFI declarations honest.
+After building and running `ctest`, each leg installs to a staging prefix and then configures `test/consumer` against it — a standalone project that does nothing but `find_package(keylt CONFIG REQUIRED)` and link both library targets, from both C++ and C99.  That step is what actually proves the published package is usable, so keep it green.  The x86_64 legs additionally build and test the Rust crates in `rust/` against the same staging prefix, which is what keeps `keylt-sys`' checked-in FFI declarations honest.
 
 To reproduce a CI leg locally:
 
@@ -136,22 +136,22 @@ ctest --test-dir build/consumer --output-on-failure
 
 # The Rust half, linked against that same staging prefix.
 cd rust
-BLINK_LIB_DIR="$(pwd)/../stage/lib" BLINK_INCLUDE_DIR="$(pwd)/../stage/include" \
+KEYLT_LIB_DIR="$(pwd)/../stage/lib" KEYLT_INCLUDE_DIR="$(pwd)/../stage/include" \
   cargo test --workspace --no-default-features --features static
 ```
 
 #### Cutting a release
 
-Push a `vX.Y.Z` tag.  The tag is the source of truth for the version, so `CMakeLists.txt` never needs a manual bump beforehand.  The release job publishes a per-target archive of the install tree, a `SHA256SUMS`, and `blink-vcpkg-port.tar.gz` — the overlay port in `ports/blink/` rendered against the tag with a real SHA512.  Use `workflow_dispatch` to exercise the build and packaging path without publishing anything.
+Push a `vX.Y.Z` tag.  The tag is the source of truth for the version, so `CMakeLists.txt` never needs a manual bump beforehand.  The release job publishes a per-target archive of the install tree, a `SHA256SUMS`, and `keylt-vcpkg-port.tar.gz` — the overlay port in `ports/keylt/` rendered against the tag with a real SHA512.  Use `workflow_dispatch` to exercise the build and packaging path without publishing anything.
 
 #### Exported symbols
 
-The shared library is built with `-fvisibility=hidden` and only the `extern "C"` API in `blink.h` is exported.  vcpkg hands the build static hidapi/libusb archives, so `--exclude-libs,ALL` is also applied to stop `libblink.so` from re-exporting the whole libusb ABI.  To check:
+The shared library is built with `-fvisibility=hidden` and only the `extern "C"` API in `keylt.h` is exported.  vcpkg hands the build static hidapi/libusb archives, so `--exclude-libs,ALL` is also applied to stop `libkeylt.so` from re-exporting the whole libusb ABI.  To check:
 
 ```bash
-nm -D --defined-only stage/lib/libblink.so | grep ' T '
+nm -D --defined-only stage/lib/libkeylt.so | grep ' T '
 ```
 
-Every name that prints must start with `blink_`; CI fails the build otherwise.  That guarantee is what makes the shared library callable from any language with a C FFI, which is what the Rust crates in `rust/` rely on.
+Every name that prints must start with `keylt_`; CI fails the build otherwise.  That guarantee is what makes the shared library callable from any language with a C FFI, which is what the Rust crates in `rust/` rely on.
 
 `gif_to_sk80` drives the library's internal C++ classes rather than that API, so it links the static archive.

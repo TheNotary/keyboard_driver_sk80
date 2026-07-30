@@ -5,7 +5,7 @@
 #include <string>
 #include <cstring>
 
-namespace blink {
+namespace keylt {
 
 struct OpEntry {
     // NOTE: don't name this member `interface` — the Windows SDK defines it as a
@@ -55,4 +55,4 @@ private:
     std::vector<OpEntry> ops_;
 };
 
-} // namespace blink
+} // namespace keylt

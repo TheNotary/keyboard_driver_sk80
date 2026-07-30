@@ -1,0 +1,22 @@
+# Derived from the file's own location rather than the configure-time install
+# prefix, so the release archives stay usable wherever they are extracted and
+# `cmake --install --prefix` is honoured.
+prefix=${pcfiledir}/@KEYLT_PC_PREFIX_FROM_PCFILEDIR@
+exec_prefix=${prefix}
+libdir=@KEYLT_PC_LIBDIR@
+includedir=@KEYLT_PC_INCLUDEDIR@
+
+Name: keylt
+Description: Keyboard LED and LCD control library for SK80 and RK84 RGB mechanical keyboards
+URL: https://github.com/TheNotary/keyboard_driver_sk80
+Version: @PROJECT_VERSION@
+
+# The public header is <keylt/keylt.h>, so only the parent directory is needed.
+Cflags: -I${includedir}
+Libs: -L${libdir} -lkeylt
+
+# Only the static archive exposes these. The shared library links hidapi
+# privately and hides it with --exclude-libs, so a dynamic consumer must not
+# try to resolve it.
+Requires.private: @KEYLT_PC_REQUIRES_PRIVATE@
+Libs.private: @KEYLT_PC_LIBS_PRIVATE@

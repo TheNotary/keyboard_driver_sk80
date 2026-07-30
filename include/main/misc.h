@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace blink {
+namespace keylt {
 
 
 enum KeyboardModel { kSK80, kMK84, kRK84 };

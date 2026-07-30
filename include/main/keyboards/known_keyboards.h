@@ -2,10 +2,10 @@
 #include <vector>
 #include "misc.h"
 
-namespace blink {
+namespace keylt {
 
 
-extern std::vector<blink::KeyboardInfo> known_keyboards;
+extern std::vector<keylt::KeyboardInfo> known_keyboards;
 
 
 }
