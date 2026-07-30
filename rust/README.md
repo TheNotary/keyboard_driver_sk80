@@ -49,11 +49,14 @@ $ cmake --install build/ci --prefix /tmp/blink-prefix
 $ cd rust
 $ BLINK_LIB_DIR=/tmp/blink-prefix/lib \
   BLINK_INCLUDE_DIR=/tmp/blink-prefix/include \
+  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
   cargo test --no-default-features
 ```
 
 `BLINK_INCLUDE_DIR` must contain `blink/blink.h`. Both variables are required
-together; setting one alone is ignored.
+together; setting one alone is ignored. `LD_LIBRARY_PATH` is what lets the test
+binaries find the shared library once they are built — see
+[Static or shared?](#static-or-shared) below.
 
 ### 2. pkg-config
 
@@ -62,6 +65,7 @@ prefix relative to itself and so survives being moved:
 
 ```console
 $ PKG_CONFIG_PATH=/tmp/blink-prefix/lib/pkgconfig \
+  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
   cargo test --no-default-features
 ```
 
