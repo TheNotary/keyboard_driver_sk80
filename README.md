@@ -1,4 +1,4 @@
-# XVX S-K80 Keyboard Driver for LED Control
+# (keylt) XVX S-K80 Keyboard Driver for LED Control
 
 [![CI](https://github.com/TheNotary/keyboard_driver_sk80/actions/workflows/ci.yaml/badge.svg)](https://github.com/TheNotary/keyboard_driver_sk80/actions/workflows/ci.yaml)
 [![Release](https://github.com/TheNotary/keyboard_driver_sk80/actions/workflows/release.yaml/badge.svg)](https://github.com/TheNotary/keyboard_driver_sk80/actions/workflows/release.yaml)
@@ -16,7 +16,7 @@ To conduct the build and execute the tests, at the root of the repo, run:
 setup.bat
 ```
 
-#### Building on Linux (Arch)
+#### Building on Linux (Arch btw)
 
 ```
 sudo pacman -S base-devel cmake ninja hidapi pkgconf
