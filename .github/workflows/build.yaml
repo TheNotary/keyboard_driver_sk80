@@ -181,6 +181,21 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      # The workspace Cargo.toml carries a dev placeholder version. When a
+      # release tag supplies a real version, stamp it into the manifest so the
+      # Rust tests run against the version that will be published.
+      - name: Stamp Rust crate version from tag
+        if: (inputs.target == 'x86_64-linux-gnu' || inputs.target == 'x86_64-windows-msvc') && inputs.version != ''
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          sed -i "s/^version = \".*\"/version = \"${VERSION}\"/" rust/Cargo.toml
+          sed -i "s/keylt-sys = { path = \"keylt-sys\", version = \".*\" }/keylt-sys = { path = \"keylt-sys\", version = \"${VERSION}\" }/" rust/Cargo.toml
+          echo "::group::rust/Cargo.toml"
+          cat rust/Cargo.toml
+          echo "::endgroup::"
+
       # Linked against the tree staged above rather than rebuilt from source, so
       # this tests the same artefacts the release archives ship.
       #

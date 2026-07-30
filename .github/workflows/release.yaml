@@ -132,3 +132,68 @@ jobs:
           prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
           files: |
             dist/*
+
+  # Publishes the Rust crates to crates.io. Runs in parallel with the GitHub
+  # Release job so that neither blocks the other. The workspace Cargo.toml
+  # carries a dev placeholder version; this job stamps it from the tag before
+  # publishing.
+  #
+  # keylt-sys must be published before keylt (dependency ordering), with a
+  # short sleep for the crates.io index to propagate.
+  publish-crates:
+    name: Publish Rust crates
+    needs: [prepare, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Stamp crate version from tag
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          sed -i "s/^version = \".*\"/version = \"${VERSION}\"/" rust/Cargo.toml
+          sed -i "s/keylt-sys = { path = \"keylt-sys\", version = \".*\" }/keylt-sys = { path = \"keylt-sys\", version = \"${VERSION}\" }/" rust/Cargo.toml
+          echo "::group::rust/Cargo.toml"
+          cat rust/Cargo.toml
+          echo "::endgroup::"
+
+      # The build job already tested the crates against the staged C library.
+      # --no-verify is required here because keylt-sys's `include` list strips
+      # the C source tree, so a verification build would fail trying to compile
+      # it from scratch. The CI matrix has already proven correctness.
+      - name: Download Linux x86_64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: keylt-x86_64-linux-gnu
+          path: staging
+
+      - name: Extract staging prefix
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/keylt-prefix
+          tar xzf staging/keylt-x86_64-linux-gnu.tar.gz -C /tmp/keylt-prefix
+
+      - name: Publish keylt-sys
+        working-directory: rust
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          KEYLT_LIB_DIR: /tmp/keylt-prefix/lib
+          KEYLT_INCLUDE_DIR: /tmp/keylt-prefix/include
+        run: cargo publish -p keylt-sys --no-verify
+
+      - name: Wait for crates.io index
+        run: sleep 30
+
+      - name: Publish keylt
+        working-directory: rust
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          KEYLT_LIB_DIR: /tmp/keylt-prefix/lib
+          KEYLT_INCLUDE_DIR: /tmp/keylt-prefix/include
+        run: cargo publish -p keylt --no-verify

@@ -11,7 +11,7 @@ use crate::error::{check, Error, Result, Status};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum Model {
-    /// Sharkoon SKILLER SGK80, including its LCD.
+    /// Womier SK80, including its LCD.
     Sk80,
     /// Recognised by the library but not implemented; every call involving it
     /// fails with [`Status::Unsupported`].

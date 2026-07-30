@@ -5,8 +5,11 @@ members = ["keylt-sys", "keylt"]
 # The Rust crates track the version of the C library they bind. `keylt-sys`
 # additionally asserts the ABI major version at run time, which is the value
 # that actually governs compatibility.
+#
+# This version is a dev placeholder; the release pipeline overwrites it with
+# the version from the git tag (v*.*.*) before building or publishing.
 [workspace.package]
-version = "0.2.0"
+version = "0.0.0-dev"
 edition = "2021"
 rust-version = "1.77"
 license = "CC Attribution"
@@ -15,4 +18,4 @@ homepage = "https://github.com/TheNotary/keyboard_driver_sk80"
 authors = ["keylt contributors"]
 
 [workspace.dependencies]
-keylt-sys = { path = "keylt-sys", version = "0.2.0" }
+keylt-sys = { path = "keylt-sys", version = "0.0.0-dev" }

@@ -1,7 +1,7 @@
 # keylt
 
 Safe Rust bindings for controlling the LEDs and LCD of RGB mechanical keyboards
-(Sharkoon SKILLER SGK80, Royal Kludge RK84).
+(Womier SK80, Royal Kludge RK84).
 
 ```rust
 use keylt::{KeyState, Keyboard, Model};
