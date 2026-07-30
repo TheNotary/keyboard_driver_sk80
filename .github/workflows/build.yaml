@@ -207,8 +207,11 @@ jobs:
             # and dies with "extra operand". CMake is immune: it resolves the
             # linker to an absolute path at configure time.
             export PATH="$(dirname "$(command -v cl.exe)"):${PATH}"
-            # blink.dll has to be findable when the test binaries run.
-            export PATH="${WS}/stage/bin:${PATH}"
+            # blink.dll has to be findable when the test binaries run. $WS is a
+            # Windows path (D:/a/...), and its drive-letter colon would be read
+            # as a PATH separator, so convert to the POSIX form bash expects.
+            export PATH="$(cygpath -u "${WS}/stage/bin"):${PATH}"
+            ls -l "$(cygpath -u "${WS}/stage/bin")"
           else
             export LD_LIBRARY_PATH="${WS}/stage/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
           fi
