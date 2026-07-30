@@ -182,24 +182,41 @@ jobs:
           components: rustfmt, clippy
 
       # Linked against the tree staged above rather than rebuilt from source, so
-      # this tests the same artefacts the release archives ship. `static` is
-      # what makes the test binaries runnable without an rpath or a PATH entry
-      # for the shared library.
+      # this tests the same artefacts the release archives ship.
+      #
+      # The shared library is what gets linked, deliberately. It encapsulates
+      # hidapi behind --exclude-libs, so nothing here has to restate blink's
+      # private dependency graph; the static archive exposes hidapi as a public
+      # usage requirement, and vcpkg's hidapi-libusb.pc declares no private
+      # deps of its own, so a static link would have to guess at libusb and
+      # libudev too. That is precisely what the shared library exists to avoid.
       - name: Build and test the Rust crates
         if: inputs.target == 'x86_64-linux-gnu' || inputs.target == 'x86_64-windows-msvc'
         working-directory: rust
         env:
           BLINK_LIB_DIR: ${{ env.WS }}/stage/lib
           BLINK_INCLUDE_DIR: ${{ env.WS }}/stage/include
-          # The vendored default would configure and build the whole CMake
-          # project a second time.
           CARGO_TERM_COLOR: always
         run: |
           set -euo pipefail
+
+          if [ "${RUNNER_OS}" = "Windows" ]; then
+            # Git for Windows ships a coreutils link.exe in /usr/bin. Under the
+            # bash shell this workflow defaults to it shadows MSVC's linker, and
+            # rustc invokes `link.exe` by bare name, so it picks up the wrong one
+            # and dies with "extra operand". CMake is immune: it resolves the
+            # linker to an absolute path at configure time.
+            export PATH="$(dirname "$(command -v cl.exe)"):${PATH}"
+            # blink.dll has to be findable when the test binaries run.
+            export PATH="${WS}/stage/bin:${PATH}"
+          else
+            export LD_LIBRARY_PATH="${WS}/stage/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+          fi
+
           cargo fmt --all -- --check
-          cargo clippy --workspace --all-targets --no-default-features --features static -- -D warnings
-          cargo test --workspace --no-default-features --features static
-          cargo build --workspace --examples --no-default-features --features static
+          cargo clippy --workspace --all-targets --no-default-features -- -D warnings
+          cargo test --workspace --no-default-features
+          cargo build --workspace --examples --no-default-features
 
       # blink-sys ships hand-written declarations so that building it needs no
       # libclang. This re-derives them from blink.h and runs the same suite
@@ -214,7 +231,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get install -y libclang-dev
-          cargo test --workspace --no-default-features --features static,bindgen
+          export LD_LIBRARY_PATH="${WS}/stage/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+          cargo test --workspace --no-default-features --features bindgen
 
       - name: Package
         env:
