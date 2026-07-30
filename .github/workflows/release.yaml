@@ -125,5 +125,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          # A SemVer pre-release identifier is anything after a hyphen, so
+          # v1.0.1-rc.7 must not be published as the latest stable release:
+          # without this it takes over the repository's "Latest" badge and is
+          # what `gh release download` picks by default.
+          prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
           files: |
             dist/*
