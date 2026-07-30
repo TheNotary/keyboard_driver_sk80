@@ -91,7 +91,23 @@ fn defaults_describe_the_sk80_lcd() {
     assert_ne!(defaults.vid, 0);
     assert_ne!(defaults.pid, 0);
     assert!(!defaults.control_interface.is_empty());
-    assert!(!defaults.data_interface.is_empty());
+
+    // The data interface is deliberately empty on Windows: that HID path has
+    // never been captured, and the Windows LCD backend is still a stub, so the
+    // constant exists only so the shared code compiles. See the TODO alongside
+    // lcd_data_device_path in include/main/keyboards/sk80/constants_sk80.h.
+    // Asserting both directions means whichever platform changes first trips
+    // this test rather than silently diverging.
+    if cfg!(windows) {
+        assert!(
+            defaults.data_interface.is_empty(),
+            "Windows now reports an LCD data interface ({:?}); the backend and \
+             this test both need revisiting",
+            defaults.data_interface
+        );
+    } else {
+        assert!(!defaults.data_interface.is_empty());
+    }
 }
 
 #[test]

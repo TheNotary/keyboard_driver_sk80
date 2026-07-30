@@ -49,11 +49,14 @@ $ cmake --install build/ci --prefix /tmp/blink-prefix
 $ cd rust
 $ BLINK_LIB_DIR=/tmp/blink-prefix/lib \
   BLINK_INCLUDE_DIR=/tmp/blink-prefix/include \
-  cargo test --no-default-features --features static
+  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
+  cargo test --no-default-features
 ```
 
 `BLINK_INCLUDE_DIR` must contain `blink/blink.h`. Both variables are required
-together; setting one alone is ignored.
+together; setting one alone is ignored. `LD_LIBRARY_PATH` is what lets the test
+binaries find the shared library once they are built — see
+[Static or shared?](#static-or-shared) below.
 
 ### 2. pkg-config
 
@@ -62,7 +65,8 @@ prefix relative to itself and so survives being moved:
 
 ```console
 $ PKG_CONFIG_PATH=/tmp/blink-prefix/lib/pkgconfig \
-  cargo test --no-default-features --features static
+  LD_LIBRARY_PATH=/tmp/blink-prefix/lib \
+  cargo test --no-default-features
 ```
 
 ### 3. Building from source (the default)
@@ -88,17 +92,24 @@ so the build does not also drag in gtest and google-benchmark.
 
 ### Static or shared?
 
-Static linking is the path of least resistance and is what `vendored` and CI
-use: the resulting test binaries and examples run with no further setup.
-
-Linking the shared library — the default when you supply a prefix without
-`--features static` — needs the loader to find `libblink.so.0` at run time. A
-build script cannot inject an rpath into the crates that depend on it, so that
-is on you:
+Linking the **shared** library is the default when you supply a prefix, and is
+what CI does. It is the more robust choice: `libblink.so` encapsulates hidapi
+behind `--exclude-libs`, so nothing on your side has to know about blink's
+private dependencies. The cost is that the loader has to find the library at run
+time, and a build script cannot inject an rpath into the crates that depend on
+it, so that part is on you:
 
 ```console
 $ LD_LIBRARY_PATH=/tmp/blink-prefix/lib cargo test --no-default-features
 ```
+
+Linking the **static** archive with `--features static` produces self-contained
+binaries, which is why `vendored` uses it. Be aware that `blink_static` exposes
+hidapi as a *public* usage requirement, so the final link line has to resolve
+hidapi, libusb and libudev as well. `blink-sys` asks pkg-config for those, which
+works wherever a system hidapi is installed with a complete `.pc` file — but not,
+for instance, against a vcpkg-built hidapi, whose `hidapi-libusb.pc` declares no
+private dependencies at all.
 
 ## Bindings
 
