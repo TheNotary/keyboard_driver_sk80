@@ -4,7 +4,24 @@ cmake_minimum_required(VERSION 3.16)
 # without anyone having to edit this file before tagging.
 set(BLINK_VERSION "0.2.0" CACHE STRING "Version stamped onto the blink library")
 
-project(blink VERSION ${BLINK_VERSION} LANGUAGES CXX)
+# Release tags may carry a SemVer pre-release suffix (v1.0.1-rc.3), but
+# project(VERSION) only accepts numeric major[.minor[.patch[.tweak]]] and errors
+# out on anything else. Split the two apart: the numeric core drives project(),
+# SOVERSION and the package version files, while the full string is what
+# blink_version_string() reports, so a release candidate stays identifiable at
+# run time.
+if(NOT BLINK_VERSION MATCHES "^([0-9]+(\\.[0-9]+)*)")
+    message(FATAL_ERROR
+        "BLINK_VERSION must begin with a numeric version such as 1.2.3, "
+        "but is '${BLINK_VERSION}'")
+endif()
+set(BLINK_VERSION_CORE "${CMAKE_MATCH_1}")
+
+project(blink VERSION ${BLINK_VERSION_CORE} LANGUAGES CXX)
+
+if(NOT BLINK_VERSION STREQUAL BLINK_VERSION_CORE)
+    message(STATUS "blink ${BLINK_VERSION} (pre-release of ${BLINK_VERSION_CORE})")
+endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -161,9 +178,10 @@ foreach(blink_target IN LISTS BLINK_LIBRARY_TARGETS)
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON)
     # Reported by blink_version_string() so a foreign caller can check what it
-    # actually loaded.
+    # actually loaded. This is the full version, pre-release suffix included:
+    # PROJECT_VERSION has had any such suffix stripped for project()'s sake.
     target_compile_definitions(${blink_target} PRIVATE
-        BLINK_VERSION_STRING="${PROJECT_VERSION}")
+        BLINK_VERSION_STRING="${BLINK_VERSION}")
 endforeach()
 
 if(NOT WIN32)
@@ -280,7 +298,7 @@ target_link_libraries(KeyboardTest PRIVATE GTest::gtest GTest::gtest_main GTest:
 target_compile_definitions(KeyboardTest PRIVATE
     TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
     BLINK_STATIC
-    BLINK_VERSION_STRING="${PROJECT_VERSION}")
+    BLINK_VERSION_STRING="${BLINK_VERSION}")
 
 if(NOT WIN32)
     target_link_libraries(KeyboardTest PRIVATE ${BLINK_HIDAPI_TARGET} dl)
