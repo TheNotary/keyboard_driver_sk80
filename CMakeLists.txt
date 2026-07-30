@@ -260,6 +260,64 @@ install(FILES
     DESTINATION "${CMAKE_INSTALL_DATADIR}/blink")
 
 # ---------------------------------------------------------------------------
+# pkg-config, for consumers that cannot run CMake
+#
+# The CMake package above is the richer interface, but foreign-language
+# toolchains generally speak pkg-config instead -- the Rust crates in rust/ use
+# it as one of their discovery modes.
+# ---------------------------------------------------------------------------
+if(MSVC)
+    set(BLINK_PKGCONFIG_DEFAULT OFF)
+else()
+    set(BLINK_PKGCONFIG_DEFAULT ON)
+endif()
+option(BLINK_INSTALL_PKGCONFIG "Install a blink.pc file for pkg-config"
+    ${BLINK_PKGCONFIG_DEFAULT})
+
+if(BLINK_INSTALL_PKGCONFIG)
+    # The .pc file locates the prefix relative to itself, which keeps the
+    # release archives usable after extraction and makes
+    # `cmake --install --prefix` work: the configure-time prefix is not baked in.
+    # Computing the hop count here rather than hard-coding "../.." keeps lib64
+    # and Debian multiarch layouts correct.
+    file(RELATIVE_PATH BLINK_PC_PREFIX_FROM_PCFILEDIR
+        "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        "${CMAKE_INSTALL_PREFIX}")
+    string(REGEX REPLACE "/$" "" BLINK_PC_PREFIX_FROM_PCFILEDIR
+        "${BLINK_PC_PREFIX_FROM_PCFILEDIR}")
+
+    # GNUInstallDirs allows either form, and a .pc file has to interpolate the
+    # relative one against ${prefix} itself.
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+        set(BLINK_PC_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+    else()
+        set(BLINK_PC_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+    endif()
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+        set(BLINK_PC_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+    else()
+        set(BLINK_PC_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+    endif()
+
+    # These are what `blink_static` re-exposes; the shared library hides them.
+    if(WIN32)
+        set(BLINK_PC_REQUIRES_PRIVATE "")
+        set(BLINK_PC_LIBS_PRIVATE "-lsetupapi -lhid")
+    else()
+        set(BLINK_PC_REQUIRES_PRIVATE "hidapi-libusb")
+        set(BLINK_PC_LIBS_PRIVATE "-lstdc++")
+    endif()
+
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/blink.pc.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/blink.pc"
+        @ONLY)
+
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/blink.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+endif()
+
+# ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 if(BLINK_BUILD_TESTS)

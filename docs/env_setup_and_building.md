@@ -115,23 +115,29 @@ Targets:
 
 The arm64 runners are free for public repositories only; a private repo needs larger runners for those two legs.
 
-Every leg uses the `ci` CMake preset, which reads the triplet from `$VCPKG_TARGET_TRIPLET`, so one preset covers all four targets.  After building and running `ctest`, each leg installs to a staging prefix and then configures `test/consumer` against it — a standalone project that does nothing but `find_package(blink CONFIG REQUIRED)` and link both library targets.  That step is what actually proves the published package is usable, so keep it green.
+Every leg uses the `ci` CMake preset.  The preset points `CMAKE_TOOLCHAIN_FILE` at the vcpkg checkout bundled in this repo, so it needs no environment set up at all; CI passes `-DVCPKG_TARGET_TRIPLET` on the command line to cover all four targets, and left unset vcpkg detects the host triplet.  Do not move that into the preset as `$env{VCPKG_TARGET_TRIPLET}` — when the variable is unset it expands to an empty cache entry and vcpkg rejects it as an invalid triplet.
+
+After building and running `ctest`, each leg installs to a staging prefix and then configures `test/consumer` against it — a standalone project that does nothing but `find_package(blink CONFIG REQUIRED)` and link both library targets, from both C++ and C99.  That step is what actually proves the published package is usable, so keep it green.  The x86_64 legs additionally build and test the Rust crates in `rust/` against the same staging prefix, which is what keeps `blink-sys`' checked-in FFI declarations honest.
 
 To reproduce a CI leg locally:
 
 ```bash
-export VCPKG_ROOT="$(pwd)/vcpkg"
-export VCPKG_TARGET_TRIPLET=x64-linux
-
-cmake --preset ci
+# No VCPKG_ROOT needed: the preset uses the vcpkg checkout in this repo.
+# Drop the -D to build for the host triplet.
+cmake --preset ci -DVCPKG_TARGET_TRIPLET=x64-linux
 cmake --build --preset ci
 ctest --preset ci
 
 cmake --install build/ci --prefix "$(pwd)/stage"
 cmake -S test/consumer -B build/consumer -G Ninja \
-  -DCMAKE_PREFIX_PATH="$(pwd)/stage;$(pwd)/build/ci/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
+  -DCMAKE_PREFIX_PATH="$(pwd)/stage;$(pwd)/build/ci/vcpkg_installed/x64-linux"
 cmake --build build/consumer
 ctest --test-dir build/consumer --output-on-failure
+
+# The Rust half, linked against that same staging prefix.
+cd rust
+BLINK_LIB_DIR="$(pwd)/../stage/lib" BLINK_INCLUDE_DIR="$(pwd)/../stage/include" \
+  cargo test --workspace --no-default-features --features static
 ```
 
 #### Cutting a release
@@ -145,5 +151,7 @@ The shared library is built with `-fvisibility=hidden` and only the `extern "C"`
 ```bash
 nm -D --defined-only stage/lib/libblink.so | grep ' T '
 ```
+
+Every name that prints must start with `blink_`; CI fails the build otherwise.  That guarantee is what makes the shared library callable from any language with a C FFI, which is what the Rust crates in `rust/` rely on.
 
 `gif_to_sk80` drives the library's internal C++ classes rather than that API, so it links the static archive.

@@ -171,6 +171,51 @@ jobs:
           cmake --build build/consumer
           ctest --test-dir build/consumer --output-on-failure
 
+      # The Rust crates in rust/ are the other foreign-language consumer, and
+      # the one that exercises the header through bindgen rather than a C
+      # compiler. Only the x86_64 legs run them: the ARM legs would prove the
+      # same thing about the same header for a much longer wall clock.
+      - name: Install the Rust toolchain
+        if: inputs.target == 'x86_64-linux-gnu' || inputs.target == 'x86_64-windows-msvc'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      # Linked against the tree staged above rather than rebuilt from source, so
+      # this tests the same artefacts the release archives ship. `static` is
+      # what makes the test binaries runnable without an rpath or a PATH entry
+      # for the shared library.
+      - name: Build and test the Rust crates
+        if: inputs.target == 'x86_64-linux-gnu' || inputs.target == 'x86_64-windows-msvc'
+        working-directory: rust
+        env:
+          BLINK_LIB_DIR: ${{ env.WS }}/stage/lib
+          BLINK_INCLUDE_DIR: ${{ env.WS }}/stage/include
+          # The vendored default would configure and build the whole CMake
+          # project a second time.
+          CARGO_TERM_COLOR: always
+        run: |
+          set -euo pipefail
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets --no-default-features --features static -- -D warnings
+          cargo test --workspace --no-default-features --features static
+          cargo build --workspace --examples --no-default-features --features static
+
+      # blink-sys ships hand-written declarations so that building it needs no
+      # libclang. This re-derives them from blink.h and runs the same suite
+      # against the result: a signature or layout that has drifted fails to
+      # compile or trips the assertions in blink-sys/tests/abi.rs.
+      - name: Check the checked-in bindings against blink.h
+        if: inputs.target == 'x86_64-linux-gnu'
+        working-directory: rust
+        env:
+          BLINK_LIB_DIR: ${{ env.WS }}/stage/lib
+          BLINK_INCLUDE_DIR: ${{ env.WS }}/stage/include
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y libclang-dev
+          cargo test --workspace --no-default-features --features static,bindgen
+
       - name: Package
         env:
           TARGET: ${{ inputs.target }}

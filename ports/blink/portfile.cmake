@@ -31,6 +31,10 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME blink CONFIG_PATH share/blink)
+# The install rules emit a blink.pc for consumers that cannot run CMake, such as
+# the Rust crates. vcpkg's post-build check rejects one whose paths have not
+# been rewritten for the package layout.
+vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 
 # gif_to_sk80 drives the library's internal classes, so it is only built
