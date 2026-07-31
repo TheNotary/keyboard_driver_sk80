@@ -327,6 +327,7 @@ enable_testing()
 # Add GoogleTest
 add_executable(KeyboardTest
 	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp" "test/keyboard_sk80_test.cpp"
+	"test/keyboard_sk80_conformance_test.cpp"
 	"src/demo/keylt_loader.cpp" "src/demo/keylt_loader.h"
 	"src/libkeylt/keylt_capi.cpp" "include/main/keylt.h"
 	"src/libkeylt/keyboard.cpp" "include/main/keyboard.h"

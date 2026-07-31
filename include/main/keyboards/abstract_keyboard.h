@@ -14,6 +14,7 @@
 
 namespace keylt {
     class Keyboard;
+    class IUsbIO;
 }
 
 #endif
@@ -56,6 +57,11 @@ public:
         return this->device_info;
     };
 
+    // Optional USB I/O interface for testing. When set, SetKeysOnOff routes
+    // sends through this instead of the free-function USB layer.
+    void SetUsbIO(IUsbIO* io) { usb_io_ = io; }
+    IUsbIO* GetUsbIO() const { return usb_io_; }
+
     keylt::Keyboard* keyboard_manager;
     const UINT8 MESSAGE_LENGTH;
     const UINT8 BULK_LED_VALUE_MESSAGES_COUNT;
@@ -65,7 +71,8 @@ public:
     DeviceHandle device_handle = nullptr;
     std::unordered_map<std::string, char> keyname_keyid_mappings;
 
-private:
+protected:
+    IUsbIO* usb_io_ = nullptr;
 
 };
 

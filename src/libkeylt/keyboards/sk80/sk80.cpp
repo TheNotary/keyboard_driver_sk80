@@ -5,6 +5,7 @@
 #include "misc.h"
 #include "keyboard.h"
 #include "usb_functions.h"
+#include "usb_io.h"
 #include "keyboards/sk80/sk80.h"
 #include "keyboards/sk80/constants_sk80.h"
 #include "messages.h"
@@ -92,6 +93,34 @@ void SK80::SetKeysOnOff(KeyValue key_value, unsigned char* messages) {
         return;
     }
 
+    if (usb_io_) {
+        // Testing path: route through IUsbIO so RecordingUsbIO can capture packets.
+        auto send_via_io = [this](const unsigned char* msgs, size_t count, size_t len) {
+            const unsigned char (*buf)[65] = reinterpret_cast<const unsigned char(*)[65]>(msgs);
+            for (size_t i = 0; i < count; i++) {
+                usb_io_->SendFeatureReport(buf[i], len);
+            }
+        };
+        auto send_and_get_via_io = [this](const unsigned char* msgs, size_t count, size_t len) {
+            const unsigned char (*buf)[65] = reinterpret_cast<const unsigned char(*)[65]>(msgs);
+            unsigned char resp[65] = {0};
+            for (size_t i = 0; i < count; i++) {
+                usb_io_->SendFeatureReport(buf[i], len);
+                usb_io_->GetFeatureReport(resp, len);
+            }
+        };
+
+        send_and_get_via_io(*sk80::BULK_LED_HEADER_MESSAGES, sk80::BULK_LED_HEADER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        this->SetBytesInValuePackets(messages, key_value);
+        send_via_io(messages, sk80::BULK_LED_VALUE_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        send_and_get_via_io(*sk80::BULK_LED_FOOTER_MESSAGES, sk80::BULK_LED_FOOTER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
+        send_and_get_via_io(*sk80::FOLLOWUP_HEADER_MESSAGES, 2, sk80::MESSAGE_LENGTH);
+        send_via_io(*sk80::FOLLOWUP_PAYLOAD_MESSAGE, 1, sk80::MESSAGE_LENGTH);
+        send_and_get_via_io(*sk80::FOLLOWUP_FOOTER_MESSAGES, 2, sk80::MESSAGE_LENGTH);
+        return;
+    }
+
+    // Production path: use free-function USB layer with device_handle.
     //PrintMessagesInBuffer(*sk80::BULK_LED_HEADER_MESSAGES, sk80::BULK_LED_HEADER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     SendBufferToDeviceAndGetResp(this->device_handle, *sk80::BULK_LED_HEADER_MESSAGES, sk80::BULK_LED_HEADER_MESSAGES_COUNT, sk80::MESSAGE_LENGTH);
     std::cout << "  Sent header messages to device..." << std::endl;

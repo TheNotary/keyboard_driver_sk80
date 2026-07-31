@@ -1,0 +1,47 @@
+# SK80 LED protocol golden fixture (generated from original blink version)
+# format: <interface> <operation> <label> <size_bytes>
+#         sleep <duration_ms>ms
+control send_feature op0 65
+sleep 1ms
+control get_feature op1 65
+control send_feature op2 65
+sleep 1ms
+control get_feature op3 65
+control send_feature op4 65
+sleep 1ms
+control send_feature op5 65
+sleep 1ms
+control send_feature op6 65
+sleep 1ms
+control send_feature op7 65
+sleep 1ms
+control send_feature op8 65
+sleep 1ms
+control send_feature op9 65
+sleep 1ms
+control send_feature op10 65
+sleep 1ms
+control send_feature op11 65
+sleep 1ms
+control send_feature op12 65
+sleep 1ms
+control send_feature op13 65
+sleep 1ms
+control get_feature op14 65
+control send_feature op15 65
+sleep 1ms
+control get_feature op16 65
+control send_feature op17 65
+sleep 1ms
+control get_feature op18 65
+control send_feature op19 65
+sleep 1ms
+control get_feature op20 65
+control send_feature op21 65
+sleep 1ms
+control send_feature op22 65
+sleep 1ms
+control get_feature op23 65
+control send_feature op24 65
+sleep 1ms
+control get_feature op25 65
