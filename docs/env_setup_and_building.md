@@ -154,4 +154,4 @@ nm -D --defined-only stage/lib/libkeylt.so | grep ' T '
 
 Every name that prints must start with `keylt_`; CI fails the build otherwise.  That guarantee is what makes the shared library callable from any language with a C FFI, which is what the Rust crates in `rust/` rely on.
 
-`gif_to_sk80` drives the library's internal C++ classes rather than that API, so it links the static archive.
+The `keylt` CLI drives the library's internal C++ classes rather than that API, so it links the static archive.

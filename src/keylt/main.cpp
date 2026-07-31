@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: gif_to_sk80 <image_or_gif_path>" << std::endl;
+        std::cerr << "Usage: keylt lcd <image_or_gif_path>" << std::endl;
         return 1;
     }
 

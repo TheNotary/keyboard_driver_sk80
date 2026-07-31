@@ -33,7 +33,7 @@ option(KEYLT_BUILD_DEMO "Build the interactive demo application" ON)
 option(KEYLT_BUILD_SHARED "Build the shared library" ON)
 option(KEYLT_BUILD_STATIC "Build the static library" ON)
 # The C ABI in keylt.h is the supported interface. The internal C++ headers are
-# installed as well by default, because gif_to_sk80 and other static consumers
+# installed as well by default, because the CLI and other static consumers
 # still drive the classes directly; turn this off for an FFI-only package.
 option(KEYLT_INSTALL_CXX_HEADERS "Install the internal C++ headers alongside the C API" ON)
 
@@ -63,10 +63,10 @@ set(KEYLT_DEMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/demo")
 # ---------------------------------------------------------------------------
 if(WIN32)
     # Windows talks to the device through the native SetupAPI/hidsdi stack.
-    set(USB_SOURCES "src/keylt/usb_functions_win.cpp")
+    set(USB_SOURCES "src/libkeylt/usb_functions_win.cpp")
     set(KEYLT_HIDAPI_PROVIDER "none")
 else()
-    set(USB_SOURCES "src/keylt/usb_functions_linux.cpp")
+    set(USB_SOURCES "src/libkeylt/usb_functions_linux.cpp")
     # vcpkg installs a CMake package config; prefer it so every CI leg resolves
     # hidapi identically regardless of what the host distro happens to ship.
     find_package(hidapi CONFIG QUIET)
@@ -118,23 +118,23 @@ endif()
 # The same translation units are compiled into a shared library (for the
 # dlopen/LoadLibrary consumers this project ships) and a static archive.
 set(KEYLT_SOURCES
-	"src/keylt/keylt_capi.cpp" "include/main/keylt.h"
-	"src/keylt/print.cpp" "include/main/print.h"
-	"src/keylt/messages.cpp" "include/main/messages.h"
+	"src/libkeylt/keylt_capi.cpp" "include/main/keylt.h"
+	"src/libkeylt/print.cpp" "include/main/print.h"
+	"src/libkeylt/messages.cpp" "include/main/messages.h"
 	${USB_SOURCES} "include/main/usb_functions.h"
-	"src/keylt/keyboard.cpp" "include/main/keyboard.h"
+	"src/libkeylt/keyboard.cpp" "include/main/keyboard.h"
 	"include/main/keyboards/abstract_keyboard.h"
     "include/main/keyboards/sk80/sk80.h"
 
 	"include/main/keyboards/sk80/constants_sk80.h" "include/main/keyboards/sk80/messages_sk80.h" "include/main/keyboards/sk80/key_mappings_sk80.h"
     "include/main/keyboards/rk84/constants_rk84.h"
-	"src/keylt/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
+	"src/libkeylt/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
 	"include/main/keyboards/rk84/key_mappings_rk84.h"
 	"include/main/misc.h"
-	"src/keylt/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
-	"src/keylt/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/keylt/keyboards/sk80/sk80.cpp"
-	"src/keylt/keyboard_lcd.cpp" "include/main/keyboard_lcd.h"
-	"src/keylt/usb_io_real.cpp" "include/main/usb_io.h")
+	"src/libkeylt/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
+	"src/libkeylt/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h" "include/main/keyboards/rk84/messages_rk84.h" "src/libkeylt/keyboards/sk80/sk80.cpp"
+	"src/libkeylt/keyboard_lcd.cpp" "include/main/keyboard_lcd.h"
+	"src/libkeylt/usb_io_real.cpp" "include/main/usb_io.h")
 
 set(KEYLT_LIBRARY_TARGETS "")
 
@@ -200,15 +200,16 @@ if(NOT WIN32)
     endif()
 endif()
 
-# gif_to_sk80 uploads GIF/image files to the SK80 LCD display.
+# keylt CLI — a multi-function command-line tool.
 # It drives the internal C++ classes (KeyboardLcd, RealUsbIO) rather than the
 # extern "C" API, and those are deliberately not exported from the shared
 # library, so it links the static archive and ships self-contained.
 if(KEYLT_BUILD_STATIC)
-    add_executable(gif_to_sk80 "src/gif_to_sk80/main.cpp")
-    target_link_libraries(gif_to_sk80 PRIVATE keylt_static)
+    add_executable(keylt_cli "src/keylt/main.cpp")
+    set_target_properties(keylt_cli PROPERTIES OUTPUT_NAME "keylt")
+    target_link_libraries(keylt_cli PRIVATE keylt_static)
     if(NOT WIN32)
-        target_link_libraries(gif_to_sk80 PRIVATE dl)
+        target_link_libraries(keylt_cli PRIVATE dl)
     endif()
 endif()
 
@@ -222,7 +223,7 @@ install(TARGETS ${KEYLT_LIBRARY_TARGETS}
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
 if(KEYLT_BUILD_STATIC)
-    install(TARGETS gif_to_sk80 RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(TARGETS keylt_cli RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif()
 
 # The public C ABI. This is the only header a foreign-language consumer needs,
@@ -327,24 +328,24 @@ enable_testing()
 add_executable(KeyboardTest
 	"test/keyboard_test.cpp" "test/keyboard_rk84_test.cpp" "test/keyboard_sk80_test.cpp"
 	"src/demo/keylt_loader.cpp" "src/demo/keylt_loader.h"
-	"src/keylt/keylt_capi.cpp" "include/main/keylt.h"
-	"src/keylt/keyboard.cpp" "include/main/keyboard.h"
-	"src/keylt/print.cpp" "include/main/print.h"
+	"src/libkeylt/keylt_capi.cpp" "include/main/keylt.h"
+	"src/libkeylt/keyboard.cpp" "include/main/keyboard.h"
+	"src/libkeylt/print.cpp" "include/main/print.h"
 	${USB_SOURCES} "include/main/usb_functions.h"
-	"src/keylt/messages.cpp" "include/main/messages.h"
+	"src/libkeylt/messages.cpp" "include/main/messages.h"
     "include/main/keyboards/sk80/sk80.h"
 	"include/main/keyboards/sk80/constants_sk80.h" "include/main/keyboards/sk80/messages_sk80.h" "include/main/keyboards/sk80/key_mappings_sk80.h"
-    "src/keylt/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
+    "src/libkeylt/keyboards/rk84/rk84.cpp" "include/main/keyboards/rk84/rk84.h"
     "include/main/keyboards/rk84/constants_rk84.h" "include/main/keyboards/rk84/messages_rk84.h"
 	"include/main/keyboards/abstract_keyboard.h"
 	"include/main/misc.h"
-	"src/keylt/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
-	"src/keylt/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
+	"src/libkeylt/keyboards/keyboard_spec_factory.cpp" "include/main/keyboards/keyboard_spec_factory.h"
+	"src/libkeylt/keyboards/known_keyboards.cpp" "include/main/keyboards/known_keyboards.h"
     "src/demo/choose_keyboard.cpp" "src/demo/choose_keyboard.h" "src/demo/choose_activity.cpp" "src/demo/choose_activity.h"
-    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/keylt/keyboards/sk80/sk80.cpp"
+    "src/demo/util.cpp" "src/demo/util.h" "src/demo/activities/test_single_key.cpp" "src/demo/activities/test_single_key.h" "src/libkeylt/keyboards/sk80/sk80.cpp"
 	"test/gif_to_sk80_test.cpp"
-	"src/keylt/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h"
-	"src/keylt/usb_io_real.cpp")
+	"src/libkeylt/keyboard_lcd.cpp" "include/main/keyboard_lcd.h" "include/main/usb_io.h"
+	"src/libkeylt/usb_io_real.cpp")
 target_include_directories(KeyboardTest PRIVATE
     "${KEYLT_INCLUDE_DIR}"
     "${KEYLT_DEMO_DIR}"

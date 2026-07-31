@@ -37,10 +37,10 @@ vcpkg_cmake_config_fixup(PACKAGE_NAME keylt CONFIG_PATH share/keylt)
 vcpkg_fixup_pkgconfig()
 vcpkg_copy_pdbs()
 
-# gif_to_sk80 drives the library's internal classes, so it is only built
+# The keylt CLI drives the library's internal classes, so it is only built
 # alongside the static archive.
 if(KEYLT_STATIC)
-    vcpkg_copy_tools(TOOL_NAMES gif_to_sk80 AUTO_CLEAN)
+    vcpkg_copy_tools(TOOL_NAMES keylt AUTO_CLEAN)
 endif()
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
