@@ -1,6 +1,8 @@
 #include "cycle_keyids.h"
 
+#include <atomic>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #ifdef _WIN32
@@ -64,8 +66,8 @@ static InputAction ReadInputAction() {
     }
 
     switch (ch) {
-        case 'a': case 'h': case ',': return InputAction::Prev;
-        case 'd': case 'l': case '.': return InputAction::Next;
+        case 'a': case 'h': case ',':  return InputAction::Prev;
+        case 'd': case 'l': case '.':  return InputAction::Next;
         case ' ':                      return InputAction::PrintBuffer;
         case 'q':                      return InputAction::Quit;
         default:                       return InputAction::None;
@@ -77,6 +79,7 @@ static InputAction ReadInputAction() {
 void PrintKeyId(char key_id) {
     cout << "\r" << std::string(12, ' ');
     cout << "\r" << "KeyId: " << std::dec << (int)key_id;
+    cout.flush();
 }
 
 char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
@@ -95,6 +98,38 @@ char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
         return max_key_id;  // Therefore overflow to max_index
 
     return result;
+}
+
+// Worker thread: sends the latest desired key ID to the keyboard whenever it
+// finishes a previous send.  Skips redundant sends when the user hasn't moved.
+static void SendWorker(keylt::KeyboardInfo keyboard,
+                       std::atomic<unsigned char>& desired_key_id,
+                       std::atomic<bool>& quit_flag,
+                       std::atomic<bool>& print_requested) {
+    std::vector<unsigned char> messages_sent(
+        keyboard.BULK_LED_VALUE_MESSAGES_COUNT * keyboard.MESSAGE_LENGTH);
+
+    unsigned char last_sent = 0;  // impossible starting value (valid IDs start at 1)
+
+    while (!quit_flag.load(std::memory_order_relaxed)) {
+        unsigned char target = desired_key_id.load(std::memory_order_relaxed);
+
+        if (target != last_sent) {
+            char key_ids[] = { static_cast<char>(target) };
+            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent.data(), keyboard);
+            last_sent = target;
+        }
+
+        if (print_requested.load(std::memory_order_relaxed)) {
+            CallPrintMessagesInBuffer(messages_sent.data(),
+                                     keyboard.BULK_LED_VALUE_MESSAGES_COUNT,
+                                     keyboard.MESSAGE_LENGTH);
+            print_requested.store(false, std::memory_order_relaxed);
+        }
+
+        // Small sleep to avoid busy-spinning when the user isn't changing keys
+        Sleep(5);
+    }
 }
 
 int CycleKeyIds(keylt::KeyboardInfo keyboard) {
@@ -119,36 +154,47 @@ int CycleKeyIds(keylt::KeyboardInfo keyboard) {
     fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
 #endif
 
-    std::vector<unsigned char> messages_sent(keyboard.BULK_LED_VALUE_MESSAGES_COUNT * keyboard.MESSAGE_LENGTH);
-    char key_ids[] = { 0x01 };
+    std::atomic<unsigned char> desired_key_id{1};
+    std::atomic<bool> quit_flag{false};
+    std::atomic<bool> print_requested{false};
 
-    PrintKeyId(key_ids[0]);
-    CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent.data(), keyboard);
+    // Track the current key ID locally for input processing
+    unsigned char current_key_id = 1;
+
+    PrintKeyId(static_cast<char>(current_key_id));
+
+    // Launch the worker thread — it will pick up desired_key_id == 1 and send it
+    std::thread worker(SendWorker, keyboard,
+                       std::ref(desired_key_id),
+                       std::ref(quit_flag),
+                       std::ref(print_requested));
 
     while (true) {
         InputAction action = ReadInputAction();
 
         switch (action) {
             case InputAction::Prev:
-                key_ids[0] = IncrementKeyId(key_ids[0], -1, keyboard.max_key_id);
-                CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent.data(), keyboard);
-                PrintKeyId(key_ids[0]);
-                Sleep(40);
+                current_key_id = IncrementKeyId(static_cast<char>(current_key_id),
+                                                -1, keyboard.max_key_id);
+                desired_key_id.store(current_key_id, std::memory_order_relaxed);
+                PrintKeyId(static_cast<char>(current_key_id));
                 break;
 
             case InputAction::Next:
-                key_ids[0] = IncrementKeyId(key_ids[0], 1, keyboard.max_key_id);
-                CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent.data(), keyboard);
-                PrintKeyId(key_ids[0]);
-                Sleep(40);
+                current_key_id = IncrementKeyId(static_cast<char>(current_key_id),
+                                                1, keyboard.max_key_id);
+                desired_key_id.store(current_key_id, std::memory_order_relaxed);
+                PrintKeyId(static_cast<char>(current_key_id));
                 break;
 
             case InputAction::PrintBuffer:
-                CallPrintMessagesInBuffer(messages_sent.data(), keyboard.BULK_LED_VALUE_MESSAGES_COUNT, keyboard.MESSAGE_LENGTH);
+                print_requested.store(true, std::memory_order_relaxed);
                 Sleep(200);
                 break;
 
             case InputAction::Quit:
+                quit_flag.store(true, std::memory_order_relaxed);
+                worker.join();
 #ifndef _WIN32
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 #endif

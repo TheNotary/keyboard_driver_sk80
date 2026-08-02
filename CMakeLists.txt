@@ -96,6 +96,7 @@ endif()
 # Main is kind of a demo app meant for showcasing the project and testing keylt.dll
 # It's nice keeping main completely isolated from the source files involved with keylt and vice versa
 if(KEYLT_BUILD_DEMO)
+find_package(Threads REQUIRED)
 add_executable(main "src/demo/main.cpp"
 	"src/demo/keylt_loader.cpp" "src/demo/keylt_loader.h"
 	"src/demo/activities/push_to_light.cpp" "src/demo/activities/push_to_light.h"
@@ -109,7 +110,7 @@ target_include_directories(main PRIVATE "${KEYLT_INCLUDE_DIR}" "${KEYLT_DEMO_DIR
 # linking, so keylt.h must not decorate the declarations with dllimport.
 target_compile_definitions(main PRIVATE KEYLT_STATIC)
 if(NOT WIN32)
-    target_link_libraries(main PRIVATE dl)
+    target_link_libraries(main PRIVATE dl Threads::Threads)
 endif()
 endif()
 
