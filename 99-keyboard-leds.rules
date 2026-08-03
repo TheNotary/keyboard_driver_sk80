@@ -4,8 +4,10 @@
 
 # XVX S-K80 (VID: 05ac, PID: 024f)
 SUBSYSTEM=="usb", ATTR{idVendor}=="05ac", ATTR{idProduct}=="024f", MODE="0660", GROUP="wheel"
+KERNEL=="hidraw*", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="024f", MODE="0660", GROUP="wheel"
 
 # Royal Kludge RK84 (VID: 258a, PID: 00c0)
 SUBSYSTEM=="usb", ATTR{idVendor}=="258a", ATTR{idProduct}=="00c0", MODE="0660", GROUP="wheel"
+KERNEL=="hidraw*", ATTRS{idVendor}=="258a", ATTRS{idProduct}=="00c0", MODE="0660", GROUP="wheel"
 
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="024f", MODE="0660", GROUP="wheel"

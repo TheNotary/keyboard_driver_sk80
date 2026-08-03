@@ -72,16 +72,18 @@ else()
     find_package(hidapi CONFIG QUIET)
     if(hidapi_FOUND)
         set(KEYLT_HIDAPI_PROVIDER "config")
-        if(TARGET hidapi::libusb)
-            set(KEYLT_HIDAPI_TARGET hidapi::libusb)
-        else()
+        if(TARGET hidapi::hidraw)
+            set(KEYLT_HIDAPI_TARGET hidapi::hidraw)
+        elseif(TARGET hidapi::hidapi)
             set(KEYLT_HIDAPI_TARGET hidapi::hidapi)
+        else()
+            set(KEYLT_HIDAPI_TARGET hidapi::libusb)
         endif()
     else()
         # Fallback for distro builds against libhidapi-dev.
         set(KEYLT_HIDAPI_PROVIDER "pkgconfig")
         find_package(PkgConfig REQUIRED)
-        pkg_check_modules(HIDAPI REQUIRED IMPORTED_TARGET hidapi-libusb)
+        pkg_check_modules(HIDAPI REQUIRED IMPORTED_TARGET hidapi-hidraw)
         set(KEYLT_HIDAPI_TARGET PkgConfig::HIDAPI)
     endif()
 endif()
@@ -190,9 +192,9 @@ if(NOT WIN32)
     # so it propagates the dependency to whoever links it.
     if(KEYLT_BUILD_SHARED)
         target_link_libraries(keylt PRIVATE ${KEYLT_HIDAPI_TARGET})
-        # vcpkg hands us static hidapi/libusb archives, whose objects carry
+        # vcpkg hands us static hidapi archives, whose objects carry
         # default visibility. Without this, libkeylt.so would re-export the
-        # whole libusb ABI and could interpose on a consumer's own copy of it
+        # hidapi/libudev ABI and could interpose on a consumer's own copy
         # at runtime.
         target_link_options(keylt PRIVATE "LINKER:--exclude-libs,ALL")
     endif()

@@ -291,11 +291,11 @@ fn emit_transitive_deps() {
         return;
     }
 
-    // hidapi-libusb pulls in libusb-1.0 and libudev through its own .pc file.
+    // hidapi-hidraw pulls in libudev through its own .pc file.
     let hidapi = pkg_config::Config::new()
         .statik(true)
         .cargo_metadata(true)
-        .probe("hidapi-libusb")
+        .probe("hidapi-hidraw")
         .or_else(|_| {
             pkg_config::Config::new()
                 .statik(true)
@@ -303,8 +303,8 @@ fn emit_transitive_deps() {
                 .probe("hidapi")
         });
     if let Err(err) = hidapi {
-        println!("cargo:warning=pkg-config could not resolve hidapi ({err}); linking -lhidapi-libusb directly");
-        println!("cargo:rustc-link-lib=dylib=hidapi-libusb");
+        println!("cargo:warning=pkg-config could not resolve hidapi ({err}); linking -lhidapi-hidraw directly");
+        println!("cargo:rustc-link-lib=dylib=hidapi-hidraw");
     }
 
     // keylt is C++ even though its interface is C.
