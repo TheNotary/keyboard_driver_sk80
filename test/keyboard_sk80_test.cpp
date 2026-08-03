@@ -149,8 +149,8 @@ namespace KeyboardSK80
         EXPECT_EQ(sk_80.target_device_path[0], '\\');
         EXPECT_EQ(abstr->target_device_path[0], '\\');
 #else
-        EXPECT_EQ(sk_80.target_device_path[0], '3');
-        EXPECT_EQ(abstr->target_device_path[0], '3');
+        EXPECT_EQ(sk_80.target_device_path[0], '0');
+        EXPECT_EQ(abstr->target_device_path[0], '0');
 #endif
         EXPECT_EQ(sk_80.device_info.vid, 0x05ac);
         EXPECT_EQ(abstr->device_info.vid, 0x05ac);

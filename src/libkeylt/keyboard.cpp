@@ -1,5 +1,7 @@
 #include "keyboard.h"
 
+#include <algorithm>
+#include <cstdio>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -42,7 +44,52 @@ void Keyboard::SetupKeyboardModel(KeyboardModel keyboard_model) {
 bool Keyboard::ConnectToDevice() {
     this->device_handle = SearchForDevice(this->vid, this->pid, this->keyboard_spec->target_device_path);
     this->keyboard_spec->device_handle = this->device_handle;
-    return this->device_handle != nullptr;
+
+    if (!this->device_handle)
+        return false;
+
+    // Validate the device actually responds to feature reports by sending a
+    // no-op probe and checking that the response echoes the command bytes.
+    // This catches wrong-interface and wrong-backend issues early.
+    unsigned char probe[65] = {};
+    probe[0] = 0x00; // Report ID
+    probe[1] = 0x04;
+    probe[2] = 0x18; // START command
+
+    if (SendFeatureReport(this->device_handle, probe, sizeof(probe)) != 0) {
+        std::cerr << "Device validation failed: could not send feature report to "
+                  << std::hex << this->vid << ":" << this->pid << std::dec
+                  << " on interface " << this->keyboard_spec->target_device_path
+                  << std::endl;
+        CloseDeviceHandle(this->device_handle);
+        this->device_handle = nullptr;
+        this->keyboard_spec->device_handle = nullptr;
+        return false;
+    }
+
+    unsigned char resp[65] = {};
+    resp[0] = 0x00; // Report ID
+    int bytes_read = GetFeatureReport(this->device_handle, resp, sizeof(resp));
+    if (bytes_read < 3 || resp[1] != 0x04 || resp[2] != 0x18) {
+        std::cerr << "Device validation failed: unexpected response from "
+                  << std::hex << this->vid << ":" << this->pid << std::dec
+                  << " on interface " << this->keyboard_spec->target_device_path
+                  << std::endl;
+        if (bytes_read > 0) {
+            std::cerr << "  Response:";
+            for (int i = 0; i < std::min(bytes_read, 8); i++)
+                fprintf(stderr, " %02x", resp[i]);
+            std::cerr << std::endl;
+        } else {
+            std::cerr << "  GetFeatureReport returned " << bytes_read << std::endl;
+        }
+        CloseDeviceHandle(this->device_handle);
+        this->device_handle = nullptr;
+        this->keyboard_spec->device_handle = nullptr;
+        return false;
+    }
+
+    return true;
 }
 
 // This method is automatically called when the class goes out of scope.  It will...

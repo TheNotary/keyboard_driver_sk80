@@ -26,8 +26,11 @@ const char target_device_path[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&
 // this value at runtime; it exists so the shared code compiles.
 const char lcd_data_device_path[] = "";
 #else
-// On Linux with hidapi-libusb, filter by interface number (matches mi_03 on Windows)
-const char target_device_path[] = "3";
+// On Linux the control interface is USB interface 0 (the boot-protocol
+// keyboard interface), which accepts vendor feature reports for LED control.
+// Note: USB interface 3 (mi_03 on Windows) exists but the kernel's HID
+// driver does not bind it, so no hidraw node is created for it.
+const char target_device_path[] = "0";
 // LCD data interface — usage page 0xFF68 for raw write/read of image pages
 const char lcd_data_device_path[] = "2";
 #endif
