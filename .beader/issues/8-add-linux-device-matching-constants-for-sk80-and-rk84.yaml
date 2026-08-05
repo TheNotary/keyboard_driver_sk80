@@ -1,0 +1,26 @@
+---
+id: 8
+title: Add Linux device matching constants for SK80 and RK84
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 7
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:01:02.747675470Z
+updated_at: 2026-07-07T00:10:55.406438556Z
+closed_at: 2026-07-07T00:10:55.406437914Z
+---
+
+Adapt target_device_path constants for Linux:
+
+- Windows paths look like `\\?\hid#vid_05ac&pid_024f...`
+- Linux hidraw paths look like `/dev/hidraw0` — hidapi uses a usage_page/interface_number filter instead
+- For SK80/RK84 constants headers, add Linux-appropriate device matching criteria (usage page or interface number rather than a full path string)
+- The VID/PID match plus interface number should be sufficient
+
+Files:
+- include/main/keyboards/sk80/constants_sk80.h — add Linux interface constant
+- include/main/keyboards/rk84/constants_rk84.h — add Linux interface constant

@@ -1,0 +1,22 @@
+---
+id: 5
+title: Update .cpp files to use DeviceHandle instead of HANDLE
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 3
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:00:29.972305434Z
+updated_at: 2026-07-07T00:08:09.393933013Z
+closed_at: 2026-07-07T00:08:09.393932555Z
+---
+
+Update all .cpp files that reference HANDLE in the context of device handles to use DeviceHandle. The Windows .cpp implementation file can still cast back internally.
+
+Files:
+- src/blink/keyboard.cpp — update HANDLE → DeviceHandle
+- src/blink/keyboards/sk80/sk80.cpp — same
+- src/blink/keyboards/rk84/rk84.cpp — same

@@ -4,7 +4,7 @@
 #include <keyboards/sk80/sk80.h>
 
 using namespace sk80;
-using namespace blink;
+using namespace keylt;
 
 namespace KeyboardSK80
 {
@@ -145,8 +145,13 @@ namespace KeyboardSK80
         EXPECT_EQ(abstr->MESSAGE_LENGTH, 65);
         EXPECT_EQ(sk_80.keyname_keyid_mappings["tab"], 37);
         EXPECT_EQ(abstr->keyname_keyid_mappings["tab"], 37);
+#ifdef _WIN32
         EXPECT_EQ(sk_80.target_device_path[0], '\\');
         EXPECT_EQ(abstr->target_device_path[0], '\\');
+#else
+        EXPECT_EQ(sk_80.target_device_path[0], '0');
+        EXPECT_EQ(abstr->target_device_path[0], '0');
+#endif
         EXPECT_EQ(sk_80.device_info.vid, 0x05ac);
         EXPECT_EQ(abstr->device_info.vid, 0x05ac);
         EXPECT_EQ(sk_80.device_info.pid, 0x024f);

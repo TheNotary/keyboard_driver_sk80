@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "configurePresets": [
     {
       "name": "default",
@@ -66,6 +66,50 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
+    },
+    {
+      "name": "linux-debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI (Release)",
+      "description": "Release build used by every leg of the multi-arch pipeline. The toolchain is the vcpkg checkout bundled in this repo, so the preset needs no environment set up: run it as-is locally. CI passes -DVCPKG_TARGET_TRIPLET to cover all four targets; left unset, vcpkg detects the host triplet.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/ci",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_MANIFEST_NO_DEFAULT_FEATURES": "ON",
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "KEYLT_BUILD_TESTS": "ON",
+        "KEYLT_BUILD_DEMO": "ON",
+        "KEYLT_BUILD_BENCHMARKS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -82,6 +126,18 @@
       "displayName": "Build (Release)",
       "description": "Build with Ninja/vcpkg (Release)",
       "configuration": "Release"
+    },
+    {
+      "name": "linux-debug-build",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release-build",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci"
     }
     ],
     "testPresets": [
@@ -107,6 +163,17 @@
             "inherits": [
                 "test-ninja-vcpkg"
             ]
+        },
+        {
+            "name": "test-linux-debug",
+            "configurePreset": "linux-debug"
+        },
+        {
+            "name": "ci",
+            "configurePreset": "ci",
+            "output": {
+                "outputOnFailure": true
+            }
         }
     ]
 }

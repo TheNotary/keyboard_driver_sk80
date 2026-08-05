@@ -3,7 +3,7 @@
 namespace demo {
 
 
-int PushToLight(blink::KeyboardInfo keyboard);
+int PushToLight(keylt::KeyboardInfo keyboard);
 
 
 }

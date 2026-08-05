@@ -2,8 +2,7 @@
 #include <iostream>
 #include <memory>
 
-#include <basetsd.h>
-#include <windows.h>
+#include "platform.h"
 
 #include "misc.h"
 
@@ -13,13 +12,14 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-namespace blink {
+namespace keylt {
     class Keyboard;
+    class IUsbIO;
 }
 
 #endif
 
-namespace blink {
+namespace keylt {
 
 
 class AbstractKeyboard {
@@ -31,7 +31,7 @@ public:
 
     AbstractKeyboard(const UINT8 messageLength, const UINT8 bulkLedMessagesCount, const char* target_device_path, 
         DeviceInfo device_info, std::unordered_map<std::string, char> keyname_keyid_mappings, const UINT8 max_key_id, 
-        blink::Keyboard* keyboard_manager)
+        keylt::Keyboard* keyboard_manager)
         :
         MESSAGE_LENGTH(messageLength),
         BULK_LED_VALUE_MESSAGES_COUNT(bulkLedMessagesCount),
@@ -57,16 +57,22 @@ public:
         return this->device_info;
     };
 
-    blink::Keyboard* keyboard_manager;
+    // Optional USB I/O interface for testing. When set, SetKeysOnOff routes
+    // sends through this instead of the free-function USB layer.
+    void SetUsbIO(IUsbIO* io) { usb_io_ = io; }
+    IUsbIO* GetUsbIO() const { return usb_io_; }
+
+    keylt::Keyboard* keyboard_manager;
     const UINT8 MESSAGE_LENGTH;
     const UINT8 BULK_LED_VALUE_MESSAGES_COUNT;
     const UINT8 max_key_id;
     const char* target_device_path;
     const DeviceInfo device_info;
-    HANDLE device_handle = nullptr;
+    DeviceHandle device_handle = nullptr;
     std::unordered_map<std::string, char> keyname_keyid_mappings;
 
-private:
+protected:
+    IUsbIO* usb_io_ = nullptr;
 
 };
 

@@ -4,6 +4,6 @@
 
 namespace demo {
 
-int CycleKeyIds(blink::KeyboardInfo keyboard);
+int CycleKeyIds(keylt::KeyboardInfo keyboard);
 
 }

@@ -1,0 +1,25 @@
+---
+id: 13
+title: Verify unit tests compile and pass on Linux
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 9
+- 11
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:01:46.272031456Z
+updated_at: 2026-07-07T03:07:37.075315862Z
+closed_at: 2026-07-07T03:07:37.075314872Z
+---
+
+Ensure existing unit tests compile and pass on Linux. They test protocol/message construction, not USB I/O directly — should work once platform types are fixed.
+
+Also verify that the mock/stub for usb_functions in tests means KeyboardTest doesn't require a physical device (already the case — verify).
+
+Files:
+- test/keyboard_test.cpp
+- test/keyboard_rk84_test.cpp
+- test/keyboard_sk80_test.cpp

@@ -1,0 +1,24 @@
+---
+id: 15
+title: Add udev rules file for Linux device permissions
+type: task
+status: closed
+priority: 3
+parent: 2
+blocked_by:
+- 7
+assignees:
+- keen-cedar
+created_at: 2026-07-07T00:02:00.845307423Z
+updated_at: 2026-07-07T00:10:44.237175212Z
+closed_at: 2026-07-07T00:10:44.237174662Z
+---
+
+Add a sample udev rules file for Linux so users don't need root to access the keyboard HID device.
+
+Create `99-keyboard-leds.rules` with rules granting user access to the specific VID/PID combinations for supported keyboards (SK80, RK84).
+
+hidraw devices require root or a udev rule. Include installation instructions in README or a doc file.
+
+Files:
+- 99-keyboard-leds.rules (NEW)

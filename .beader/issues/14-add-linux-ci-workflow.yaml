@@ -1,0 +1,25 @@
+---
+id: 14
+title: Add Linux CI workflow
+type: task
+status: closed
+priority: 2
+parent: 2
+blocked_by:
+- 13
+assignees:
+- tidy-raven
+created_at: 2026-07-07T00:01:52.809042679Z
+updated_at: 2026-07-07T03:08:26.698751215Z
+closed_at: 2026-07-07T03:08:26.698750585Z
+---
+
+Add a CI workflow `.github/workflows/linux.yml`:
+
+- Ubuntu runner
+- Install hidapi-dev (or use vcpkg)
+- cmake configure + build + test
+- Ensure Windows build remains functional (regression check)
+
+Files:
+- .github/workflows/linux.yml (NEW)

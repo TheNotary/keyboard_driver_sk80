@@ -1,11 +1,20 @@
 #include "cycle_keyids.h"
 
+#include <atomic>
 #include <iostream>
+#include <thread>
 #include <vector>
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <unistd.h>
+#include <termios.h>
+#include <fcntl.h>
+static inline void Sleep(int ms) { usleep(ms * 1000); }
+#endif
 
-#include "blink_loader.h"
+#include "keylt_loader.h"
 
 using std::cout;
 using std::endl;
@@ -14,9 +23,63 @@ using std::endl;
 namespace demo {
 
 
+enum class InputAction { None, Prev, Next, PrintBuffer, Quit };
+
+#ifdef _WIN32
+static InputAction ReadInputAction() {
+    if (GetAsyncKeyState(VK_DOWN) & 0x8000
+        || GetAsyncKeyState(VK_LEFT) & 0x8000)
+        return InputAction::Prev;
+
+    if (GetAsyncKeyState(VK_UP) & 0x8000
+        || GetAsyncKeyState(VK_RIGHT) & 0x8000)
+        return InputAction::Next;
+
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+        return InputAction::PrintBuffer;
+
+    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+        return InputAction::Quit;
+
+    return InputAction::None;
+}
+#else
+static InputAction ReadInputAction() {
+    unsigned char ch;
+    ssize_t n = read(STDIN_FILENO, &ch, 1);
+    if (n != 1) return InputAction::None;
+
+    if (ch == 27) { // ESC — could be a bare ESC or start of an arrow key sequence
+        unsigned char seq[2];
+        // Arrow keys send ESC [ X atomically; bytes are already in the buffer
+        if (read(STDIN_FILENO, &seq[0], 1) == 1 && seq[0] == '[') {
+            if (read(STDIN_FILENO, &seq[1], 1) == 1) {
+                switch (seq[1]) {
+                    case 'A': return InputAction::Next; // Up
+                    case 'B': return InputAction::Prev; // Down
+                    case 'C': return InputAction::Next; // Right
+                    case 'D': return InputAction::Prev; // Left
+                }
+            }
+        }
+        return InputAction::Quit; // Bare ESC
+    }
+
+    switch (ch) {
+        case 'a': case 'h': case ',':  return InputAction::Prev;
+        case 'd': case 'l': case '.':  return InputAction::Next;
+        case ' ':                      return InputAction::PrintBuffer;
+        case 'q':                      return InputAction::Quit;
+        default:                       return InputAction::None;
+    }
+}
+#endif
+
+
 void PrintKeyId(char key_id) {
     cout << "\r" << std::string(12, ' ');
     cout << "\r" << "KeyId: " << std::dec << (int)key_id;
+    cout.flush();
 }
 
 char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
@@ -37,60 +100,112 @@ char IncrementKeyId(char value, int incrementation, UINT8 max_key_id) {
     return result;
 }
 
-int CycleKeyIds(blink::KeyboardInfo keyboard) {
+// Worker thread: sends the latest desired key ID to the keyboard whenever it
+// finishes a previous send.  Skips redundant sends when the user hasn't moved.
+static void SendWorker(keylt::KeyboardInfo keyboard,
+                       std::atomic<unsigned char>& desired_key_id,
+                       std::atomic<bool>& quit_flag,
+                       std::atomic<bool>& print_requested) {
+    std::vector<unsigned char> messages_sent(
+        keyboard.BULK_LED_VALUE_MESSAGES_COUNT * keyboard.MESSAGE_LENGTH);
+
+    unsigned char last_sent = 0;  // impossible starting value (valid IDs start at 1)
+
+    while (!quit_flag.load(std::memory_order_relaxed)) {
+        unsigned char target = desired_key_id.load(std::memory_order_relaxed);
+
+        if (target != last_sent) {
+            char key_ids[] = { static_cast<char>(target) };
+            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent.data(), keyboard);
+            last_sent = target;
+        }
+
+        if (print_requested.load(std::memory_order_relaxed)) {
+            CallPrintMessagesInBuffer(messages_sent.data(),
+                                     keyboard.BULK_LED_VALUE_MESSAGES_COUNT,
+                                     keyboard.MESSAGE_LENGTH);
+            print_requested.store(false, std::memory_order_relaxed);
+        }
+
+        // Small sleep to avoid busy-spinning when the user isn't changing keys
+        Sleep(5);
+    }
+}
+
+int CycleKeyIds(keylt::KeyboardInfo keyboard) {
     cout << "CycleKeyIds Debug Mode:" << endl
         << "The key id will be shown on the screen, and the LED for that key will be switched "
         << "on making mapping the keyboard easy.  "
         << endl << endl
-        << "Press left or right to cycle through the keyId to test.  " << endl
+        << "Press left/right (or a/d) to cycle through the keyId to test.  " << endl
         << "Press Space to print the buffer that was last transmitted to the keyboard" << endl
-        << "Press escape to exit"
+        << "Press ESC (or q) to exit"
         << endl << endl;
 
-    //std::vector<std::string> key_names = { "f11" };
+#ifndef _WIN32
+    // Set terminal to raw mode for non-blocking input
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_cc[VMIN] = 0;
+    newt.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
+#endif
 
-    unsigned char* messages_sent = new unsigned char [keyboard.BULK_LED_VALUE_MESSAGES_COUNT * keyboard.MESSAGE_LENGTH];
+    std::atomic<unsigned char> desired_key_id{1};
+    std::atomic<bool> quit_flag{false};
+    std::atomic<bool> print_requested{false};
 
-    //unsigned char messages_sent[3][keyboard.MESSAGE_LENGTH] = { 0 };
-    char key_ids[] = { 0x01 };
+    // Track the current key ID locally for input processing
+    unsigned char current_key_id = 1;
 
-    PrintKeyId(key_ids[0]);
-    CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
+    PrintKeyId(static_cast<char>(current_key_id));
+
+    // Launch the worker thread — it will pick up desired_key_id == 1 and send it
+    std::thread worker(SendWorker, keyboard,
+                       std::ref(desired_key_id),
+                       std::ref(quit_flag),
+                       std::ref(print_requested));
 
     while (true) {
-        if (GetAsyncKeyState(VK_DOWN) & 0x8000
-            || GetAsyncKeyState(VK_LEFT) & 0x8000) { // PREV
-            key_ids[0] = IncrementKeyId(key_ids[0], -1, keyboard.max_key_id);
-            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
-            PrintKeyId(key_ids[0]);
+        InputAction action = ReadInputAction();
 
-            Sleep(40); // Simple debounce delay
-        }
+        switch (action) {
+            case InputAction::Prev:
+                current_key_id = IncrementKeyId(static_cast<char>(current_key_id),
+                                                -1, keyboard.max_key_id);
+                desired_key_id.store(current_key_id, std::memory_order_relaxed);
+                PrintKeyId(static_cast<char>(current_key_id));
+                break;
 
-        if (GetAsyncKeyState(VK_UP) & 0x8000
-            || GetAsyncKeyState(VK_RIGHT) & 0x8000) { // NEXT
-            key_ids[0] = IncrementKeyId(key_ids[0], 1, keyboard.max_key_id);
-            CallTurnOnKeyIdsD(key_ids, sizeof(key_ids), messages_sent, keyboard);
-            PrintKeyId(key_ids[0]);
+            case InputAction::Next:
+                current_key_id = IncrementKeyId(static_cast<char>(current_key_id),
+                                                1, keyboard.max_key_id);
+                desired_key_id.store(current_key_id, std::memory_order_relaxed);
+                PrintKeyId(static_cast<char>(current_key_id));
+                break;
 
-            Sleep(40);
-        }
+            case InputAction::PrintBuffer:
+                print_requested.store(true, std::memory_order_relaxed);
+                Sleep(200);
+                break;
 
-        if (GetAsyncKeyState(VK_SPACE) & 0x8000) {  // print packet buffer
-            CallPrintMessagesInBuffer(messages_sent, keyboard.BULK_LED_VALUE_MESSAGES_COUNT, keyboard.MESSAGE_LENGTH);
+            case InputAction::Quit:
+                quit_flag.store(true, std::memory_order_relaxed);
+                worker.join();
+#ifndef _WIN32
+                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+                return 0;
 
-            Sleep(200);
-        }
-
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-            return 0;
+            case InputAction::None:
+                break;
         }
 
         Sleep(10);
     }
-
-    delete[] messages_sent;
-	return 0;
 }
 
 

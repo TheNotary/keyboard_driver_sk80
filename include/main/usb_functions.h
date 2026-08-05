@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
-#include <windows.h>
+#include "platform.h"
 #include "misc.h"
 
-namespace blink {
+namespace keylt {
 
 
 void PrintMessagesInBuffer(const unsigned char* buffer, size_t message_count, size_t message_length);
@@ -19,7 +19,15 @@ void PrintMessageInBuffer(const unsigned char* buffer, size_t i, size_t message_
  * @param target_device_path A c-string representing the device path that should be interfaced with
  * @return HANDLE
  */
-HANDLE SearchForDevice(short vid, short pid, const char* target_device_path);
+DeviceHandle SearchForDevice(short vid, short pid, const char* target_device_path);
+
+/**
+ * Closes a device handle obtained from SearchForDevice or SearchForLcdDataDevice.
+ * Passing nullptr is a no-op.
+ *
+ * @param deviceHandle The handle to close
+ */
+void CloseDeviceHandle(DeviceHandle deviceHandle);
 
 /**
  * Sends a buffer to a USB device.  This function will only issue a SetReport message for each packet sent.
@@ -31,7 +39,7 @@ HANDLE SearchForDevice(short vid, short pid, const char* target_device_path);
  * @return HANDLE
  */
 void SendBufferToDevice(
-    HANDLE deviceHandle, const unsigned char* messages_ptr,
+    DeviceHandle deviceHandle, const unsigned char* messages_ptr,
     size_t messageCount, size_t messageLength
 );
 
@@ -45,7 +53,7 @@ void SendBufferToDevice(
  * @return HANDLE
  */
 void SendBufferToDeviceAndGetResp(
-    HANDLE deviceHandle, const unsigned char* messages,
+    DeviceHandle deviceHandle, const unsigned char* messages,
     size_t messageCount, size_t messageLength
 );
 
@@ -56,6 +64,58 @@ void SendBufferToDeviceAndGetResp(
  * @return std::vector<KeyboardInfo> A list of available, currently connected keyboards
  */
 std::vector<KeyboardInfo> ListAvailableKeyboards();
+
+/**
+ * Searches for an LCD data HID interface by enumerating all devices matching vid/pid
+ * and skipping the control interface.
+ *
+ * @param vid The Vendor ID of the device
+ * @param pid The Product ID of the device
+ * @param control_interface_number The interface number to skip (the control interface)
+ * @return DeviceHandle to the LCD data interface or nullptr
+ */
+DeviceHandle SearchForLcdDataDevice(short vid, short pid, int control_interface_number);
+
+/**
+ * Sends a feature report to the device (public wrapper).
+ *
+ * @param deviceHandle The handle to the device
+ * @param data The feature report data (first byte is report ID)
+ * @param length The length of the data
+ * @return 0 on success, non-zero on failure
+ */
+int SendFeatureReport(DeviceHandle deviceHandle, const unsigned char* data, size_t length);
+
+/**
+ * Reads a feature report from the device.
+ *
+ * @param deviceHandle The handle to the device
+ * @param buffer Buffer to fill with the response (first byte is report ID)
+ * @param length The size of the buffer
+ * @return Number of bytes read, or -1 on failure
+ */
+int GetFeatureReport(DeviceHandle deviceHandle, unsigned char* buffer, size_t length);
+
+/**
+ * Writes raw data to a device via HID output report.
+ *
+ * @param deviceHandle The handle to the device
+ * @param data The data to write (first byte is report ID)
+ * @param length The length of the data
+ * @return Number of bytes written, or -1 on failure
+ */
+int WriteDataToDevice(DeviceHandle deviceHandle, const unsigned char* data, size_t length);
+
+/**
+ * Reads data from a device via HID input report with a timeout.
+ *
+ * @param deviceHandle The handle to the device
+ * @param buffer Buffer to fill with the received data
+ * @param length The size of the buffer
+ * @param timeout_ms Timeout in milliseconds (-1 for blocking)
+ * @return Number of bytes read, 0 on timeout, or -1 on failure
+ */
+int ReadFromDevice(DeviceHandle deviceHandle, unsigned char* buffer, size_t length, int timeout_ms);
     
 
 }

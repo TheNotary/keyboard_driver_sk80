@@ -4,7 +4,7 @@
 #include <keyboards/rk84/rk84.h>
 
 using namespace rk84;
-using namespace blink;
+using namespace keylt;
 
 namespace KeyboardRK84
 {
@@ -51,8 +51,13 @@ namespace KeyboardRK84
         EXPECT_EQ(abstr->MESSAGE_LENGTH, 65);
         EXPECT_EQ(rk_84.keyname_keyid_mappings["tab"], 3);
         EXPECT_EQ(abstr->keyname_keyid_mappings["tab"], 3);
+#ifdef _WIN32
         EXPECT_EQ(rk_84.target_device_path[0], '\\');
         EXPECT_EQ(abstr->target_device_path[0], '\\');
+#else
+        EXPECT_EQ(rk_84.target_device_path[0], '1');
+        EXPECT_EQ(abstr->target_device_path[0], '1');
+#endif
         EXPECT_EQ(rk_84.device_info.vid, 0x258a);
         EXPECT_EQ(abstr->device_info.vid, 0x258a);
         EXPECT_EQ(rk_84.max_key_id, 96);

@@ -1,0 +1,35 @@
+---
+id: 2
+title: Enable Linux build support via hidapi
+type: feature
+status: closed
+priority: 1
+parent: 1
+created_at: 2026-07-07T00:00:01.492618850Z
+updated_at: 2026-07-07T03:08:43.809721954Z
+closed_at: 2026-07-07T03:08:43.809721414Z
+---
+
+## Summary
+
+Enable this Windows-only HID keyboard driver to build and run on Linux by introducing hidapi as the Linux USB/HID backend, a platform compatibility header to eliminate Windows types from public interfaces, platform-specific implementation files selected at CMake time, and the necessary build system changes.
+
+## User Message
+
+Create issues from the following plan. The plan is for enabling a C++ keyboard driver project (currently Windows-only) to build and run on Linux using hidapi.
+
+## Plan
+
+The plan consists of 5 phases:
+1. Platform Compatibility Layer - introduce platform.h, remove Windows types from public headers
+2. Split USB Implementation Files - separate Windows/Linux USB code, CMake selects which to compile
+3. Build System Changes - CMake platform selection, hidapi dependency, Linux presets
+4. hidapi Implementation Details - byte-perfect mapping of Windows HID calls to hidapi
+5. Testing & Verification - ensure tests pass, add CI workflow
+
+Key decisions:
+- hidapi chosen as Linux HID backend (vcpkg-available, maps cleanly to SetFeature/GetReport)
+- Platform impl files with #ifdef in headers (not runtime polymorphism)
+- Typedefs in platform.h to keep Windows type names on both platforms
+- No hidapi on Windows — existing Windows SDK code preserved as-is
+- target_device_path on Linux becomes interface_number matching

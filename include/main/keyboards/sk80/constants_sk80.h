@@ -12,10 +12,33 @@ const UINT8 MESSAGE_LENGTH = 65;
 const UINT8 BULK_LED_VALUE_MESSAGES_COUNT = 9;
 const UINT8 BULK_LED_HEADER_MESSAGES_COUNT = 2;
 const UINT8 BULK_LED_FOOTER_MESSAGES_COUNT = 2;
-const blink::KeyValueBytesPair on_off_mappings = {
-	{ blink::kOn, 0xff },
-	{ blink::kOff, 0x00 }
+const keylt::KeyValueBytesPair on_off_mappings = {
+	{ keylt::kOn, 0xff },
+	{ keylt::kOff, 0x00 }
 };
+// Both branches below must declare the same set of identifiers. A name that
+// exists in only one branch compiles on one platform and fails on the other.
+#ifdef _WIN32
 const char target_device_path[] = "\\\\?\\hid#vid_05ac&pid_024f&mi_03#8&6cca243&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+// TODO: the Windows HID path for the LCD data interface has not been captured
+// yet. The Windows LCD backend (SearchForLcdDataDevice / WriteDataToDevice /
+// ReadFromDevice in usb_functions_win.cpp) is still a stub, so nothing reads
+// this value at runtime; it exists so the shared code compiles.
+const char lcd_data_device_path[] = "";
+#else
+// On Linux the control interface is USB interface 0 (the boot-protocol
+// keyboard interface), which accepts vendor feature reports for LED control.
+// Note: USB interface 3 (mi_03 on Windows) exists but the kernel's HID
+// driver does not bind it, so no hidraw node is created for it.
+const char target_device_path[] = "0";
+// LCD data interface — usage page 0xFF68 for raw write/read of image pages
+const char lcd_data_device_path[] = "2";
+#endif
+
+// LCD display constants
+const int LCD_W = 160;
+const int LCD_H = 96;
+const int LCD_PAGE_SIZE = 4096;
+const int LCD_MAX_FRAMES = 141;
 
 }

@@ -2,14 +2,14 @@
 
 #include <string>
 #include <unordered_map>
-#include <windows.h>
+#include "platform.h"
 #include <memory>
 
 #include "misc.h"
 #include "usb_functions.h"
 #include "keyboards/abstract_keyboard.h"
 
-namespace blink {
+namespace keylt {
 
 
 /**
@@ -26,6 +26,11 @@ public:
      ~Keyboard() {
          Dispose();  // Automatically clean up resources
      }
+
+     // The instance owns keyboard_spec and the device handle outright, and the
+     // destructor releases both. Copying would free them twice.
+     Keyboard(const Keyboard&) = delete;
+     Keyboard& operator=(const Keyboard&) = delete;
 
      // convenience
      void TurnOnActiveKeys();
@@ -66,13 +71,17 @@ public:
      UINT8 n_active_keys = 0;
 
      // This class is injected and provides functionality specific to the given keyboard model
-     AbstractKeyboard* keyboard_spec;
+     AbstractKeyboard* keyboard_spec = nullptr;
+
+     // Capacity of the active key buffer. The last slot is reserved for the
+     // null terminator SetActiveKeyIds appends.
+     static constexpr int kMaxActiveKeys = 256;
 
 private:
-     HANDLE device_handle;
+     DeviceHandle device_handle = nullptr;
      short vid; //  = 0x05ac
      short pid; //  = 0x024f
-     char active_key_ids[256] = { 0 };
+     char active_key_ids[kMaxActiveKeys] = { 0 };
      KeyboardModel keyboard_model;
 
      void SetupKeyboardModel(KeyboardModel keyboard_model);

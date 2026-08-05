@@ -2,3 +2,7 @@ build/
 builds/
 vcpkg_installed/
 .vs/
+stage/
+# Scratch output written by sk80_upload_final.py --dry-run at the repo root.
+# The committed reference copies live in test/fixtures/.
+/my-output*
